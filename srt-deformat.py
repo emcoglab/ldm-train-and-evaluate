@@ -10,15 +10,15 @@ def main():
     # Ignore files already processed and overwrite them?
     start_over = False
 
-    raw_subtitle_dir = "/Users/caiwingfield/Langboot/Corpora/BBC/BBC Subtitle Corpus (raw 45k)"
-    processed_subtitle_dir = "/Users/caiwingfield/Langboot/Corpora/BBC/BBC Subtitles (no formatting)"
+    raw_subs_dir       = "/Users/caiwingfield/Langboot local/Corpora/BBC/0 Raw"
+    processed_subs_dir = "/Users/caiwingfield/Langboot local/Corpora/BBC/1 No srt formatting"
 
-    subtitle_paths = list(glob.iglob(os.path.join(raw_subtitle_dir, '*.srt')))
+    subtitle_paths = list(glob.iglob(os.path.join(raw_subs_dir, '*.srt')))
 
     count = 0
     for subtitle_path in subtitle_paths:
         count += 1
-        target_path = os.path.join(processed_subtitle_dir, os.path.basename(subtitle_path))
+        target_path = os.path.join(processed_subs_dir, os.path.basename(subtitle_path))
 
         # If we've already processed this file, skip it.
         if os.path.isfile(target_path) and not start_over:
