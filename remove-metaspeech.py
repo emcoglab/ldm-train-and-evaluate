@@ -49,8 +49,8 @@ def main():
                         prints("    Skipping suspected stage direction: {line}".format(line=line.strip(" \n")))
                         continue
                     else:
-                        # strip of leading/trailing punctuation and whitespace
-                        target_file.write(line.strip('\'\" \n-'))
+                        # strip of leading/trailing punctuation and whitespace. But add a
+                        target_file.write(line.strip('\'\"-'))
 
         prints("{file_i:05d}: Processed {file_name}".format(file_i=count, file_name=target_path))
 
