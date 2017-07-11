@@ -37,7 +37,6 @@ def main():
 
         # If we've already processed this file, skip it.
         if os.path.isfile(target_path) and not start_over:
-            prints("{file_i:05d}: SKIPPING {file_name}".format(file_i=count, file_name=target_path))
             continue
 
         with open(source_path, mode="r", encoding="utf-8", errors="ignore") as source_file:
@@ -46,13 +45,12 @@ def main():
 
                     # Skip stage directions
                     if is_suspected_stage_direction(line):
-                        prints("    Skipping suspected stage direction: {line}".format(line=line.strip(" \n")))
+                        # Log what we're skipping
+                        print("{line}".format(line=line.strip(".()- \n")))
                         continue
                     else:
-                        # strip of leading/trailing punctuation and whitespace. But add a
+                        # strip of leading/trailing punctuation and whitespace, but add a newline
                         target_file.write(line.strip('\'\"-'))
-
-        prints("{file_i:05d}: Processed {file_name}".format(file_i=count, file_name=target_path))
 
 
 if __name__ == "__main__":
