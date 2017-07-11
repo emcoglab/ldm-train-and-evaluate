@@ -9,16 +9,16 @@ def is_suspected_stage_direction(line):
     # We look for expected stage directions
 
     # Strip leading and trailing punctuation and whitespace
-    test_line = line.strip(string.punctuation + " \n")
+    line_stripped = line.strip(string.punctuation + " \n")
 
     # A suspected stage direction is...
     return (
         # All uppercase
-        test_line.isupper()
+        line.isupper()
         # Not a permitted all-uppercase phrase (e.g. "I...")
-        and test_line not in ['A', 'I', 'OK']
+        and line_stripped not in ['A', 'I', 'OK']
         # Doesn't contain a character which betrays this is probably speech ("GO TO HELL!")
-        and not any(char in set("!?,.") for char in test_line))
+        and not any(char in set("!?,.") for char in line))
 
 
 def main():
