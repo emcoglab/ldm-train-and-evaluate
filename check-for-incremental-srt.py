@@ -16,9 +16,13 @@ def main():
         last_line = ""
         for sub in subs:
             this_line = sub.content
-            this_line.replace("\n", " ")
-            this_line.strip()
-            if last_line != "" and not last_line.isspace() and not this_line.isspace() and last_line in this_line:
+            #this_line.replace("\n", " ")
+            this_line.strip(" .")
+            if (last_line != ""
+                and not last_line.isspace()
+                and last_line in this_line
+                and "#" not in this_line
+                and "-" not in this_line):
                 print(f"{path}:\t***\t\"{last_line}\"\t⊑\t\"{this_line}\"")
             last_line = this_line
 
