@@ -1,8 +1,7 @@
-from modified_treebank import *
-
 import nltk.corpus as corpus
 
 from cw_common import *
+from modified_treebank import modified_word_tokenize
 
 
 def main():
