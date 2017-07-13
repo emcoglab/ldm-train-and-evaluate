@@ -16,10 +16,6 @@ _treebank_word_tokenizer.ENDING_QUOTES.insert(0, (improved_close_quote_regex, r'
 _treebank_word_tokenizer.PUNCTUATION.insert(0, (improved_punct_regex, r'\1 \2 \3 '))
 _treebank_word_tokenizer.PUNCTUATION.insert(0, (improved_currency_regex, r' \g<0> '))
 
-# string.punctuation  = r"""!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
-# same as above but we don't want to ignore $%&@+=
-ignorable_punctuation = r"""!"#'()*,-./:;<>?[\]^_`{|}~"""
-
 
 def modified_word_tokenize(text, language='english', preserve_line=False):
     """
