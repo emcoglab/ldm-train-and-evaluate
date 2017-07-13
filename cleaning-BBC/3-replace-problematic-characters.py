@@ -1,8 +1,10 @@
 import glob
 import os
-import string
+import sys
+import logging
 
-from cw_common import *
+
+logger = logging.getLogger()
 
 
 def main():
@@ -31,8 +33,12 @@ def main():
                     target_file.write(fixed_line)
 
         if i % 1000 == 0:
-            prints("Processed {count:02d} files".format(count=i))
+            logger.info("Processed {count:02d} files".format(count=i))
 
 
 if __name__ == "__main__":
+    logging.basicConfig(format='%(asctime)s | %(levelname)s | %(module)s | %(message)s', datefmt="%Y-%m-%d %H:%M:%S",
+                        level=logging.INFO)
+    logger.info("running %s" % " ".join(sys.argv))
     main()
+    logger.info("Done!")

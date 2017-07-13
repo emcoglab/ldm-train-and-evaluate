@@ -1,8 +1,11 @@
 import glob
 import os
+import sys
 import string
+import logging
 
-from cw_common import *
+
+logger = logging.getLogger()
 
 
 def is_suspected_nonspeech(line):
@@ -72,4 +75,8 @@ def main():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(format='%(asctime)s | %(levelname)s | %(module)s | %(message)s', datefmt="%Y-%m-%d %H:%M:%S",
+                        level=logging.INFO)
+    logger.info("running %s" % " ".join(sys.argv))
     main()
+    logger.info("Done!")

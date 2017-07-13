@@ -1,9 +1,11 @@
 import glob
 import os
+import sys
+import logging
 
 import srt
 
-from cw_common import *
+logger = logging.getLogger()
 
 
 def main():
@@ -22,7 +24,7 @@ def main():
 
         # If we've already processed this file, skip it.
         if os.path.isfile(target_path) and not start_over:
-            prints("{file_i:05d}: SKIPPING {file_name}".format(file_i=count, file_name=target_path))
+            logger.info("{file_i:05d}: SKIPPING {file_name}".format(file_i=count, file_name=target_path))
             continue
 
         with open(subtitle_path, mode="r", encoding="utf-8", errors="ignore") as subtitle_file:
@@ -34,8 +36,12 @@ def main():
             for sub in subs:
                 target_file.write(sub.content + "\n")
 
-        prints("{file_i:05d}: Processed {file_name}".format(file_i=count, file_name=target_path))
+        logger.info("{file_i:05d}: Processed {file_name}".format(file_i=count, file_name=target_path))
 
 
 if __name__ == "__main__":
+    logging.basicConfig(format='%(asctime)s | %(levelname)s | %(module)s | %(message)s', datefmt="%Y-%m-%d %H:%M:%S",
+                        level=logging.INFO)
+    logger.info("running %s" % " ".join(sys.argv))
     main()
+    logger.info("Done!")
