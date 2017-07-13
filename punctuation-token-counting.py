@@ -5,11 +5,11 @@ import nltk
 import nltk.corpus as corpus
 
 from cw_common import *
-from modified_treebank import modified_word_tokenize
+from modified_tokeniser import modified_word_tokenize
 
 
 def main():
-    corpus_root = "/Users/caiwingfield/Langboot local/Corpora/BBC/2 No metaspeech"
+    corpus_root = "/Users/caiwingfield/Langboot local/Corpora/BBC/3 Replaced symbols"
 
     corpus_text = corpus.PlaintextCorpusReader(
         corpus_root, ".*\.srt")

@@ -32,6 +32,9 @@ def main():
                     # target_file.write(fixed_line.strip('\'\"-'))
                     target_file.write(fixed_line)
 
+        if count % 1000 == 0:
+            prints("Processed {count:02d} files".format(count=count))
+
 
 if __name__ == "__main__":
     main()
