@@ -14,9 +14,7 @@ def main():
 
     subs_source_paths = list(glob.iglob(os.path.join(subs_source_dir, '*.srt')))
 
-    count = 0
-    for source_path in subs_source_paths:
-        count += 1
+    for i, source_path in enumerate(subs_source_paths):
         target_path = os.path.join(subs_target_dir, os.path.basename(source_path))
 
         # If we've already processed this file, skip it.
@@ -32,8 +30,8 @@ def main():
                     # target_file.write(fixed_line.strip('\'\"-'))
                     target_file.write(fixed_line)
 
-        if count % 1000 == 0:
-            prints("Processed {count:02d} files".format(count=count))
+        if i % 1000 == 0:
+            prints("Processed {count:02d} files".format(count=i))
 
 
 if __name__ == "__main__":
