@@ -9,7 +9,7 @@ import gensim as gs
 import nltk
 import nltk.corpus
 
-from modified_tokeniser import modified_word_tokenize, ignorable_punctuation
+from core.modified_tokeniser import modified_word_tokenize, ignorable_punctuation
 
 logger = logging.getLogger()
 

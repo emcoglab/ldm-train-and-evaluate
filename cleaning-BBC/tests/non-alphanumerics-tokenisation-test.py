@@ -1,7 +1,7 @@
 import nltk.corpus as corpus
 
 from cw_common import *
-from modified_tokeniser import modified_word_tokenize
+from core.modified_tokeniser import modified_word_tokenize
 
 
 def main():
