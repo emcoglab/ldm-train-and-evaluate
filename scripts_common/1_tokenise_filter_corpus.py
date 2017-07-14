@@ -7,14 +7,8 @@ import pickle
 import nltk
 import nltk.corpus
 
-# oh god python is garbage sometimes
-# to import a module from a sister directory you have to do this
-sys.path.append(os.path.abspath('../core'))
-# But pycharm doesn't understand it and thinks the modules don't exist
-# noinspection PyUnresolvedReferences
-import modified_tokenizer
-# noinspection PyUnresolvedReferences
-import ignorable_punctuation
+from ..core.modified_tokenizer import modified_word_tokenize
+from ..core.ignorable_punctuation import ignorable_punctuation
 
 
 logger = logging.getLogger()
@@ -47,7 +41,7 @@ def main():
 
     logger.info("Loading and tokenising corpus")
 
-    corpus = modified_tokenizer.modified_word_tokenize(
+    corpus = modified_word_tokenize(
         nltk.corpus.PlaintextCorpusReader(
             # Any file with name and extension
             unfiltered_corpus_dir, ".+\..+"
@@ -63,7 +57,7 @@ def main():
 
     corpus = [token
               for token in corpus
-              if not re.fullmatch('[' + ignorable_punctuation.ignorable_punctuation + ']+', token)
+              if not re.fullmatch('[' + ignorable_punctuation + ']+', token)
               and words_freq_dist[token] >= min_freq]
 
     logger.info(f"{len(corpus)} tokens remaining in corpus after filtering")
