@@ -10,7 +10,6 @@ import nltk.corpus
 from ..core.modified_tokenizer import modified_word_tokenize
 from ..core.ignorable_punctuation import ignorable_punctuation
 
-
 logger = logging.getLogger()
 
 
@@ -51,9 +50,12 @@ def main():
 
     min_freq = 0
 
-    logger.info("Filtering corpus based on token frequency")
-    logger.info(f"Removing all tokens appearing fewer than {min_freq} times")
+    logger.info(f"Filtering corpus based on token frequency")
     logger.info(f"{len(corpus)} tokens in corpus before filtering")
+
+    logger.info(f"Removing punctuation tokens ({ignorable_punctuation})")
+    if min_freq > 0:
+        logger.info(f"Removing all tokens appearing fewer than {min_freq} times")
 
     corpus = [token
               for token in corpus
