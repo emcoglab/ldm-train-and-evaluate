@@ -10,28 +10,22 @@ bnc_text_for_speech_dir=/Users/caiwingfield/Langboot\ local/Corpora/BNC/1\ Text\
 combined_speech_dir=/Users/caiwingfield/Langboot\ local/Corpora/Combined/0\ SPEECH
 combined_text_dir=/Users/caiwingfield/Langboot\ local/Corpora/Combined/0\ TEXT
 
-echo "========"
-echo "Copying speech documents"
-echo "========"
-echo "Copying BBC subtitles"
+# Have to do it in loops because there are too many files for cp to handle them all at once
+
+echo "Copying BBC subtitles to speech corpus"
 for f in "$bbc_dir"/* ; do
     cp "$f" "$combined_speech_dir"
 done
-echo "--------"
-echo "Copying BNC speech"
+echo "Copying BNC speech to speech corpus"
 for f in "$bnc_speech_dir"/* ; do
     cp "$f" "$combined_speech_dir"
 done
-echo "--------"
-echo "Copying BNC text-for-speech"
+echo "Copying BNC text-for-speech to speech corpus"
 for f in "$bnc_text_for_speech_dir"/* ; do
     cp "$f" "$combined_speech_dir"
 done
 
-echo "========"
-echo "Copying text documents"
-echo "========"
-echo "Copying BNC text"
+echo "Copying BNC text to text corpus"
 for f in "$bnc_text_dir"/* ; do
     cp "$f" "$combined_text_dir"
 done
