@@ -10,35 +10,36 @@ from ..core.filtering import filter_frequency
 logger = logging.getLogger()
 
 
-def main(corpus_dir_1, corpus_dir_2):
-    logger.info(f"Loading 1st corpus' documents from {corpus_dir_1}")
-    corpus_1 = nltk.corpus.PlaintextCorpusReader(corpus_dir_1, ".+\..+")
+def main(corpus_dir, wordlist_dir):
+    logger.info(f"Loading corpus' documents from {corpus_dir}")
+    corpus = nltk.corpus.PlaintextCorpusReader(corpus_dir, ".+\..+")
+
     logger.info(f"Tokenising corpus")
-    corpus_1 = [w.lower() for w in modified_word_tokenize(corpus_1.raw())]
-    vocab_1 = set(corpus_1)
+    corpus = [w.lower() for w in modified_word_tokenize(corpus.raw())]
+    vocab_corpus = set(corpus)
 
-    logger.info(f"Loading 2nd corpus' documents from {corpus_dir_2}")
-    corpus_2 = nltk.corpus.PlaintextCorpusReader(corpus_dir_2, ".+\..+")
-    logger.info(f"Tokenising corpus")
-    corpus_2 = [w.lower() for w in modified_word_tokenize(corpus_2.raw())]
-    vocab_2 = set(corpus_2)
+    logger.info(f"Loading wordlist from {wordlist_dir}")
+    wordlist = nltk.corpus.PlaintextCorpusReader(wordlist_dir, ".+\..+")
+    wordlist = [w.lower() for w in modified_word_tokenize(wordlist.raw())]
+    vocab_wordlist = set(wordlist)
 
-    logger.info(f"Corpus 1 has a vocab of size {len(vocab_1)}")
-    logger.info(f"Corpus 2 has a vocab of size {len(vocab_2)}")
+    logger.info(f"Corpus has a vocab of size {len(vocab_corpus)}")
+    logger.info(f"Wordlist has a vocab of size {len(vocab_wordlist)}")
 
-    overlap = set.intersection(vocab_1, vocab_2)
+    logger.info(f"Overlap has a size of {len(set.intersection(vocab_corpus, vocab_wordlist))}")
 
-    logger.info(f"Overlap has a size of {len(overlap)}")
+    logger.info(f"\tMissing words: {vocab_wordlist - vocab_corpus}")
 
     logger.info("Checking overlap with frequency-filtered 1st corpus")
 
-    frequency_dist_1 = nltk.probability.FreqDist(corpus_1)
+    frequency_dist = nltk.probability.FreqDist(corpus)
 
     for cutoff_freq in [1, 5, 10, 50, 100, 500, 1000]:
-        vocab_1 = set([token for token in filter_frequency(corpus_1, min_freq=cutoff_freq+1, freq_dist=frequency_dist_1)])
-        overlap = set.intersection(vocab_1, vocab_2)
-        logger.info(f"Overlap with cutoff freq {cutoff_freq} has a size of {len(overlap)}")
-
+        vocab_corpus = set(
+            [token for token in filter_frequency(corpus, min_freq=cutoff_freq + 1, freq_dist=frequency_dist)])
+        logger.info(
+            f"Overlap with cutoff freq {cutoff_freq} has a size of {len(set.intersection(vocab_corpus, vocab_wordlist))}")
+        logger.info(f"\tMissing words: {vocab_wordlist - vocab_corpus}")
 
 
 if __name__ == "__main__":
@@ -50,10 +51,10 @@ if __name__ == "__main__":
     logger.info("")
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("corpus_dir_1")
-    parser.add_argument("corpus_dir_2")
+    parser.add_argument("corpus")
+    parser.add_argument("wordlist")
     args = vars(parser.parse_args())
 
-    main(corpus_dir_1=args["corpus_dir_1"], corpus_dir_2=args["corpus_dir_2"])
+    main(corpus_dir=args["corpus"], wordlist_dir=args["wordlist"])
 
     logger.info("Done!")
