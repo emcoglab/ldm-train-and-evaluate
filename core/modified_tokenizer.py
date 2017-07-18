@@ -14,7 +14,8 @@ improved_currency_regex = re.compile(r'([£€¥])')
 # Add extra punctuation which should split words
 #   \u2026 …
 #   \u2013 –
-extra_punct_regex = re.compile(r"([\u2026\u2013])", re.U)
+#   \u00b0 °
+extra_punct_regex = re.compile(r"([…–°])", re.U)
 
 _treebank_word_tokenizer.STARTING_QUOTES.insert(0, (improved_open_quote_regex, r' \1 '))
 _treebank_word_tokenizer.ENDING_QUOTES.insert(0, (improved_close_quote_regex, r' \1 '))
@@ -26,7 +27,8 @@ _treebank_word_tokenizer.PUNCTUATION.insert(0, (extra_punct_regex, r' \g<0> '))
 def modified_word_tokenize(text, language='english', preserve_line=False):
     """
     A modified version of NLTK's recommended word tokenizer
-    The tokenizer has been modified to treat currency symbols £, €, ¥ in the same way as $.
+    The tokenizer has been modified to treat currency symbols £, €, ¥ in the same way as $, as well as some other
+    symbols.
 
     :param text: text to split into words
     :param text: str
