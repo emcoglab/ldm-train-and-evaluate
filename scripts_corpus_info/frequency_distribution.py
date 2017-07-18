@@ -86,14 +86,12 @@ def save_frequency_distribution_info(freq_dist, filename):
 
         # Write basic info
         info_file.write(f"Vocabulary size: {len(most_common)}'\n")
-        info_file.write(f"Corpus size: {len(freq_dist)}\n")
+        info_file.write(f"Corpus size: {sum([count for token, count in most_common])}\n")
 
         # Write low-frequency counts
         for cutoff_freq in [1, 5, 10, 50, 100, 500, 1000]:
-            filtered_count = len([token
-                                  for token, count in most_common
-                                  if count > cutoff_freq])
-            info_file.write(f"Corpus size (only tokens occurring at more than {cutoff_freq} times): {filtered_count}")
+            info_file.write(f"Corpus size (only tokens occurring at more than {cutoff_freq} times):"
+                            f" {sum([count for token, count in most_common if count > cutoff_freq])}")
 
         info_file.write("\n")
         info_file.write("----------------------------\n")
