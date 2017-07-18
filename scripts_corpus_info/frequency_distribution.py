@@ -8,7 +8,7 @@ import nltk
 import matplotlib.pyplot as pplot
 
 from ..core.tokenising import modified_word_tokenize
-from ..core.filtering import filter_punctuation, filter_frequency
+from ..core.filtering import filter_punctuation
 
 
 logger = logging.getLogger()
@@ -85,13 +85,12 @@ def save_frequency_distribution_info(freq_dist, filename):
     with open(filename, mode="w", encoding="utf-8") as info_file:
 
         # Write basic info
-        info_file.write(f"Vocabulary size: {len(most_common)}'\n")
-        info_file.write(f"Corpus size: {sum([count for token, count in most_common])}\n")
+        info_file.write(f"Vocabulary size: {len(most_common):,}\n")
 
         # Write low-frequency counts
-        for cutoff_freq in [1, 5, 10, 50, 100, 500, 1000]:
-            info_file.write(f"Corpus size (only tokens occurring at more than {cutoff_freq} times):"
-                            f" {sum([count for token, count in most_common if count > cutoff_freq])}")
+        for cutoff_freq in [0, 1, 5, 10, 50, 100, 500, 1000]:
+            info_file.write(f"Corpus size (tokens occurring more than {cutoff_freq} times):"
+                            f"\t{sum([count for token, count in most_common if count > cutoff_freq]):,}\n")
 
         info_file.write("\n")
         info_file.write("----------------------------\n")
@@ -101,7 +100,7 @@ def save_frequency_distribution_info(freq_dist, filename):
         info_file.write(f"Individual token frequencies:\n")
         info_file.write(f"\n")
         for i, (token, count) in enumerate(most_common):
-            info_file.write(f"{i}\t{token}\t{count}\n")
+            info_file.write(f"{i}\t{token}\t{count:,}\n")
 
 
 def main(corpus_name, corpus_dir, output_dir):
