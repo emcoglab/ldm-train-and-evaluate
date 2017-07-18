@@ -3,7 +3,7 @@ import sys
 
 import nltk.corpus as corpus
 
-from ..core.modified_tokenizer import modified_word_tokenize
+from ..core.tokenising import modified_word_tokenize
 
 logger = logging.getLogger()
 
@@ -23,5 +23,7 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s | %(levelname)s | %(module)s | %(message)s', datefmt="%Y-%m-%d %H:%M:%S",
                         level=logging.INFO)
     logger.info("running %s" % " ".join(sys.argv))
+
     main()
+
     logger.info("Done!")

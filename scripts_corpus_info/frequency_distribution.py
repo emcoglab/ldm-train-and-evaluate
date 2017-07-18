@@ -7,8 +7,8 @@ import nltk
 
 import matplotlib.pyplot as pplot
 
-from ..core.modified_tokenizer import modified_word_tokenize
-from ..core.corpus_filtering import filter_punct
+from ..core.tokenising import modified_word_tokenize
+from ..core.filtering import filter_punctuation
 
 
 logger = logging.getLogger()
@@ -107,7 +107,7 @@ def main(corpus_name, corpus_dir, output_dir):
     corpus = [w.lower() for w in modified_word_tokenize(corpus.raw())]
 
     logger.info(f"Filtering corpus")
-    corpus = filter_punct(corpus)
+    corpus = filter_punctuation(corpus)
 
     logger.info(f"Saving frequency distribution information")
     freq_dist = nltk.probability.FreqDist(corpus)

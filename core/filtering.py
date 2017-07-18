@@ -2,11 +2,8 @@ import re
 
 import nltk
 
-from .modified_tokenizer import modified_word_tokenize
-from .ignorable_punctuation import ignorable_punctuation
 
-
-def filter_punct(unfiltered_corpus):
+def filter_punctuation(unfiltered_corpus):
     """
     Filters a corpus by ignoring certain punctuation.
     :param unfiltered_corpus: A list of tokens, for example that provided by:
@@ -35,3 +32,20 @@ def filter_frequency(unfiltered_corpus, min_freq=0, freq_dist=None):
         return [token
                 for token in unfiltered_corpus
                 if freq_dist[token] >= min_freq]
+
+# string.punctuation  = r"""!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
+# same as above except:
+#  - we don't want to ignore:
+#       $
+#       %
+#       &
+#       @
+#       +
+#       =
+#  - we do want to ignore
+#       …
+#       –
+#       ‘
+#       ’
+ignorable_punctuation = r"""!"#'()*,-./:;<>?[\]^_`{|}~…–‘’"""
+

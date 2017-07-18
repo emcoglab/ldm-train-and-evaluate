@@ -6,10 +6,9 @@ import pickle
 import nltk
 import nltk.corpus
 
-from ..core.modified_tokenizer import modified_word_tokenize
-from ..core.ignorable_punctuation import ignorable_punctuation
-from ..core.corpus_filtering import filter_frequency, filter_punct
-from ..core.token_indexing import index_dictionary
+from ..core.tokenising import modified_word_tokenize
+from ..core.filtering import filter_frequency, filter_punctuation, ignorable_punctuation
+from ..core.indexing import index_dictionary
 
 logger = logging.getLogger()
 
@@ -39,7 +38,7 @@ def main():
 
     freq_dist = nltk.probability.FreqDist(corpus)
 
-    corpus = filter_punct(filter_frequency(corpus, min_freq=min_freq, freq_dist=freq_dist))
+    corpus = filter_punctuation(filter_frequency(corpus, min_freq=min_freq, freq_dist=freq_dist))
 
     logger.info(f"{len(corpus)} tokens remaining in corpus after filtering")
 

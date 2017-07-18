@@ -7,8 +7,8 @@ import argparse
 import nltk
 import nltk.corpus as corpus
 
-from ..core.modified_tokenizer import modified_word_tokenize
-from ..core.ignorable_punctuation import ignorable_punctuation
+from ..core.tokenising import modified_word_tokenize
+from ..core.filtering import ignorable_punctuation
 
 
 logger = logging.getLogger()
@@ -47,5 +47,6 @@ if __name__ == '__main__':
     args = vars(parser.parse_args())
 
     main(args["corpus_dir"])
+
     logger.info("Done!")
 
