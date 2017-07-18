@@ -5,6 +5,7 @@ import sys
 import nltk
 
 from ..core.tokenising import modified_word_tokenize
+from ..core.filtering import filter_frequency
 
 logger = logging.getLogger()
 
@@ -29,7 +30,15 @@ def main(corpus_dir_1, corpus_dir_2):
 
     logger.info(f"Overlap has a size of {len(overlap)}")
 
-    logger.info(f"Checking overlap with frequency-filtered corpus")
+    logger.info("Checking overlap with frequency-filtered 1st corpus")
+
+    frequency_dist_1 = nltk.probability.FreqDist(corpus_1)
+
+    for cutoff_freq in [1, 5, 10, 50, 100, 500, 1000]:
+        vocab_1 = set([token for token in filter_frequency(corpus_1, min_freq=cutoff_freq+1, freq_dist=frequency_dist_1)])
+        overlap = set.intersection(vocab_1, vocab_2)
+        logger.info(f"Overlap with cutoff freq {cutoff_freq} has a size of {len(overlap)}")
+
 
 
 if __name__ == "__main__":
