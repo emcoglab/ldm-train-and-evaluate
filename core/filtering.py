@@ -15,7 +15,7 @@ def filter_punctuation(unfiltered_corpus):
             if not re.fullmatch('[' + ignorable_punctuation + ']+', token)]
 
 
-def filter_frequency(unfiltered_corpus, min_freq=0, freq_dist=None):
+def filter_frequency(unfiltered_corpus, min_freq=1, freq_dist=None):
     """
     Filters a corpus by ignoring words which are too rare.
     :param unfiltered_corpus: A list of tokens, for example that provided by:
@@ -24,7 +24,7 @@ def filter_frequency(unfiltered_corpus, min_freq=0, freq_dist=None):
     :param freq_dist: Optionally supply an existing frequency distribution to avoid re-computing it
     :return:
     """
-    if min_freq is 0:
+    if min_freq is 1:
         return unfiltered_corpus
     else:
         if freq_dist is None:
