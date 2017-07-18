@@ -92,8 +92,8 @@ def save_frequency_distribution_info(freq_dist, filename):
         # Write frequencies
         info_file.write(f"Frequencies:\n")
         info_file.write(f"\n")
-        for token, count in most_common:
-            info_file.write(f"{token}\t{count}\n")
+        for i, (token, count) in enumerate(most_common):
+            info_file.write(f"{i}\t{token}\t{count}\n")
 
 
 def main(corpus_name, corpus_dir, output_dir):

@@ -43,9 +43,9 @@ def filter_frequency(unfiltered_corpus, min_freq=0, freq_dist=None):
 #       +
 #       =
 #  - we do want to ignore
-#       …
-#       –
-#       ‘
-#       ’
-ignorable_punctuation = r"""!"#'()*,-./:;<>?[\]^_`{|}~…–‘’"""
-
+#       … ellipsis
+#       – en-dash
+#       — em-dash
+#       ‘ open single quote
+#       ’ close single quote
+ignorable_punctuation = r"""!"#'()*,-./:;<>?[\]^_`{|}~…–—‘’"""
