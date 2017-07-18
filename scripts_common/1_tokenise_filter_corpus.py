@@ -1,5 +1,4 @@
 import os
-import re
 import sys
 import logging
 import pickle
@@ -9,27 +8,10 @@ import nltk.corpus
 
 from ..core.modified_tokenizer import modified_word_tokenize
 from ..core.ignorable_punctuation import ignorable_punctuation
+from ..core.corpus_filtering import filter_frequency, filter_punct
+from ..core.token_indexing import index_dictionary
 
 logger = logging.getLogger()
-
-
-def index_dictionary(corpus):
-    """
-    Returns a dictionary of
-    :param corpus:
-    :return:
-    """
-    vocab = sorted(set(corpus))
-
-    word2id = {}
-    count = 0
-    for word in vocab:
-        word2id[word] = count
-        count += 1
-
-    id2word = dict((v, k) for k, v in word2id.items())
-
-    return word2id, id2word
 
 
 def main():
@@ -46,8 +28,6 @@ def main():
             unfiltered_corpus_dir, ".+\..+"
         ).raw())
 
-    words_freq_dist = nltk.probability.FreqDist(corpus)
-
     min_freq = 0
 
     logger.info(f"Filtering corpus based on token frequency")
@@ -57,17 +37,16 @@ def main():
     if min_freq > 0:
         logger.info(f"Removing all tokens appearing fewer than {min_freq} times")
 
-    corpus = [token
-              for token in corpus
-              if not re.fullmatch('[' + ignorable_punctuation + ']+', token)
-              and words_freq_dist[token] >= min_freq]
+    freq_dist = nltk.probability.FreqDist(corpus)
+
+    corpus = filter_punct(filter_frequency(corpus, min_freq=min_freq, freq_dist=freq_dist))
 
     logger.info(f"{len(corpus)} tokens remaining in corpus after filtering")
 
     logger.info("Building word index dictionaries")
 
     # We don't care about documents, so just include everything in one document
-    word2id, id2word = index_dictionary(corpus)
+    word2id, id2word = index_dictionary(corpus, freq_dist=freq_dist)
 
     with open(os.path.join(filtered_corpus_dir, "corpus.p"), mode="wb") as corpus_file:
         pickle.dump(corpus, corpus_file)
