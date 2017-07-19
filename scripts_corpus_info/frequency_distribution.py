@@ -89,7 +89,7 @@ def save_frequency_distribution_info(freq_dist, filename):
 
         # Write low-frequency counts
         for cutoff_freq in [0, 1, 5, 10, 50, 100, 500, 1000]:
-            info_file.write(f"Corpus size (tokens occurring more than {cutoff_freq} times):"
+            info_file.write(f"Corpus size (tokens occurring ≥ {cutoff_freq} times):"
                             f"\t{sum([count for token, count in most_common if count > cutoff_freq]):,}\n")
 
         info_file.write("\n")
@@ -123,7 +123,7 @@ def main(corpus_name, corpus_dir, output_dir):
         os.path.join(output_dir, f"Frequency distribution info {corpus_name}.txt"))
     save_frequency_distribution_graph(
         freq_dist,
-        os.path.join(output_dir, f"Frequency distribution graph{corpus_name}.png"),
+        os.path.join(output_dir, f"Frequency distribution graph {corpus_name}.png"),
         corpus_name=corpus_name,
         top_n=200)
 
