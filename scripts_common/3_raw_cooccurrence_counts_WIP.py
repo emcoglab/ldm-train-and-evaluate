@@ -14,6 +14,8 @@ logger = logging.getLogger()
 
 def main():
 
+    # TODO: Wait for tokenisation and filtering then figure this out
+
     corpus_dir = "/Users/caiwingfield/corpora/toy-corpus/1 Tokenised and filtered"
     matrix_dir = "/Users/caiwingfield/corpora/toy-corpus/2 Matrix"
 

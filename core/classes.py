@@ -2,6 +2,17 @@ class SourceTargetPair:
     """
     A pair of a source directory and a target directory.
     """
-    def __init__(self, source, target):
+
+    def __init__(self, source: CorpusMetaData, target: CorpusMetaData):
         self.source = source
         self.target = target
+
+
+class CorpusMetaData:
+    """
+    Corpus metadata
+    """
+
+    def __init__(self, name, path):
+        self.name = name
+        self.path = path

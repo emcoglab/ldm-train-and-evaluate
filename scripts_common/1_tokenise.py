@@ -4,7 +4,8 @@ import sys
 import nltk
 
 from ..core.classes import SourceTargetPair, CorpusMetaData
-from ..core.filtering import filter_frequency
+from ..core.filtering import filter_punctuation, ignorable_punctuation
+from ..core.tokenising import modified_word_tokenize
 
 logger = logging.getLogger()
 
@@ -12,40 +13,35 @@ logger = logging.getLogger()
 def main():
 
     corpus_metas = [
-        # TODO: these paths are wrong. Fix and rerun
         SourceTargetPair(
             source=CorpusMetaData(
-                name="BBC",  path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus"),
+                name="BBC",  path="/Users/caiwingfield/corpora/BBC/3 Replaced symbols"),
             target=CorpusMetaData(
                 name="BBC", path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus")),
         SourceTargetPair(
             source=CorpusMetaData(
-                name="BNC", path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"),
+                name="BNC", path="/Users/caiwingfield/corpora/BNC/1 Detagged"),
             target=CorpusMetaData(
                 name="BNC",  path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"))]
-
-    # The frequency at which we ignore tokens.
-    # Set to 0 to include all tokens, set to 1 to include tokens that occur more than once, etc.
-    ignorable_frequency = 1
 
     token_delimiter = "\n"
 
     for corpus_meta in corpus_metas:
         logger.info(f"Loading {corpus_meta.source.name} corpus from {corpus_meta.source.path}")
-
         logger.info(f"Tokenising corpus")
-        corpus = nltk.corpus.PlaintextCorpusReader(corpus_meta.source.path, ".+\..+").raw().split("\n")
+        corpus = modified_word_tokenize(
+            # Any file with name and extension
+            nltk.corpus.PlaintextCorpusReader(corpus_meta.source.path, ".+\..+").raw())
 
         corpus_size = len(corpus)
         logger.info(f"{corpus_size:,} tokens in corpus")
 
-        if ignorable_frequency > 0:
-            logger.info(f"Filtering corpus based on token frequency")
-            logger.info(f"Removing all tokens appearing at most {ignorable_frequency} times")
-            corpus = filter_frequency(corpus, ignore_tokens_with_frequencies_at_most=ignorable_frequency)
+        # Filter punctuation
+        logger.info(f"Filtering punctuation out of corpus: {ignorable_punctuation}")
+        corpus = filter_punctuation(corpus)
 
-            corpus_size = len(corpus)
-            logger.info(f"{corpus_size:,} tokens in corpus")
+        corpus_size = len(corpus)
+        logger.info(f"{corpus_size:,} tokens in corpus")
 
         logger.info(f"Saving {corpus_meta.target.name} corpus to {corpus_meta.target.path}")
         with open(corpus_meta.target.path, mode="w", encoding="utf-8") as corpus_file:
