@@ -10,17 +10,15 @@ logger = logging.getLogger()
 
 
 def main(corpus_dir, wordlist_dir):
-    logger.info(f"Loading corpus documents from {corpus_dir}")
-    corpus = nltk.corpus.PlaintextCorpusReader(corpus_dir, ".+\..+").raw().split("\n")
-    vocab_corpus = set(corpus)
 
     logger.info(f"Loading wordlist from {wordlist_dir}")
     wordlist = nltk.corpus.PlaintextCorpusReader(wordlist_dir, ".+\..+").raw().split("\n")
     vocab_wordlist = set(wordlist)
 
-    logger.info(f"Corpus has a vocab of size {len(vocab_corpus):,}")
     logger.info(f"Wordlist has a vocab of size {len(vocab_wordlist):,}")
 
+    logger.info(f"Loading corpus documents from {corpus_dir}")
+    corpus = nltk.corpus.PlaintextCorpusReader(corpus_dir, ".+\..+").raw().split("\n")
     frequency_dist = nltk.probability.FreqDist(corpus)
 
     for cutoff_freq in [0, 1]:
@@ -28,6 +26,7 @@ def main(corpus_dir, wordlist_dir):
             corpus,
             ignore_tokens_with_frequencies_at_most=cutoff_freq,
             freq_dist=frequency_dist))
+        logger.info(f"Corpus with cutoff freq {cutoff_freq} has a vocab of size {len(vocab_corpus):,}")
         logger.info(
             f"Overlap with cutoff freq {cutoff_freq} has a size of"
             f"\t{len(set.intersection(vocab_corpus, vocab_wordlist)):,}")
