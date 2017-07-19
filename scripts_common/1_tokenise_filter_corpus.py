@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import datetime
 
 import nltk
 
@@ -23,15 +24,18 @@ def main():
 
     corpus_dirs = [
         SourceTargetPair(
-            "/Users/caiwingfield/Langboot local/Corpora/Combined/0 SPEECH",
-            "/Users/caiwingfield/Langboot local/Corpora/Combined/1 SPEECH tokenised filtered"),
+            source="/Users/caiwingfield/Langboot local/Corpora/Combined/0 SPEECH",
+            target="/Users/caiwingfield/Langboot local/Corpora/Combined/1 SPEECH tokenised filtered"),
         SourceTargetPair(
-            "/Users/caiwingfield/Langboot local/Corpora/Combined/0 TEXT",
-            "/Users/caiwingfield/Langboot local/Corpora/Combined/1 TEXT tokenised filtered")]
+            source="/Users/caiwingfield/Langboot local/Corpora/Combined/0 TEXT",
+            target="/Users/caiwingfield/Langboot local/Corpora/Combined/1 TEXT tokenised filtered")]
+    info_dir = "/Users/caiwingfield/Langboot local/Corpora/Combined/1.1 info"
 
     # The frequency at which we ignore tokens.
     # Set to 0 to include all tokens, set to 1 to include tokens that occur more than once, etc.
     ignorable_frequency = 1
+
+    start = datetime.datetime.now()
 
     for corpus_dir in corpus_dirs:
         logger.info(f"Loading corpus from {corpus_dir.source}")
@@ -65,6 +69,19 @@ def main():
                 corpus_file.write(token+"\n")
                 if i % 1_000_000 == 0 and i > 0:
                     logger.info(f"\tWritten {i:,}/{corpus_size:,} tokens ({100*(i/corpus_size):.0}%)")
+
+    info_filename = os.path.join(info_dir, "tokenisation_filtering_options.txt")
+    logger.info(f"Saving info to {info_filename}")
+    with open(info_filename, mode="w", encoding="utf-8") as info_file:
+        timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+        duration = datetime.datetime.now() - start
+        info_file.write(
+            f"""
+            {__file__} run on {timestamp}.
+            Filtered punctuation: {ignorable_punctuation}.
+            Filtered tokens with frequency at most {ignorable_frequency}.
+            It took {duration}.
+            """)
 
 
 if __name__ == "__main__":
