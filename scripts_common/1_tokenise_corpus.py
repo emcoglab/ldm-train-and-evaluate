@@ -15,12 +15,14 @@ logger = logging.getLogger()
 def main():
 
     corpus_dirs = [
+        # BBC
         SourceTargetPair(
-            source="/Users/caiwingfield/corpora/Combined/0 SPEECH",
-            target="/Users/caiwingfield/corpora/Combined/1 SPEECH tokenised"),
+            source="/Users/caiwingfield/corpora/BBC/3 Replaced symbols",
+            target="/Users/caiwingfield/corpora/BBC/4 Tokenised"),
+        # BNC
         SourceTargetPair(
-            source="/Users/caiwingfield/corpora/Combined/0 TEXT",
-            target="/Users/caiwingfield/corpora/Combined/1 TEXT tokenised")]
+            source="/Users/caiwingfield/corpora/BNC/1 Detagged",
+            target="/Users/caiwingfield/corpora/BNC/2 Tokenised")]
     info_dir   = "/Users/caiwingfield/corpora/Combined/1.1 info"
 
     token_delimiter = "\n"
