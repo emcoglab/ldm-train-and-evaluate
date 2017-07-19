@@ -56,7 +56,7 @@ def main():
 
         if ignorable_frequency > 0:
             logger.info(f"Filtering corpus based on token frequency")
-            logger.info(f"Removing all tokens appearing fewer than {ignorable_frequency} times")
+            logger.info(f"Removing all tokens appearing at most {ignorable_frequency} times")
             corpus = filter_frequency(corpus, ignore_tokens_with_frequencies_at_most=ignorable_frequency)
 
             corpus_size = len(corpus)
@@ -68,7 +68,7 @@ def main():
             for i, token in enumerate(corpus):
                 corpus_file.write(token+"\n")
                 if i % 1_000_000 == 0 and i > 0:
-                    logger.info(f"\tWritten {i:,}/{corpus_size:,} tokens ({100*(i/corpus_size):.0}%)")
+                    logger.info(f"\tWritten {i:,}/{corpus_size:,} tokens ({int(100*(i/corpus_size))}%)")
 
     info_filename = os.path.join(info_dir, "tokenisation_filtering_options.txt")
     logger.info(f"Saving info to {info_filename}")
