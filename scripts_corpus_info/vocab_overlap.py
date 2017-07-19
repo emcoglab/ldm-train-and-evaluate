@@ -31,7 +31,7 @@ def main(corpus_dir, wordlist_dir):
     for cutoff_freq in [0, 1, 5, 10, 50, 100, 500, 1000]:
         vocab_corpus = set([token
                             for token in filter_frequency(corpus,
-                                                          min_freq=cutoff_freq + 1,
+                                                          ignore_tokens_with_frequencies_at_most=cutoff_freq,
                                                           freq_dist=frequency_dist)])
         logger.info(
             f"Overlap with cutoff freq {cutoff_freq} has a size of"
