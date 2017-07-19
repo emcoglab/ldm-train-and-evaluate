@@ -13,12 +13,12 @@ def main():
 
     corpus_metas = [
         CorpusMetaData(
-            name="BBC", path="/Users/caiwingfield/corpora/BBC/4 Tokenised"),
+            name="BBC", path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus"),
         CorpusMetaData(
-            name="BNC", path="/Users/caiwingfield/corpora/BNC/2 Tokenised"),
+            name="BNC", path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"),
     ]
 
-    logger.info(f"Loading wordlist from {wordlist_path}")
+    logger.info(f"Loading wordlist from /Users/caiwingfield/corpora/brysbaert40k/brysbaert1.txt")
     wordlist = PlaintextCorpusReader("/Users/caiwingfield/corpora/brysbaert40k/", "brysbaert1.txt").raw().split("\n")
     vocab_wordlist = set(wordlist)
 
@@ -36,7 +36,8 @@ def main():
         logger.info(f"Overlap with cutoff freq {cutoff_freq} has a size of\t{len(overlap_vocab):,}")
 
         missing_vocab = vocab_wordlist - vocab_corpus
-        logger.info(f"\tMissing words: {missing_vocab}")
+        logger.info(f"Missing words: {len(missing_vocab)}")
+        logger.info(f"{missing_vocab}")
 
 
 if __name__ == "__main__":
@@ -44,7 +45,8 @@ if __name__ == "__main__":
     logging.basicConfig(
         format='%(asctime)s | %(levelname)s | %(module)s | %(message)s',
         datefmt="%Y-%m-%d %H:%M:%S",
-        level=logging.INFO)
+        level=logging.INFO,
+        filename="/Users/caiwingfield/Dropbox/brysbaert.log")
     logger.info("Running %s" % " ".join(sys.argv))
     logger.info("")
 
