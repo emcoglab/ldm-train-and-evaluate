@@ -5,7 +5,7 @@ import srt
 
 
 def main():
-    raw_subs_dir = "/Users/caiwingfield/Langboot local/Corpora/BBC/0 Raw"
+    raw_subs_dir = "/Users/caiwingfield/corpora/BBC/0 Raw"
 
     subtitle_paths = list(glob.iglob(os.path.join(raw_subs_dir, '*.srt')))
 

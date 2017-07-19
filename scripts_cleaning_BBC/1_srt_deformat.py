@@ -12,8 +12,8 @@ def main():
     # Ignore files already processed and overwrite them?
     start_over = False
 
-    raw_subs_dir       = "/Users/caiwingfield/Langboot local/Corpora/BBC-mini/0 Raw"
-    processed_subs_dir = "/Users/caiwingfield/Langboot local/Corpora/BBC-mini/1 No srt formatting"
+    raw_subs_dir       = "/Users/caiwingfield/corpora/BBC-mini/0 Raw"
+    processed_subs_dir = "/Users/caiwingfield/corpora/BBC-mini/1 No srt formatting"
 
     subtitle_paths = list(glob.iglob(os.path.join(raw_subs_dir, '*.srt')))
 

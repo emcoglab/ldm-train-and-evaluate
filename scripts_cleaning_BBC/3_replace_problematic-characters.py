@@ -11,8 +11,8 @@ def main():
     # Ignore files already processed and overwrite them?
     start_over = True
 
-    subs_source_dir = "/Users/caiwingfield/Langboot local/Corpora/BBC/2 No nonspeech"
-    subs_target_dir = "/Users/caiwingfield/Langboot local/Corpora/BBC/3 Replaced symbols"
+    subs_source_dir = "/Users/caiwingfield/corpora/BBC/2 No nonspeech"
+    subs_target_dir = "/Users/caiwingfield/corpora/BBC/3 Replaced symbols"
 
     subs_source_paths = list(glob.iglob(os.path.join(subs_source_dir, '*.srt')))
 

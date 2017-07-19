@@ -16,12 +16,12 @@ def main():
 
     corpus_dirs = [
         SourceTargetPair(
-            source="/Users/caiwingfield/Langboot local/Corpora/Combined/0 SPEECH",
-            target="/Users/caiwingfield/Langboot local/Corpora/Combined/1 SPEECH tokenised"),
+            source="/Users/caiwingfield/corpora/Combined/0 SPEECH",
+            target="/Users/caiwingfield/corpora/Combined/1 SPEECH tokenised"),
         SourceTargetPair(
-            source="/Users/caiwingfield/Langboot local/Corpora/Combined/0 TEXT",
-            target="/Users/caiwingfield/Langboot local/Corpora/Combined/1 TEXT tokenised")]
-    info_dir = "/Users/caiwingfield/Langboot local/Corpora/Combined/1.1 info"
+            source="/Users/caiwingfield/corpora/Combined/0 TEXT",
+            target="/Users/caiwingfield/corpora/Combined/1 TEXT tokenised")]
+    info_dir   = "/Users/caiwingfield/corpora/Combined/1.1 info"
 
     token_delimiter = "\n"
 

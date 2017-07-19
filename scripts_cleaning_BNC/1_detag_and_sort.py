@@ -11,14 +11,14 @@ logger = logging.getLogger()
 
 
 def main():
-    docs_parent_dir         = "/Users/caiwingfield/Langboot local/Corpora/BNC/0 XML version/Texts"
-    out_text_dir            = "/Users/caiwingfield/Langboot local/Corpora/BNC/1 Text"
-    out_speech_dir          = "/Users/caiwingfield/Langboot local/Corpora/BNC/1 Speech"
-    out_text_for_speech_dir = "/Users/caiwingfield/Langboot local/Corpora/BNC/1 Text for speech"
-    # docs_parent_dir         = "/Users/caiwingfield/Langboot local/Corpora/BNC-mini/0 Raw"
-    # out_text_dir            = "/Users/caiwingfield/Langboot local/Corpora/BNC-mini/1 Text"
-    # out_speech_dir          = "/Users/caiwingfield/Langboot local/Corpora/BNC-mini/1 Speech"
-    # out_text_for_speech_dir = "/Users/caiwingfield/Langboot local/Corpora/BNC-mini/1 Text for speech"
+    docs_parent_dir         = "/Users/caiwingfield/corpora/BNC/0 XML version/Texts"
+    out_text_dir            = "/Users/caiwingfield/corpora/BNC/1 Text"
+    out_speech_dir          = "/Users/caiwingfield/corpora/BNC/1 Speech"
+    out_text_for_speech_dir = "/Users/caiwingfield/corpora/BNC/1 Text for speech"
+    # docs_parent_dir         = "/Users/caiwingfield/corpora/BNC-mini/0 Raw"
+    # out_text_dir            = "/Users/caiwingfield/corpora/BNC-mini/1 Text"
+    # out_speech_dir          = "/Users/caiwingfield/corpora/BNC-mini/1 Speech"
+    # out_text_for_speech_dir = "/Users/caiwingfield/corpora/BNC-mini/1 Text for speech"
 
     xsl_filename = os.path.join(os.path.dirname(__file__), "justTheWords.xsl")
     xslt = etree.parse(xsl_filename)

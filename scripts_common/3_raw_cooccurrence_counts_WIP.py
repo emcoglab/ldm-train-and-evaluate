@@ -14,8 +14,8 @@ logger = logging.getLogger()
 
 def main():
 
-    corpus_dir = "/Users/caiwingfield/Langboot local/Corpora/toy-corpus/1 Tokenised and filtered"
-    matrix_dir = "/Users/caiwingfield/Langboot local/Corpora/toy-corpus/2 Matrix"
+    corpus_dir = "/Users/caiwingfield/corpora/toy-corpus/1 Tokenised and filtered"
+    matrix_dir = "/Users/caiwingfield/corpora/toy-corpus/2 Matrix"
 
     logger.info("Loading corpus")
 

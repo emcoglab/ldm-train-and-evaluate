@@ -15,12 +15,12 @@ def main():
 
     corpus_dirs = [
         SourceTargetPair(
-            source="/Users/caiwingfield/Langboot local/Corpora/Combined/1 SPEECH tokenised",
-            target="/Users/caiwingfield/Langboot local/Corpora/Combined/2 SPEECH freq filtered"),
+            source="/Users/caiwingfield/corpora/Combined/1 SPEECH tokenised",
+            target="/Users/caiwingfield/corpora/Combined/2 SPEECH freq filtered"),
         SourceTargetPair(
-            source="/Users/caiwingfield/Langboot local/Corpora/Combined/1 TEXT tokenised",
-            target="/Users/caiwingfield/Langboot local/Corpora/Combined/2 TEXT freq filtered")]
-    info_dir = "/Users/caiwingfield/Langboot local/Corpora/Combined/2.1 info"
+            source="/Users/caiwingfield/corpora/Combined/1 TEXT tokenised",
+            target="/Users/caiwingfield/corpora/Combined/2 TEXT freq filtered")]
+    info_dir = "/Users/caiwingfield/corpora/Combined/2.1 info"
 
     # The frequency at which we ignore tokens.
     # Set to 0 to include all tokens, set to 1 to include tokens that occur more than once, etc.

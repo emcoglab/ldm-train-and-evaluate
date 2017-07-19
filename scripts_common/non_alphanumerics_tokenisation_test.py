@@ -9,7 +9,7 @@ logger = logging.getLogger()
 
 
 def main():
-    corpus_root = "/Users/caiwingfield/Langboot local/Corpora/Pathology"
+    corpus_root = "/Users/caiwingfield/corpora/Pathology"
 
     corpus_text = corpus.PlaintextCorpusReader(
         corpus_root, ".*\.txt")
