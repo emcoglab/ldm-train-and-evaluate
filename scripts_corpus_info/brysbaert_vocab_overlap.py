@@ -33,7 +33,7 @@ def main():
         logger.info(f"Corpus has a vocab of size {len(vocab_corpus):,}")
 
         overlap_vocab = set.intersection(vocab_corpus, vocab_wordlist)
-        logger.info(f"Overlap with cutoff freq {cutoff_freq} has a size of\t{len(overlap_vocab):,}")
+        logger.info(f"Overlap has a size of\t{len(overlap_vocab):,}")
 
         missing_vocab = vocab_wordlist - vocab_corpus
         logger.info(f"Missing words: {len(missing_vocab)}")
