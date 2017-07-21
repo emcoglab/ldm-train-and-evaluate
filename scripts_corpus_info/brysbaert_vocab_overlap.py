@@ -10,13 +10,16 @@ def main():
 
     corpus_metas = [
         CorpusMetaData(
-            name="BBC", path="/Users/cai/Desktop/BBC.corpus"),
+            name="BBC", path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus"),
         CorpusMetaData(
-            name="BNC", path="/Users/cai/Desktop/BNC.corpus"),
+            name="BNC", path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"),
     ]
+    wordlist = CorpusMetaData(
+        name="Brysbaert 1 word", path="/Users/caiwingfield/corpora/brysbaert40k/brysbaert1.wordlist"
+    )
 
-    logger.info(f"Loading wordlist from /Users/cai/Desktop/b.txt")
-    with open("/Users/cai/Desktop/b.txt", mode="r") as wordlist_file:
+    logger.info(f"Loading wordlist from {wordlist.path}")
+    with open(wordlist.path, mode="r") as wordlist_file:
         vocab_wordlist = set(wordlist_file.read().split("\n"))
 
     logger.info(f"Wordlist has a vocab of size {len(vocab_wordlist):,}")
