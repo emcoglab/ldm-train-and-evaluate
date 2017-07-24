@@ -9,7 +9,7 @@ logger = logging.getLogger()
 
 def main():
 
-    part_size_lines = 10_000
+    part_size_lines = 1_000
     target_filename_pattern = "part_{}.txt"
 
     corpus_meta = SourceTargetPair(

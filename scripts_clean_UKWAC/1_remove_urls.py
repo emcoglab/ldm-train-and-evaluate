@@ -15,9 +15,9 @@ def is_suspected_url_line(line):
 def main():
     corpus_meta = SourceTargetPair(
         source=CorpusMetaData(
-            name="UKWAC", path="/Users/caiwingfield/corpora/UKWAC/0 Raw untagged/"),
+            name="UKWAC", path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/0 Raw untagged"),
         target=CorpusMetaData(
-            name="UKWAC", path="/Users/caiwingfield/corpora/UKWAC/1 Text only"))
+            name="UKWAC", path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/1 Text only"))
 
     for source_path in glob.glob(os.path.join(corpus_meta.source.path, "*.*")):
         source_filename = os.path.basename(source_path)
