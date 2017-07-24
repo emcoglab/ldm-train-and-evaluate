@@ -35,9 +35,6 @@ def main():
 
     for corpus_meta in corpus_metas:
 
-        logger.info(f"Loading {corpus_meta.source.name} corpus from {corpus_meta.source.path}")
-        logger.info(f"Tokenising corpus")
-
         token_count = 0
 
         with open(corpus_meta.target.path, mode="w", encoding="utf-8") as tokenised_corpus_file:
@@ -47,8 +44,10 @@ def main():
 
             for source_filename in source_filenames:
 
+                logger.info(f"Loading {corpus_meta.source.name} corpus from {source_filename}")
                 corpus = nltk.corpus.PlaintextCorpusReader(corpus_meta.source.path, source_filename).raw()
 
+                logger.info("Tokenising corpus")
                 corpus = modified_word_tokenize(corpus)
 
                 # Filter punctuation
@@ -59,8 +58,8 @@ def main():
                     tokenised_corpus_file.write(token + token_delimiter)
                     token_count += 1
 
-                    if token_count % 1_000_000 == 0 and token_count > 0:
-                        logger.info(f"\tWritten {i:,} tokens")
+                    if token_count % 100_000 == 0 and token_count > 0:
+                        logger.info(f"\tWritten {token_count:,} tokens")
 
 
 if __name__ == "__main__":
