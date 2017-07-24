@@ -1,7 +1,5 @@
-import glob
-import os
-import sys
 import logging
+import sys
 
 from ..core.classes import SourceTargetPair, CorpusMetaData
 
@@ -9,32 +7,35 @@ logger = logging.getLogger()
 
 
 def is_suspected_url_line(line):
+    """
+    Check if the line might be a url reference
+    :param line:
+    :return:
+    """
     return line.startswith("CURRENT URL http://")
 
 
 def main():
     corpus_meta = SourceTargetPair(
         source=CorpusMetaData(
-            name="UKWAC", path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/0 Raw untagged"),
+            name="UKWAC",
+            path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/0 Raw untagged/cleaned_pre.pos.corpus"),
         target=CorpusMetaData(
-            name="UKWAC", path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/1 Text only"))
+            name="UKWAC",
+            path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/1 Text only/cleaned_pre.pos.corpus"))
 
-    for source_path in glob.glob(os.path.join(corpus_meta.source.path, "*.*")):
-        source_filename = os.path.basename(source_path)
-        logger.info(f"Working on file {source_filename}")
-        target_path = os.path.join(corpus_meta.target.path, source_filename)
-        with open(source_path, mode="r", encoding="utf-8", errors="ignore") as source_file:
-            with open(target_path, mode="w", encoding="utf-8") as target_file:
-                i = 0
-                for line in source_file:
-                    if is_suspected_url_line(line):
-                        # logger.info(f"Skipping line {line.strip()}")
-                        continue
-                    else:
-                        target_file.write(line.strip() + "\n")
-                        i += 1
-                        if i % 100_000 == 0:
-                            logger.info(f"Processed {i:,} lines")
+    logger.info(f"Removing URL references from {corpus_meta.source.name} corpus")
+    with open(corpus_meta.source.path, mode="r", encoding="utf-8", errors="ignore") as source_file:
+        with open(corpus_meta.target.path, mode="w", encoding="utf-8") as target_file:
+            i = 0
+            for line in source_file:
+                if is_suspected_url_line(line):
+                    continue
+                else:
+                    target_file.write(line.strip() + "\n")
+                    i += 1
+                    if i % 100_000 == 0:
+                        logger.info(f"Processed {i:,} lines")
 
 
 if __name__ == '__main__':
