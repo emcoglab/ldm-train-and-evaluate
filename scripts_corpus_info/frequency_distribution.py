@@ -5,11 +5,14 @@ import argparse
 
 import nltk
 
+import matplotlib
+
+matplotlib.use('TkAgg')  # To run on MacOS
+
 import matplotlib.pyplot as pplot
 
 from ..core.tokenising import modified_word_tokenize
 from ..core.filtering import filter_punctuation
-
 
 logger = logging.getLogger()
 
@@ -104,7 +107,6 @@ def save_frequency_distribution_info(freq_dist, filename):
 
 
 def main(corpus_name, corpus_dir, output_dir):
-
     logger.info(f"Working on {corpus_name} corpus")
 
     logger.info(f"Loading corpus documents from {corpus_dir}")
