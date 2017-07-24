@@ -6,7 +6,7 @@ import sys
 import nltk
 
 from ..core.classes import SourceTargetPair, CorpusMetaData
-from ..core.filtering import filter_punctuation, ignorable_punctuation
+from ..core.filtering import filter_punctuation
 from ..core.tokenising import modified_word_tokenize
 
 logger = logging.getLogger()
@@ -38,24 +38,29 @@ def main():
         logger.info(f"Loading {corpus_meta.source.name} corpus from {corpus_meta.source.path}")
         logger.info(f"Tokenising corpus")
 
-        source_paths = glob.glob(os.path.join(corpus_meta.source.path, "*.*"))
-        source_filenames = [os.path.basename(path) for path in source_paths]
+        token_count = 0
 
-        for i_1, source_filename in enumerate(source_filenames, start=1):
+        with open(corpus_meta.target.path, mode="w", encoding="utf-8") as tokenised_corpus_file:
 
-            corpus = nltk.corpus.PlaintextCorpusReader(corpus_meta.source.path, source_filename).raw()
+            source_paths = glob.glob(os.path.join(corpus_meta.source.path, "*.*"))
+            source_filenames = [os.path.basename(path) for path in source_paths]
 
-            corpus = modified_word_tokenize(corpus)
+            for source_filename in source_filenames:
 
-            logger.info(f"Done {i:,} files")
+                corpus = nltk.corpus.PlaintextCorpusReader(corpus_meta.source.path, source_filename).raw()
 
-            # Filter punctuation
-            corpus = filter_punctuation(corpus)
+                corpus = modified_word_tokenize(corpus)
 
-            # TODO: deal with case where this already exists when first running the script
-            with open(corpus_meta.target.path, mode="a", encoding="utf-8") as corpus_file:
+                # Filter punctuation
+                corpus = filter_punctuation(corpus)
+
                 for token in corpus:
-                    corpus_file.write(token+token_delimiter)
+
+                    tokenised_corpus_file.write(token + token_delimiter)
+                    token_count += 1
+
+                    if token_count % 1_000_000 == 0 and token_count > 0:
+                        logger.info(f"\tWritten {i:,} tokens")
 
 
 if __name__ == "__main__":

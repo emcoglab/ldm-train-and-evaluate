@@ -6,7 +6,7 @@ from ..core.classes import SourceTargetPair, CorpusMetaData
 logger = logging.getLogger()
 
 
-def is_suspected_url_line(line):
+def is_suspected_url_ref(line):
     """
     Check if the line might be a url reference
     :param line:
@@ -29,7 +29,7 @@ def main():
         with open(corpus_meta.target.path, mode="w", encoding="utf-8") as target_file:
             i = 0
             for line in source_file:
-                if is_suspected_url_line(line):
+                if is_suspected_url_ref(line):
                     continue
                 else:
                     target_file.write(line.strip() + "\n")
