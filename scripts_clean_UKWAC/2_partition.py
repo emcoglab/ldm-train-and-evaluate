@@ -9,8 +9,9 @@ logger = logging.getLogger()
 
 def main():
 
+    # Need to make sure that we over-pad the numbering of the parts so that alphabetical order is numerical order
+    target_filename_pattern = "part_{0:06d}.txt"
     part_size_lines = 10_000
-    target_filename_pattern = "part_{}.txt"
 
     corpus_meta = SourceTargetPair(
         source=CorpusMetaData(

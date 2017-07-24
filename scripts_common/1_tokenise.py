@@ -40,7 +40,8 @@ def main():
         with open(corpus_meta.target.path, mode="w", encoding="utf-8") as tokenised_corpus_file:
 
             source_paths = glob.glob(os.path.join(corpus_meta.source.path, "*.*"))
-            source_filenames = [os.path.basename(path) for path in source_paths]
+            # The should be loaded in the order that they were produced
+            source_filenames = sorted([os.path.basename(path) for path in source_paths])
 
             for source_filename in source_filenames:
 
