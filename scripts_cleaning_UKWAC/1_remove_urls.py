@@ -19,7 +19,7 @@ def main():
         target=CorpusMetaData(
             name="UKWAC", path="/Users/caiwingfield/corpora/UKWAC/1 Text only"))
 
-    for source_path in glob.glob(os.path.join(corpus_meta.source.path, "*.txt")):
+    for source_path in glob.glob(os.path.join(corpus_meta.source.path, "*.*")):
         source_filename = os.path.basename(source_path)
         logger.info(f"Working on file {source_filename}")
         target_path = os.path.join(corpus_meta.target.path, source_filename)
@@ -28,13 +28,13 @@ def main():
                 i = 0
                 for line in source_file:
                     if is_suspected_url_line(line):
-                        logger.info(f"Skipping line {line.strip()}")
+                        # logger.info(f"Skipping line {line.strip()}")
                         continue
                     else:
                         target_file.write(line.strip() + "\n")
                         i += 1
-                        if i % 1000 == 0:
-                            logger.info(f"Processed {i} lines")
+                        if i % 100_000 == 0:
+                            logger.info(f"Processed {i:,} lines")
 
 
 if __name__ == '__main__':
