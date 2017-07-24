@@ -1,4 +1,6 @@
+import glob
 import logging
+import os
 import sys
 
 import nltk
@@ -25,35 +27,35 @@ def main():
                 name="BNC",  path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus")),
         SourceTargetPair(
             source=CorpusMetaData(
-                name="UKWAC", path="/Users/caiwingfield/corpora/UKWAC/1 Text only"),
+                name="UKWAC", path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/2 Partitioned"),
             target=CorpusMetaData(
-                name="UKWAC", path="/Users/caiwingfield/corpora/UKWAC/2 Tokenised/UKWAC.corpus"))]
+                name="UKWAC", path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/3 Tokenised/UKWAC.corpus"))]
 
     token_delimiter = "\n"
 
     for corpus_meta in corpus_metas:
+
         logger.info(f"Loading {corpus_meta.source.name} corpus from {corpus_meta.source.path}")
         logger.info(f"Tokenising corpus")
-        corpus = modified_word_tokenize(
-            # Any file with name and extension
-            nltk.corpus.PlaintextCorpusReader(corpus_meta.source.path, ".+\..+").raw())
 
-        corpus_size = len(corpus)
-        logger.info(f"{corpus_size:,} tokens in corpus")
+        source_paths = glob.glob(os.path.join(corpus_meta.source.path, "*.*"))
+        source_filenames = [os.path.basename(path) for path in source_paths]
 
-        # Filter punctuation
-        logger.info(f"Filtering punctuation out of corpus: {ignorable_punctuation}")
-        corpus = filter_punctuation(corpus)
+        for i_1, source_filename in enumerate(source_filenames, start=1):
 
-        corpus_size = len(corpus)
-        logger.info(f"{corpus_size:,} tokens in corpus")
+            corpus = nltk.corpus.PlaintextCorpusReader(corpus_meta.source.path, source_filename).raw()
 
-        logger.info(f"Saving {corpus_meta.target.name} corpus to {corpus_meta.target.path}")
-        with open(corpus_meta.target.path, mode="w", encoding="utf-8") as corpus_file:
-            for i, token in enumerate(corpus):
-                corpus_file.write(token+token_delimiter)
-                if i % 1_000_000 == 0 and i > 0:
-                    logger.info(f"\tWritten {i:,}/{corpus_size:,} tokens ({int(100*(i/corpus_size))}%)")
+            corpus = modified_word_tokenize(corpus)
+
+            logger.info(f"Done {i:,} files")
+
+            # Filter punctuation
+            corpus = filter_punctuation(corpus)
+
+            # TODO: deal with case where this already exists when first running the script
+            with open(corpus_meta.target.path, mode="a", encoding="utf-8") as corpus_file:
+                for token in corpus:
+                    corpus_file.write(token+token_delimiter)
 
 
 if __name__ == "__main__":
