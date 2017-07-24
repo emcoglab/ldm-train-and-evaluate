@@ -4,6 +4,7 @@ import sys
 import string
 import logging
 
+from ..core.classes import SourceTargetPair, CorpusMetaData
 
 logger = logging.getLogger()
 
@@ -46,15 +47,18 @@ def main():
     # Ignore files already processed and overwrite them?
     start_over = True
 
-    subs_source_dir = "/Users/caiwingfield/corpora/BBC-mini/1 No srt formatting"
-    subs_target_dir = "/Users/caiwingfield/corpora/BBC-mini/2 No nonspeech"
+    subtitles = SourceTargetPair(
+        source=CorpusMetaData(
+            name="BBC", path="/Users/caiwingfield/corpora/BBC-mini/1 No srt formatting"),
+        target=CorpusMetaData(
+            name="BBC", path="/Users/caiwingfield/corpora/BBC-mini/2 No nonspeech"))
 
-    subs_source_paths = list(glob.iglob(os.path.join(subs_source_dir, '*.srt')))
+    subs_source_paths = list(glob.iglob(os.path.join(subtitles.source.path, '*.srt')))
 
     count = 0
     for source_path in subs_source_paths:
         count += 1
-        target_path = os.path.join(subs_target_dir, os.path.basename(source_path))
+        target_path = os.path.join(subtitles.target.path, os.path.basename(source_path))
 
         # If we've already processed this file, skip it.
         if os.path.isfile(target_path) and not start_over:

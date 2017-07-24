@@ -34,6 +34,7 @@ def main():
         logger.info(f"Loading {corpus_meta.source.name} corpus from {corpus_meta.source.path}")
 
         logger.info(f"Tokenising corpus")
+        # TODO: Just open the files, the tokenisation is done. CorpusReader is too slow
         corpus = nltk.corpus.PlaintextCorpusReader(corpus_meta.source.path, ".+\..+").raw().split("\n")
 
         corpus_size = len(corpus)

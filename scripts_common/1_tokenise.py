@@ -22,7 +22,12 @@ def main():
             source=CorpusMetaData(
                 name="BNC", path="/Users/caiwingfield/corpora/BNC/1 Detagged"),
             target=CorpusMetaData(
-                name="BNC",  path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"))]
+                name="BNC",  path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus")),
+        SourceTargetPair(
+            source=CorpusMetaData(
+                name="UKWAC", path="/Users/caiwingfield/corpora/UKWAC/1 Text only"),
+            target=CorpusMetaData(
+                name="UKWAC", path="/Users/caiwingfield/corpora/UKWAC/2 Tokenised/UKWAC.corpus"))]
 
     token_delimiter = "\n"
 
