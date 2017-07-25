@@ -91,7 +91,7 @@ def save_frequency_distribution_info(freq_dist, filename):
         info_file.write(f"Vocabulary size: {len(most_common):,}\n")
 
         # Write low-frequency counts
-        for cutoff_freq in [0, 1, 5, 10, 50, 100, 500, 1000]:
+        for cutoff_freq in [0, 1, 5, 10, 25, 50, 100]:
             info_file.write(f"Corpus size (tokens occurring ≥ {cutoff_freq} times):"
                             f"\t{sum([count for token, count in most_common if count > cutoff_freq]):,}\n")
 
@@ -106,17 +106,29 @@ def save_frequency_distribution_info(freq_dist, filename):
             info_file.write(f"{i}\t{token}\t{count:,}\n")
 
 
-def main(corpus_name, corpus_dir, output_dir):
+def main(tokenised, corpus_path, output_dir):
+    corpus_name = os.path.basename(corpus_path)
     logger.info(f"Working on {corpus_name} corpus")
 
-    logger.info(f"Loading corpus documents from {corpus_dir}")
-    corpus = nltk.corpus.PlaintextCorpusReader(corpus_dir, ".+\..+")
+    token_delimiter = "\n"
 
-    logger.info(f"Tokenising corpus")
-    corpus = [w.lower() for w in modified_word_tokenize(corpus.raw())]
+    logger.info(f"Loading corpus documents from {corpus_path}")
 
-    logger.info(f"Filtering corpus")
-    corpus = filter_punctuation(corpus)
+    if tokenised:
+        # Read file directly
+        with open(corpus_path, mode="r", encoding="utf-8") as corpus_file:
+            corpus = corpus_file.read().split(token_delimiter)
+
+    else:
+        # Use CorpusReader and tokenise
+        logger.info(f"Loading corpus documents from {corpus_path}")
+        corpus = nltk.corpus.PlaintextCorpusReader(corpus_path, ".+\..+")
+
+        logger.info(f"Tokenising corpus")
+        corpus = [w.lower() for w in modified_word_tokenize(corpus.raw())]
+
+        logger.info(f"Filtering corpus")
+        corpus = filter_punctuation(corpus)
 
     logger.info(f"Saving frequency distribution information")
     freq_dist = nltk.probability.FreqDist(corpus)
@@ -138,11 +150,11 @@ if __name__ == "__main__":
     logger.info("Running %s" % " ".join(sys.argv))
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("corpus_name")
-    parser.add_argument("corpus_dir")
-    parser.add_argument("output_dir")
+    parser.add_argument("--tokenised", action="store_true")
+    parser.add_argument("--corpuspath")
+    parser.add_argument("--outdir")
     args = vars(parser.parse_args())
 
-    main(corpus_name=args["corpus_name"], corpus_dir=args["corpus_dir"], output_dir=args["output_dir"])
+    main(tokenised=args["tokenised"], corpus_path=args["corpuspath"], output_dir=args["outdir"])
 
     logger.info("Done!")
