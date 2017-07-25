@@ -26,12 +26,11 @@ def main(corpus_path, output_dir):
 
     logger.info(f"Loading corpus documents from {corpus_path}")
     with open(corpus_path, mode="r", encoding="utf-8") as corpus_file:
-        vocab_corpus = []
+        vocab_corpus = set()
         for i, line in enumerate(corpus_file):
-            vocab_corpus.append(line.strip())
+            vocab_corpus.add(line.strip())
             if i % 10_000_000 == 0:
                 logger.info(f"\tRead {i:,} tokens")
-        vocab_corpus = set(vocab_corpus)
 
     with open(os.path.join(output_dir, info_filename), mode="w", encoding="utf-8") as info_file:
         message = f"Corpus has a vocab of size {len(vocab_corpus):,}"
