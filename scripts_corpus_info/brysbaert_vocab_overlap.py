@@ -5,24 +5,33 @@ import sys
 
 from ..core.classes import CorpusMetaData
 
+
 logger = logging.getLogger()
 
 
 def main(corpus_path, output_dir):
+
     wordlist_meta = CorpusMetaData(
         name="Brysbaert 1 word", path="/Users/caiwingfield/corpora/brysbaert40k/brysbaert1.wordlist")
+
+    token_delimiter = "\n"
 
     info_filename = "Brysbaert 1-word vocab overlap.info"
 
     logger.info(f"Loading wordlist from {wordlist_meta.path}")
-    with open(wordlist_meta.path, mode="r") as wordlist_file:
-        vocab_wordlist = set(wordlist_file.read().split("\n"))
+    with open(wordlist_meta.path, mode="r", encoding="utf-8") as wordlist_file:
+        vocab_wordlist = set(wordlist_file.read().split(token_delimiter))
 
     logger.info(f"Wordlist has a vocab of size {len(vocab_wordlist):,}")
 
     logger.info(f"Loading corpus documents from {corpus_path}")
-    with open(corpus_path, mode="r") as corpus_file:
-        vocab_corpus = set(corpus_file.read().split("\n"))
+    with open(corpus_path, mode="r", encoding="utf-8") as corpus_file:
+        vocab_corpus = []
+        for i, line in enumerate(corpus_file):
+            vocab_corpus.append(line.strip())
+            if i % 10_000_000 == 0:
+                logger.info(f"\tRead {i:,} tokens")
+        vocab_corpus = set(vocab_corpus)
 
     with open(os.path.join(output_dir, info_filename), mode="w", encoding="utf-8") as info_file:
         message = f"Corpus has a vocab of size {len(vocab_corpus):,}"
