@@ -1,22 +1,22 @@
 import logging
+import os
+import pickle
 import sys
 
-import nltk
-
 from ..core.classes import CorpusMetaData
-from ..core.filtering import filter_frequency
+from ..core.distribution import freq_dist_from_file
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def main():
 
     corpus_metas = [
-        # TODO: these paths are wrong. Fix and rerun
         dict(
             source=CorpusMetaData(
                 name="BBC",
-                path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus"),
+                path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus",
+                info_path="/Users/caiwingfield/corpora/BBC/4.1 info"),
             target=CorpusMetaData(
                 name="BBC",
                 path="/Users/caiwingfield/corpora/BBC/5 Filtered/BBC.corpus",
@@ -24,7 +24,8 @@ def main():
         dict(
             source=CorpusMetaData(
                 name="BNC",
-                path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"),
+                path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus",
+                info_path="/Users/caiwingfield/corpora/BNC/2.1 info"),
             target=CorpusMetaData(
                 name="BNC",
                 path="/Users/caiwingfield/corpora/BNC/3 Filtered/BNC.corpus",
@@ -43,32 +44,32 @@ def main():
     # Set to 0 to include all tokens, set to 1 to include tokens that occur more than once, etc.
     ignorable_frequency = 1
 
-    token_delimiter = "\n"
-
     for corpus_meta in corpus_metas:
-        logger.info(f"Loading {corpus_meta.source.name} corpus from {corpus_meta.source.path}")
 
-        logger.info(f"Tokenising corpus")
-        # TODO: Just open the files, the tokenisation is done. CorpusReader is too slow
-        corpus = nltk.corpus.PlaintextCorpusReader(corpus_meta.source.path, ".+\..+").raw().split("\n")
+        freq_dist_path = os.path.join(corpus_meta["source"].info_path, corpus_meta["source"].name + ".corpus.pickle")
+        if os.path.isfile(freq_dist_path):
+            # If freq dist file previously saved, load it
+            logger.info(f"Loading frequency distribution from {freq_dist_path}")
+            with open(freq_dist_path, mode="rb") as freq_dist_file:
+                freq_dist = pickle.load(freq_dist_file)
+        else:
+            # Compute it
+            logger.info(f"Computing frequency distribution from {corpus_meta['source'].name} corpus")
+            freq_dist = freq_dist_from_file(corpus_meta["source"].path)
 
-        corpus_size = len(corpus)
-        logger.info(f"{corpus_size:,} tokens in corpus")
+        logger.info(f"Loading {corpus_meta['source'].name} corpus from {corpus_meta['source'].path}")
 
-        if ignorable_frequency > 0:
-            logger.info(f"Filtering corpus based on token frequency")
-            logger.info(f"Removing all tokens appearing at most {ignorable_frequency} times")
-            corpus = filter_frequency(corpus, ignore_tokens_with_frequencies_at_most=ignorable_frequency)
+        token_count = 0
+        with open(corpus_meta["source"].path, mode="r", encoding="utf-8") as source_file:
+            with open(corpus_meta['target'].path, mode="w", encoding="utf-8") as target_file:
+                for line in source_file:
+                    # Only write a token if it's sufficiently frequent
+                    if freq_dist[line.strip()] > ignorable_frequency:
+                        target_file.write(line)
 
-            corpus_size = len(corpus)
-            logger.info(f"{corpus_size:,} tokens in corpus")
-
-        logger.info(f"Saving {corpus_meta.target.name} corpus to {corpus_meta.target.path}")
-        with open(corpus_meta.target.path, mode="w", encoding="utf-8") as corpus_file:
-            for i, token in enumerate(corpus):
-                corpus_file.write(token+token_delimiter)
-                if i % 1_000_000 == 0 and i > 0:
-                    logger.info(f"\tWritten {i:,}/{corpus_size:,} tokens ({int(100*(i/corpus_size))}%)")
+                        token_count += 1
+                        if token_count % 1_000_000 == 0:
+                            logging.info(f"\tWritten {token_count} tokens")
 
 
 if __name__ == "__main__":
