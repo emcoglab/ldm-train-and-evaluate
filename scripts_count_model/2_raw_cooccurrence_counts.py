@@ -2,30 +2,59 @@ import logging
 import os
 import pickle
 import sys
+from collections import defaultdict
 
 import nltk
-import nltk.corpus
 import numpy as np
-import matplotlib.pyplot as plot
+import matplotlib.pyplot as pplot
 
+from ..core.classes import CorpusMetaData
 
 logger = logging.getLogger()
 
 
 def main():
 
-    # TODO: Wait for tokenisation and filtering then figure this out
+    corpus_meta = CorpusMetaData(
+        name="toy",
+        path="/Users/caiwingfield/corpora/toy-corpus/toy.corpus")
 
-    corpus_dir = "/Users/caiwingfield/corpora/toy-corpus/1 Tokenised and filtered"
-    matrix_dir = "/Users/caiwingfield/corpora/toy-corpus/2 Matrix"
+    freq_dist_path = "/Users/caiwingfield/corpora/toy-corpus/info/Frequency distribution toy.corpus.pickle"
+    with open(freq_dist_path, mode="rb") as freq_dist_file:
+        freq_dist = pickle.load(freq_dist_file)
 
-    logger.info("Loading corpus")
+    corpus_size = sum([freq for _, freq in freq_dist.most_common()])
+    vocab_size  = len([freq for _, freq in freq_dist.most_common()])
 
-    with open(os.path.join(corpus_dir, "corpus.p"), mode="rb") as corpus_file:
-        corpus = pickle.load(corpus_file)
+    radius = 1
+    # We will load in the full window and count left and right cooccurences separately
+    # The size of the symmetric window is twice the radius, plus 1 (centre)
+    diameter = 2 * radius + 1
 
-    with open(os.path.join(corpus_dir, "word2id.p"), mode="rb") as word2id_file:
-        word2id = pickle.load(word2id_file)
+    # Indices
+    lh_context_is = range(0, radius)
+    target_i = radius + 1
+    rh_context_is = range(radius + 1, diameter + 1)
+
+    coocur_l = defaultdict(
+        default_factory=lambda: 0)
+    with open(corpus_meta.path, mode="r", encoding="utf-8") as corpus_file:
+
+        # Fill up the initial window, such that the next token to be read will produce the first full window
+        window = corpus_file.readlines(diameter-1)
+
+        # Read each iteration of this loop will advance the position of the window by one
+        for token in corpus_file:
+
+            # Add a new rh token
+            window.append(token)
+
+            # Count lh occurrences
+            for i in lh_context_is:
+
+
+            # Count rh occurrences
+
 
     cooccur = np.zeros((len(word2id), len(word2id)))
 
@@ -67,13 +96,13 @@ def main():
 
     logger.info("Saving heatmap")
 
-    f = plot.figure(num=None, figsize=(30,30), dpi=192, facecolor='w', edgecolor='k')
+    f = pplot.figure(num=None, figsize=(30, 30), dpi=192, facecolor='w', edgecolor='k')
 
-    plot.imshow(cooccur, cmap="hot", interpolation='nearest')
+    pplot.imshow(cooccur, cmap="hot", interpolation='nearest')
 
     f.savefig(os.path.join(matrix_dir, "heatmap.png"))
 
-    plot.close(f)
+    pplot.close(f)
 
 
 if __name__ == "__main__":
