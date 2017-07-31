@@ -1,15 +1,10 @@
 import os
+import pickle
 import sys
 import logging
 import argparse
 
 import nltk
-
-import matplotlib
-
-matplotlib.use('TkAgg')  # To run on MacOS
-
-import matplotlib.pyplot as pplot
 
 from ..core.tokenising import modified_word_tokenize
 from ..core.filtering import filter_punctuation
@@ -27,6 +22,10 @@ def save_frequency_distribution_graph(freq_dist, filename, corpus_name="corpus",
     :param top_n: Only plot the top n most-frequent tokens. Set to 0 to plot all.
     :return:
     """
+
+    import matplotlib
+    matplotlib.use('TkAgg')  # To run on MacOS
+    import matplotlib.pyplot as pplot
 
     if top_n is 0:
         samples = [item for item, _ in freq_dist.most_common()]
@@ -107,6 +106,10 @@ def save_frequency_distribution_info(freq_dist, filename):
             info_file.write(f"{i}\t{token}\t{count:,}\n")
 
 
+def save_frequency_distribution(freq_dist, filename):
+    pickle.dump(freq_dist, filename)
+
+
 def main(corpus_path, output_dir, tokenised):
     corpus_name = os.path.basename(corpus_path)
 
@@ -136,6 +139,9 @@ def main(corpus_path, output_dir, tokenised):
         os.path.join(output_dir, f"Frequency distribution graph {corpus_name}.png"),
         corpus_name=corpus_name,
         top_n=200)
+    save_frequency_distribution(
+        freq_dist,
+        os.path.join(output_dir, f"Frequency distribution {corpus_name}.pickle"))
 
 
 if __name__ == "__main__":
