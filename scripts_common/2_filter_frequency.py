@@ -3,7 +3,7 @@ import sys
 
 import nltk
 
-from ..core.classes import SourceTargetPair, CorpusMetaData
+from ..core.classes import CorpusMetaData
 from ..core.filtering import filter_frequency
 
 logger = logging.getLogger()
@@ -13,16 +13,31 @@ def main():
 
     corpus_metas = [
         # TODO: these paths are wrong. Fix and rerun
-        SourceTargetPair(
+        dict(
             source=CorpusMetaData(
-                name="BBC",  path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus"),
+                name="BBC",
+                path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus"),
             target=CorpusMetaData(
-                name="BBC", path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus")),
-        SourceTargetPair(
+                name="BBC",
+                path="/Users/caiwingfield/corpora/BBC/5 Filtered/BBC.corpus",
+                info_path="/Users/caiwingfield/corpora/BBC/5.1 info")),
+        dict(
             source=CorpusMetaData(
-                name="BNC", path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"),
+                name="BNC",
+                path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"),
             target=CorpusMetaData(
-                name="BNC",  path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"))]
+                name="BNC",
+                path="/Users/caiwingfield/corpora/BNC/3 Filtered/BNC.corpus",
+                info_path="/Users/caiwingfield/corpora/BNC/3.1 info")),
+        dict(
+            source=CorpusMetaData(
+                name="UKWAC",
+                path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
+                info_path="/Users/caiwingfield/corpora/UKWAC/3.1 info"),
+            target=CorpusMetaData(
+                name="UKWAC",
+                path="/Users/caiwingfield/corpora/UKWAC/4 FIltered/UKWAC.corpus",
+                info_path="/Users/caiwingfield/corpora/UKWAC/4.1 info"))]
 
     # The frequency at which we ignore tokens.
     # Set to 0 to include all tokens, set to 1 to include tokens that occur more than once, etc.

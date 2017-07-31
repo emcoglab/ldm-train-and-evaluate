@@ -8,9 +8,10 @@ import nltk
 
 from ..core.tokenising import modified_word_tokenize
 from ..core.filtering import filter_punctuation
-from ..core.distribution import accumulate_frequency_distribution_from_file
+from ..core.distribution import freq_dist_from_file
 
-logger = logging.getLogger()
+
+logger = logging.getLogger(__name__)
 
 
 def save_frequency_distribution_graph(freq_dist, filename, corpus_name="corpus", top_n=0):
@@ -92,8 +93,12 @@ def save_frequency_distribution_info(freq_dist, filename):
 
         # Write low-frequency counts
         for cutoff_freq in [0, 1, 5, 10, 25, 50, 100]:
-            info_file.write(f"Corpus size (tokens occurring ≥ {cutoff_freq} times):"
-                            f"\t{sum([count for token, count in most_common if count > cutoff_freq]):,}\n")
+            info_file.write(f"Tokens occurring ≥ {cutoff_freq} times."
+                            f"\tCorpus size:"
+                            f"\t{sum([count for token, count in most_common if count > cutoff_freq]):,}."
+                            f"\tVocab size:"
+                            f"\t{len([count for token, count in most_common if count > cutoff_freq]):,}."
+                            f"\n")
 
         info_file.write("\n")
         info_file.write("----------------------------\n")
@@ -107,7 +112,8 @@ def save_frequency_distribution_info(freq_dist, filename):
 
 
 def save_frequency_distribution(freq_dist, filename):
-    pickle.dump(freq_dist, filename)
+    with open(filename, mode="wb") as file:
+        pickle.dump(freq_dist, file)
 
 
 def main(corpus_path, output_dir, tokenised):
@@ -127,8 +133,7 @@ def main(corpus_path, output_dir, tokenised):
         freq_dist = nltk.probability.FreqDist(corpus)
 
     else:  # tokenised
-
-        freq_dist = accumulate_frequency_distribution_from_file(corpus_path)
+        freq_dist = freq_dist_from_file(corpus_path, verbose=True)
 
     logger.info(f"Saving frequency distribution information")
     save_frequency_distribution_info(

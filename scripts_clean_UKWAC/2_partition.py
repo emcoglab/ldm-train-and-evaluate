@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from ..core.classes import SourceTargetPair, CorpusMetaData
+from ..core.classes import CorpusMetaData
 
 logger = logging.getLogger()
 
@@ -13,7 +13,7 @@ def main():
     target_filename_pattern = "part_{0:06d}.txt"
     lines_per_part = 10_000
 
-    corpus_meta = SourceTargetPair(
+    corpus_meta = dict(
         source=CorpusMetaData(
             name="UKWAC",
             path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/1 Text only/cleaned_pre.pos.corpus"),
@@ -21,9 +21,9 @@ def main():
             name="UKWAC",
             path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/2 Partitioned"))
 
-    logger.info(f"Loading {corpus_meta.source.name} corpus from {corpus_meta.source.path}")
+    logger.info(f"Loading {corpus_meta['source'].name} corpus from {corpus_meta['source'].path}")
 
-    with open(corpus_meta.source.path, mode="r", encoding="utf-8") as source_file:
+    with open(corpus_meta['source'].path, mode="r", encoding="utf-8") as source_file:
 
         # initialise some variables
         part_number = 0
@@ -39,11 +39,12 @@ def main():
 
             if len(lines) >= lines_per_part:
                 part_number += 1
-                target_path = os.path.join(corpus_meta.target.path, target_filename_pattern.format(part_number))
+                target_path = os.path.join(corpus_meta['target'].path, target_filename_pattern.format(part_number))
 
                 total_line_count += len(lines)
 
-                logger.info(f"Writing next {len(lines):,} lines to {os.path.basename(target_path)}. ({total_line_count:,} lines total.)")
+                logger.info(f"Writing next {len(lines):,} lines to {os.path.basename(target_path)}."
+                            f" ({total_line_count:,} lines total.)")
 
                 with open(target_path, mode="w", encoding="utf-8") as target_file:
                     target_file.writelines(lines)

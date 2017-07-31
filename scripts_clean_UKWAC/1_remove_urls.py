@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from ..core.classes import SourceTargetPair, CorpusMetaData
+from ..core.classes import CorpusMetaData
 
 logger = logging.getLogger()
 
@@ -16,7 +16,7 @@ def is_suspected_url_ref(line):
 
 
 def main():
-    corpus_meta = SourceTargetPair(
+    corpus_meta = dict(
         source=CorpusMetaData(
             name="UKWAC",
             path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/0 Raw untagged/cleaned_pre.pos.corpus"),
@@ -24,9 +24,9 @@ def main():
             name="UKWAC",
             path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/1 Text only/cleaned_pre.pos.corpus"))
 
-    logger.info(f"Removing URL references from {corpus_meta.source.name} corpus")
-    with open(corpus_meta.source.path, mode="r", encoding="utf-8", errors="ignore") as source_file:
-        with open(corpus_meta.target.path, mode="w", encoding="utf-8") as target_file:
+    logger.info(f"Removing URL references from {corpus_meta['source'].name} corpus")
+    with open(corpus_meta['source'].path, mode="r", encoding="utf-8", errors="ignore") as source_file:
+        with open(corpus_meta['target'].path, mode="w", encoding="utf-8") as target_file:
             i = 0
             for line in source_file:
                 if is_suspected_url_ref(line):

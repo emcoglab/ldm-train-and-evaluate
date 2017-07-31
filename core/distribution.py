@@ -53,4 +53,3 @@ def freq_dist_from_file(filename, batch_size=1_000_000, verbose=False):
         freq_dist += nltk.probability.FreqDist(batch)
 
     return freq_dist
-

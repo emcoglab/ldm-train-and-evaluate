@@ -16,7 +16,6 @@ def main():
         last_line = ""
         for sub in subs:
             this_line = sub.content
-            #this_line.replace("\n", " ")
             this_line.strip(" .")
             if (last_line != ""
                 and not last_line.isspace()
