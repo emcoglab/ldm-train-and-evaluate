@@ -106,20 +106,16 @@ def save_frequency_distribution_info(freq_dist, filename):
             info_file.write(f"{i}\t{token}\t{count:,}\n")
 
 
-def main(tokenised, corpus_path, output_dir):
+def main(corpus_path, output_dir, tokenised):
     corpus_name = os.path.basename(corpus_path)
     logger.info(f"Working on {corpus_name} corpus")
 
-    token_delimiter = "\n"
+    # Number of tokens per batch
+    batch_size = 1_000_000
 
     logger.info(f"Loading corpus documents from {corpus_path}")
 
-    if tokenised:
-        # Read file directly
-        with open(corpus_path, mode="r", encoding="utf-8") as corpus_file:
-            corpus = corpus_file.read().split(token_delimiter)
-
-    else:
+    if not tokenised:
         # Use CorpusReader and tokenise
         logger.info(f"Loading corpus documents from {corpus_path}")
         corpus = nltk.corpus.PlaintextCorpusReader(corpus_path, ".+\..+")
@@ -130,8 +126,42 @@ def main(tokenised, corpus_path, output_dir):
         logger.info(f"Filtering corpus")
         corpus = filter_punctuation(corpus)
 
+        freq_dist = nltk.probability.FreqDist(corpus)
+
+    else:  # tokenised
+        # Read file directly, in batches, accumulating the FreqDist
+        freq_dist = nltk.probability.FreqDist()
+        batch = []
+        with open(corpus_path, mode="r", encoding="utf-8") as corpus_file:
+
+            # counters
+            token_count = 1
+            tokens_this_batch = 0
+            batch_count = 0
+
+            # Add tokens to the batch
+            for line in corpus_file:
+                batch.append(line.strip())
+                tokens_this_batch += 1
+
+                # When the batch is full
+                if tokens_this_batch >= batch_size:
+
+                    # Dump the batch into the FreqDist
+                    freq_dist += nltk.probability.FreqDist(batch)
+
+                    token_count += tokens_this_batch
+                    batch_count += 1
+                    logger.info(f"{batch_count:,} batches processed, {token_count:,} tokens total")
+
+                    # Empty the batch
+                    batch = []
+                    tokens_this_batch = 0
+
+            # Remember to do the final batch
+            freq_dist += nltk.probability.FreqDist(batch)
+
     logger.info(f"Saving frequency distribution information")
-    freq_dist = nltk.probability.FreqDist(corpus)
     save_frequency_distribution_info(
         freq_dist,
         os.path.join(output_dir, f"Frequency distribution info {corpus_name}.txt"))
@@ -155,6 +185,9 @@ if __name__ == "__main__":
     parser.add_argument("--outdir")
     args = vars(parser.parse_args())
 
-    main(tokenised=args["tokenised"], corpus_path=args["corpuspath"], output_dir=args["outdir"])
+    main(
+        corpus_path=args["corpuspath"],
+        output_dir=args["outdir"],
+        tokenised=args["tokenised"])
 
     logger.info("Done!")
