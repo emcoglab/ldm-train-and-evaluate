@@ -20,6 +20,13 @@ class TokenIndexDictionary(object):
         self.token2id = word2id
         self.id2token = id2word
 
+    def __len__(self):
+        """
+        The number of indexed tokens in the dictionary
+        :return:
+        """
+        return len(self.token2id)
+
     def save(self, filename):
         """
         Saves an TokenIndexDictionary to a file
@@ -30,7 +37,7 @@ class TokenIndexDictionary(object):
             pickle.dump(self, file)
 
     @staticmethod
-    def from_freqdist(freq_dist: nltk.probability.FreqDist):
+    def from_freqdist(freq_dist: nltk.probability.FreqDist) -> 'TokenIndexDictionary':
         """
         Constructs an TokenIndexDictionary from a nltk.probability.FreqDist
         :param freq_dist:
@@ -47,7 +54,7 @@ class TokenIndexDictionary(object):
         return TokenIndexDictionary(word2id, id2word)
 
     @staticmethod
-    def load(filename):
+    def load(filename) -> 'TokenIndexDictionary':
         """
         Loads an TokenIndexDictionary from a file.
         :param filename:
