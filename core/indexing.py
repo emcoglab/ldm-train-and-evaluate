@@ -5,20 +5,16 @@ import nltk
 
 class TokenIndexDictionary(object):
 
-    # A dictionary of token-keyed indices
-    token2id = None
-
-    # A dictionary of index-keyed tokens
-    id2token = None
-
-    def __init__(self, word2id, id2word):
+    def __init__(self, token2id, id2token):
         """
         Constructor.
-        :param word2id:
-        :param id2word:
+        :param token2id:
+        :param id2token:
         """
-        self.token2id = word2id
-        self.id2token = id2word
+        # A dictionary of token-keyed indices
+        self.token2id = token2id
+        # A dictionary of index-keyed tokens
+        self.id2token = id2token
 
     def __len__(self):
         """

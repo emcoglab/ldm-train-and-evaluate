@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from ..core.classes import CorpusMetaData
+from ..core.corpus import CorpusMetaData
 
 logger = logging.getLogger()
 

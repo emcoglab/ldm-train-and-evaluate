@@ -5,7 +5,7 @@ import sys
 
 import nltk
 
-from ..core.classes import CorpusMetaData
+from ..core.corpus import CorpusMetaData
 from ..core.filtering import filter_punctuation
 from ..core.tokenising import modified_word_tokenize
 

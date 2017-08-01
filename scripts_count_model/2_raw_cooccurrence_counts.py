@@ -6,7 +6,7 @@ import sys
 import matplotlib.pyplot as pplot
 import scipy.sparse as sps
 
-from ..core.classes import CorpusMetaData
+from ..core.corpus import CorpusMetaData
 from ..core.indexing import TokenIndexDictionary
 
 logger = logging.getLogger()
