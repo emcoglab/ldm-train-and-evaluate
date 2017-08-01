@@ -2,7 +2,7 @@ import logging
 import sys
 
 from ..core.corpus import CorpusMetaData
-from ..core.predict_models import PredictModelSkipGram
+from ..core.predict_models import PredictModelCBOW
 
 logger = logging.getLogger(__name__)
 
@@ -13,24 +13,24 @@ def main():
             corpus=CorpusMetaData(
                 name="BBC",
                 path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus"),
-            weights_save=f"/Users/caiwingfield/vectors/skip-gram/BBC.skipgram"),
+            weights_save=f"/Users/caiwingfield/vectors/cbow/BBC.skipgram"),
         dict(
             corpus=CorpusMetaData(
                 name="BNC",
                 path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"),
-            weights_save=f"/Users/caiwingfield/vectors/skip-gram/BNC.skipgram"),
+            weights_save=f"/Users/caiwingfield/vectors/cbow/BNC.skipgram"),
         dict(
             corpus=CorpusMetaData(
                 name="UKWAC",
                 path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus"),
-            weights_save=f"/Users/caiwingfield/vectors/skip-gram/UKWAC.skipgram")
+            weights_save=f"/Users/caiwingfield/vectors/cbow/UKWAC.skipgram")
     ]
 
     for meta in metas:
 
         logger.info(f"Working on {meta['corpus'].name} corpus")
 
-        predict_model = PredictModelSkipGram(
+        predict_model = PredictModelCBOW(
             corpus_path=meta['corpus'].path,
             weights_path=meta['weights_save'])
 
