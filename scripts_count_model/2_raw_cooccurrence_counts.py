@@ -122,13 +122,13 @@ def main():
             cooccur_lr += cooccur_r
 
             with open(os.path.join(corpus_meta['out_dir'], f"{corpus_meta['corpus'].name}_r={radius}_left"
-                                                           f".cooccur")) as cooccur_file:
+                                                           f".cooccur"), mode="wb") as cooccur_file:
                 pickle.dump(cooccur_l, cooccur_file)
             with open(os.path.join(corpus_meta['out_dir'], f"{corpus_meta['corpus'].name}_r={radius}_right"
-                                                           f".cooccur")) as cooccur_file:
+                                                           f".cooccur"), mode="wb") as cooccur_file:
                 pickle.dump(cooccur_r, cooccur_file)
             with open(os.path.join(corpus_meta['out_dir'], f"{corpus_meta['corpus'].name}_r={radius}_both"
-                                                           f".cooccur")) as cooccur_file:
+                                                           f".cooccur"), mode="wb") as cooccur_file:
                 pickle.dump(cooccur_lr, cooccur_file)
 
             # cooccur_lr = cooccur_lr.todense()
