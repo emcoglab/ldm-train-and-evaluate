@@ -5,9 +5,9 @@ import sys
 
 import nltk
 
-from ..core.corpus import CorpusMetaData
-from ..core.filtering import filter_punctuation
-from ..core.tokenising import modified_word_tokenize
+from ..core.corpus.tokenising import modified_word_tokenize
+from ..core.corpus.corpus import CorpusMetaData
+from ..core.corpus.filtering import filter_punctuation
 
 logger = logging.getLogger()
 

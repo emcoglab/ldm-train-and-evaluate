@@ -3,8 +3,8 @@ import os
 import pickle
 import sys
 
-from ..core.corpus import CorpusMetaData
-from ..core.distribution import freq_dist_from_file
+from ..core.corpus.distribution import freq_dist_from_file
+from ..core.corpus.corpus import CorpusMetaData
 
 logger = logging.getLogger(__name__)
 

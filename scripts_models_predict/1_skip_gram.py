@@ -1,8 +1,8 @@
 import logging
 import sys
 
-from ..core.corpus import CorpusMetaData
-from ..core.predict_models import PredictModelSkipGram
+from ..core.models.predict import PredictModelSkipGram
+from ..core.corpus.corpus import CorpusMetaData
 
 logger = logging.getLogger(__name__)
 

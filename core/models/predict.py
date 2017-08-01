@@ -16,11 +16,11 @@ class PredictModelType(Enum):
 
 class PredictModel(object):
 
-    def __init__(self, model_type, corpus_path, weights_path):
+    def __init__(self, model_type: PredictModelType, corpus_path, weights_path):
         """
-        :param model_type:
-        :param corpus_path:
-        :param weights_path:
+        :param model_type: The type of model
+        :param corpus_path: Where the corpus should be loaded from
+        :param weights_path: Where the weights will be saved/loaded from
         """
         self.model_type = model_type
         self.corpus_path = corpus_path
@@ -36,7 +36,7 @@ class PredictModel(object):
         else:
             raise ValueError()
 
-        self.model = None
+        self.model: gensim.models.Word2Vec = None
 
     def build_and_run(self):
 
@@ -48,6 +48,7 @@ class PredictModel(object):
             embedding_dims = 100
             # TODO: run at different window radii
             window_radius = 5
+            # TODO: do we want to actually ignore low-frequency words?
             ignorable_frequency = 1
 
             # TODO: does using disjoint "sentences" here lead to unpleasant edge effects?

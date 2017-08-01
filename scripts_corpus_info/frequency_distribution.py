@@ -1,15 +1,14 @@
+import argparse
+import logging
 import os
 import pickle
 import sys
-import logging
-import argparse
 
 import nltk
 
-from ..core.tokenising import modified_word_tokenize
-from ..core.filtering import filter_punctuation
-from ..core.distribution import freq_dist_from_file
-
+from ..core.corpus.tokenising import modified_word_tokenize
+from ..core.corpus.distribution import freq_dist_from_file
+from ..core.corpus.filtering import filter_punctuation
 
 logger = logging.getLogger(__name__)
 

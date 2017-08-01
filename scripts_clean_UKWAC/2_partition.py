@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from ..core.corpus import CorpusMetaData
+from ..core.corpus.corpus import CorpusMetaData
 
 logger = logging.getLogger()
 
