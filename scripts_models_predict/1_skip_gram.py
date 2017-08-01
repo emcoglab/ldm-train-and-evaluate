@@ -13,17 +13,17 @@ def main():
             corpus=CorpusMetaData(
                 name="BBC",
                 path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus"),
-            weights_save=f"/Users/caiwingfield/vectors/skip-gram/BBC.skipgram"),
+            weights_save=f"/Users/caiwingfield/vectors/skip-gram/BBC_skipgram.weights"),
         dict(
             corpus=CorpusMetaData(
                 name="BNC",
                 path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"),
-            weights_save=f"/Users/caiwingfield/vectors/skip-gram/BNC.skipgram"),
+            weights_save=f"/Users/caiwingfield/vectors/skip-gram/BNC_skipgram.weights"),
         dict(
             corpus=CorpusMetaData(
                 name="UKWAC",
                 path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus"),
-            weights_save=f"/Users/caiwingfield/vectors/skip-gram/UKWAC.skipgram")
+            weights_save=f"/Users/caiwingfield/vectors/skip-gram/UKWAC_skipgram.weights")
     ]
 
     for meta in metas:
