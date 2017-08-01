@@ -36,6 +36,9 @@ def main():
 
         predict_model.build_and_run()
 
+        logger.info(f"For corpus {meta['corpus'].name}:")
+        logger.info(predict_model.model.most_similar(positive=['woman', 'king'], negative=['man'], topn=4))
+
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s | %(levelname)s | %(module)s | %(message)s',

@@ -16,27 +16,27 @@ class PredictModelType(Enum):
 
 class PredictModel(object):
 
-    def __init__(self, predict_model_type, corpus_path, weights_path):
+    def __init__(self, model_type, corpus_path, weights_path):
         """
-        :param predict_model_type:
+        :param model_type:
         :param corpus_path:
         :param weights_path:
         """
-        self.predict_model_type = predict_model_type
+        self.model_type = model_type
         self.corpus_path = corpus_path
         self.weights_path = weights_path
 
         # Switch on predict model type
-        if predict_model_type is PredictModelType.skip_gram:
-            self._model_subdir = 'skip-gram'
-            self._model_name = 'Skip-gram'
+        if model_type is PredictModelType.skip_gram:
             self._sg = 1
-        elif predict_model_type is PredictModelType.cbow:
-            self._model_subdir = 'cbow'
-            self._model_name = 'CBOW'
+            self._model_name = 'Skip-gram'
+        elif model_type is PredictModelType.cbow:
             self._sg = 0
+            self._model_name = 'CBOW'
         else:
             raise ValueError()
+
+        self.model = None
 
     def build_and_run(self):
 
@@ -53,7 +53,7 @@ class PredictModel(object):
             # TODO: does using disjoint "sentences" here lead to unpleasant edge effects?
             corpus = BatchedCorpus(filename=self.corpus_path, batch_size=10)
 
-            model = gensim.models.Word2Vec(
+            self.model = gensim.models.Word2Vec(
                 sentences=corpus,
                 size=embedding_dims,
                 window=window_radius,
@@ -61,14 +61,11 @@ class PredictModel(object):
                 sg=self._sg,
                 workers=4)
 
-            model.save(self.weights_path)
+            self.model.save(self.weights_path)
 
         else:
             logger.info(f"Loading pre-trained {self._model_name} model")
-            model = gensim.models.Word2Vec.load(self.weights_path)
-
-        logger.info(f"For corpus {self.corpus_path}:")
-        logger.info(model.most_similar(positive=['woman', 'king'], negative=['man'], topn=4))
+            self.model = gensim.models.Word2Vec.load(self.weights_path)
 
 
 class PredictModelCBOW(PredictModel):
