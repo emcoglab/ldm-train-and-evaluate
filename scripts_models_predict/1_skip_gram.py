@@ -32,9 +32,9 @@ def main():
         model.save(model_save_filename)
 
     else:
-
         model = gensim.models.Word2Vec.load('/tmp/mymodel')
 
+    logger.info(model.most_similar(positive=['woman', 'king'], negative=['man'], topn=4))
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s | %(levelname)s | %(module)s | %(message)s',
