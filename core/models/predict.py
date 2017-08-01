@@ -4,7 +4,7 @@ from enum import Enum
 
 import gensim
 
-from core.corpus import BatchedCorpus
+from core.corpus.corpus import BatchedCorpus
 
 logger = logging.getLogger(__name__)
 
