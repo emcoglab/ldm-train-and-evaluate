@@ -32,8 +32,8 @@ class TokenIndexDictionary(object):
         with open(filename, mode="wb") as file:
             pickle.dump(self, file)
 
-    @staticmethod
-    def from_freqdist(freq_dist: nltk.probability.FreqDist) -> 'TokenIndexDictionary':
+    @classmethod
+    def from_freqdist(cls, freq_dist: nltk.probability.FreqDist) -> 'TokenIndexDictionary':
         """
         Constructs an TokenIndexDictionary from a nltk.probability.FreqDist
         :param freq_dist:
@@ -47,10 +47,10 @@ class TokenIndexDictionary(object):
 
         id2word = dict((v, k) for k, v in word2id.items())
 
-        return TokenIndexDictionary(word2id, id2word)
+        return cls(word2id, id2word)
 
-    @staticmethod
-    def load(filename) -> 'TokenIndexDictionary':
+    @classmethod
+    def load(cls, filename) -> 'TokenIndexDictionary':
         """
         Loads an TokenIndexDictionary from a file.
         :param filename:
