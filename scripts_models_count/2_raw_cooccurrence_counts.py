@@ -48,100 +48,105 @@ def main():
 
         for radius in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
 
-            logger.info(f"Working on {corpus_meta['corpus'].name} corpus, radius {radius}")
-
             # We will load in the full window and count left and right cooccurences separately
             # The size of the symmetric window is twice the radius, plus 1 (centre)
             diameter = 2 * radius + 1
 
-            tid = TokenIndexDictionary.load(corpus_meta['index_path'])
+            fname_l = os.path.join(corpus_meta['out_dir'], f"{corpus_meta['corpus'].name}_r={radius}_left.cooccur")
+            fname_r = os.path.join(corpus_meta['out_dir'], f"{corpus_meta['corpus'].name}_r={radius}_right.cooccur")
+            fname_b = os.path.join(corpus_meta['out_dir'], f"{corpus_meta['corpus'].name}_r={radius}_both.cooccur")
 
-            vocab_size = len(tid)
+            # Skip ones which are already done
+            if os.path.isfile(fname_b):
+                logger.info(f"Skipping {corpus_meta['corpus'].name} corpus, radius {radius}")
+            else:
+                logger.info(f"Working on {corpus_meta['corpus'].name} corpus, radius {radius}")
 
-            # Indices
-            lh_context_is = range(0, radius)
-            target_i = radius
-            rh_context_is = range(radius + 1, diameter)
+                tid = TokenIndexDictionary.load(corpus_meta['index_path'])
 
-            # first coordinate points to target word
-            # second coordinate points to context word
-            cooccur_l = sps.lil_matrix((vocab_size, vocab_size))
-            cooccur_r = sps.lil_matrix((vocab_size, vocab_size))
+                vocab_size = len(tid)
 
-            # Start scanning the corpus
-            token_count = 0
-            with open(corpus_meta['corpus'].path, mode="r", encoding="utf-8") as corpus_file:
+                # Indices
+                lh_context_is = range(0, radius)
+                target_i = radius
+                rh_context_is = range(radius + 1, diameter)
 
-                # Fill up the initial window, such that the next token to be read will produce the first full window
-                window = []
-                for i in range(0, diameter-1):
-                    window.append(corpus_file.readline().strip())
+                # first coordinate points to target word
+                # second coordinate points to context word
+                cooccur_l = sps.lil_matrix((vocab_size, vocab_size))
+                cooccur_r = sps.lil_matrix((vocab_size, vocab_size))
 
-                # Each iteration of this loop will advance the position of the window by one
-                for corpus_token in corpus_file:
+                # Start scanning the corpus
+                token_count = 0
+                with open(corpus_meta['corpus'].path, mode="r", encoding="utf-8") as corpus_file:
 
-                    # Add a new token on the rhs of the window
-                    window.append(corpus_token.strip())
+                    # Fill up the initial window, such that the next token to be read will produce the first full window
+                    window = []
+                    for i in range(0, diameter-1):
+                        window.append(corpus_file.readline().strip())
 
-                    # The window is now full
-                    target_token = window[target_i]
-                    target_id = tid.token2id[target_token]
+                    # Each iteration of this loop will advance the position of the window by one
+                    for corpus_token in corpus_file:
 
-                    # Count lh occurrences
-                    for i in lh_context_is:
-                        context_token = window[i]
-                        context_id = tid.token2id[context_token]
-                        cooccur_l[target_id, context_id] += 1
+                        # Add a new token on the rhs of the window
+                        window.append(corpus_token.strip())
 
-                    # Count rh occurrences
-                    for i in rh_context_is:
-                        context_token = window[i]
-                        context_id = tid.token2id[context_token]
-                        cooccur_r[target_id, context_id] += 1
+                        # The window is now full
+                        target_token = window[target_i]
+                        target_id = tid.token2id[target_token]
 
-                    # Pop the lhs token out of the window to await the next one, which will cause the window to have
-                    # moved exactly one token over in the corpus
-                    window = window[1:]
+                        # Count lh occurrences
+                        for i in lh_context_is:
+                            context_token = window[i]
+                            context_id = tid.token2id[context_token]
+                            cooccur_l[target_id, context_id] += 1
 
-                    token_count += 1
-                    if token_count % 1_000_000 == 0:
-                        logger.info(f"\t{token_count:,} tokens processed")
+                        # Count rh occurrences
+                        for i in rh_context_is:
+                            context_token = window[i]
+                            context_id = tid.token2id[context_token]
+                            cooccur_r[target_id, context_id] += 1
 
-            # logger.info(f"{cooccur_l.count_nonzero()} (L) "
-            #             f"+ {cooccur_r.count_nonzero()} (R) "
-            #             f"= {cooccur_l.count_nonzero() + cooccur_r.count_nonzero()} (total) "
-            #             f"non-zeros in co-occurrence matrix")
-            # logger.info(f"Summing to {int(cooccur_l.sum())} "
-            #             f"+ {int(cooccur_r.sum())} "
-            #             f"= {int(cooccur_l.sum() + cooccur_r.sum())} ")
+                        # Pop the lhs token out of the window to await the next one, which will cause the window to have
+                        # moved exactly one token over in the corpus
+                        window = window[1:]
 
-            logger.info("Saving co-occurrence matrices")
+                        token_count += 1
+                        if token_count % 1_000_000 == 0:
+                            logger.info(f"\t{token_count:,} tokens processed")
 
-            cooccur_lr = sps.lil_matrix((vocab_size, vocab_size))
-            cooccur_lr += cooccur_l
-            cooccur_lr += cooccur_r
+                # logger.info(f"{cooccur_l.count_nonzero()} (L) "
+                #             f"+ {cooccur_r.count_nonzero()} (R) "
+                #             f"= {cooccur_l.count_nonzero() + cooccur_r.count_nonzero()} (total) "
+                #             f"non-zeros in co-occurrence matrix")
+                # logger.info(f"Summing to {int(cooccur_l.sum())} "
+                #             f"+ {int(cooccur_r.sum())} "
+                #             f"= {int(cooccur_l.sum() + cooccur_r.sum())} ")
 
-            with open(os.path.join(corpus_meta['out_dir'], f"{corpus_meta['corpus'].name}_r={radius}_left"
-                                                           f".cooccur"), mode="wb") as cooccur_file:
-                pickle.dump(cooccur_l, cooccur_file)
-            with open(os.path.join(corpus_meta['out_dir'], f"{corpus_meta['corpus'].name}_r={radius}_right"
-                                                           f".cooccur"), mode="wb") as cooccur_file:
-                pickle.dump(cooccur_r, cooccur_file)
-            with open(os.path.join(corpus_meta['out_dir'], f"{corpus_meta['corpus'].name}_r={radius}_both"
-                                                           f".cooccur"), mode="wb") as cooccur_file:
-                pickle.dump(cooccur_lr, cooccur_file)
+                logger.info("Saving co-occurrence matrices")
 
-            # cooccur_lr = cooccur_lr.todense()
-            #
-            # logger.info("Saving heatmap")
-            #
-            # f = pplot.figure(num=None, figsize=(30, 30), dpi=192, facecolor='w', edgecolor='k')
-            #
-            # pplot.imshow(cooccur_lr, cmap="hot", interpolation='nearest')
-            #
-            # f.savefig(os.path.join(corpus_meta['out_dir'], f"{corpus_meta['corpus'].name}_r={radius}_heatmap.png"))
-            #
-            # pplot.close(f)
+                cooccur_lr = sps.lil_matrix((vocab_size, vocab_size))
+                cooccur_lr += cooccur_l
+                cooccur_lr += cooccur_r
+
+                with open(fname_l, mode="wb") as cooccur_file:
+                    pickle.dump(cooccur_l, cooccur_file)
+                with open(fname_r, mode="wb") as cooccur_file:
+                    pickle.dump(cooccur_r, cooccur_file)
+                with open(fname_b, mode="wb") as cooccur_file:
+                    pickle.dump(cooccur_lr, cooccur_file)
+
+                # cooccur_lr = cooccur_lr.todense()
+                #
+                # logger.info("Saving heatmap")
+                #
+                # f = pplot.figure(num=None, figsize=(30, 30), dpi=192, facecolor='w', edgecolor='k')
+                #
+                # pplot.imshow(cooccur_lr, cmap="hot", interpolation='nearest')
+                #
+                # f.savefig(os.path.join(corpus_meta['out_dir'], f"{corpus_meta['corpus'].name}_r={radius}_heatmap.png"))
+                #
+                # pplot.close(f)
 
 
 if __name__ == "__main__":
