@@ -1,12 +1,12 @@
 import logging
 import os
-import pickle
 import sys
 
+import scipy.io as sio
 import scipy.sparse as sps
 
+from ..core.corpus.corpus import CorpusMetadata, WindowedCorpus
 from ..core.utils.indexing import TokenIndexDictionary
-from ..core.corpus.corpus import CorpusMetadata, StreamedCorpus, WindowedCorpus
 
 logger = logging.getLogger()
 
@@ -85,10 +85,8 @@ def main():
                         logger.info(f"\t{window_count:,} tokens processed")
 
                 logger.info("Saving co-occurrence matrices")
-                with open(filename_l, mode="wb") as cooccur_file:
-                    pickle.dump(cooccur_l, cooccur_file)
-                with open(filename_r, mode="wb") as cooccur_file:
-                    pickle.dump(cooccur_r, cooccur_file)
+                sio.mmwrite(filename_l, cooccur_l)
+                sio.mmwrite(filename_r, cooccur_r)
 
 
 if __name__ == "__main__":
