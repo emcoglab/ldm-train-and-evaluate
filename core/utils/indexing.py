@@ -29,7 +29,9 @@ class TokenIndexDictionary(object):
         :return:
         """
         with open(filename, mode="wb") as file:
-            json.dump(self, file)
+            json.dump(self, file,
+                      # Remove whitespace for smaller files
+                      separators=(',', ':'))
 
     @classmethod
     def from_freqdist(cls, freq_dist: nltk.probability.FreqDist) -> 'TokenIndexDictionary':
