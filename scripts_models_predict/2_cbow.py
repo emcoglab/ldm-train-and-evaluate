@@ -24,7 +24,6 @@ def main():
 
     for meta in metas:
 
-        # TODO: verify this list
         window_radii = [1, 3, 5, 10]
 
         for window_radius in window_radii:
