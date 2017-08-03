@@ -39,6 +39,7 @@ def main(corpus_path, output_dir, freq_dist_path=None):
         logger.info("Loading frequency distribution")
         filter_freqs.extend([1, 5, 10, 25, 50, 100])
         with open(freq_dist_path, mode="rb") as freq_dist_file:
+            # TODO: don't use pickle
             freq_dist = pickle.load(freq_dist_file)
     else:
         logger.info("Building frequency distribution")

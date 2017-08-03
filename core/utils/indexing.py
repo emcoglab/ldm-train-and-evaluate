@@ -30,6 +30,7 @@ class TokenIndexDictionary(object):
         :return:
         """
         with open(filename, mode="wb") as file:
+            # TODO: Don't use pickle
             pickle.dump(self, file)
 
     @classmethod

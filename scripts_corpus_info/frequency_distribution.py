@@ -114,6 +114,7 @@ def save_frequency_distribution_info(freq_dist, filename):
 
 def save_frequency_distribution(freq_dist, filename):
     with open(filename, mode="wb") as file:
+        # TODO: Don't use pickle
         pickle.dump(freq_dist, file)
 
 
