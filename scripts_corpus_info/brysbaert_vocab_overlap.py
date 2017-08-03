@@ -4,7 +4,7 @@ import os
 import pickle
 import sys
 
-from ..core.corpus.corpus import CorpusMetaData, StreamedCorpus
+from ..core.corpus.corpus import CorpusMetadata, StreamedCorpus
 
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 def main(corpus_path, output_dir, freq_dist_path=None):
 
-    wordlist_meta = CorpusMetaData(
+    wordlist_meta = CorpusMetadata(
         name="Brysbaert 1 word",
         path="/Users/caiwingfield/code/corpus_analysis/scripts_corpus_info/brysbaert1.wordlist")
 
@@ -26,7 +26,7 @@ def main(corpus_path, output_dir, freq_dist_path=None):
     logger.info(f"Loading corpus documents from {corpus_path}")
     vocab_corpus = set()
     token_i = 0
-    for token in StreamedCorpus(CorpusMetaData(path=corpus_path, name="")):
+    for token in StreamedCorpus(CorpusMetadata(path=corpus_path, name="")):
         vocab_corpus.add(token)
 
         token_i += 1

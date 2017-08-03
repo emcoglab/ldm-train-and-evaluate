@@ -2,7 +2,7 @@ import logging
 import sys
 
 from ..core.models.predict import PredictModelCBOW
-from ..core.corpus.corpus import CorpusMetaData
+from ..core.corpus.corpus import CorpusMetadata
 
 logger = logging.getLogger(__name__)
 
@@ -10,17 +10,17 @@ logger = logging.getLogger(__name__)
 def main():
     metas = [
         dict(
-            corpus=CorpusMetaData(
+            corpus=CorpusMetadata(
                 name="BBC",
                 path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus"),
             weights_save=f"/Users/caiwingfield/vectors/cbow/BBC_cbow.weights"),
         dict(
-            corpus=CorpusMetaData(
+            corpus=CorpusMetadata(
                 name="BNC",
                 path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"),
             weights_save=f"/Users/caiwingfield/vectors/cbow/BNC_cbow.weights"),
         dict(
-            corpus=CorpusMetaData(
+            corpus=CorpusMetadata(
                 name="UKWAC",
                 path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus"),
             weights_save=f"/Users/caiwingfield/vectors/cbow/UKWAC_cbow.weights")

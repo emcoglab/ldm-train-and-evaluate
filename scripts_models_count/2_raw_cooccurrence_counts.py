@@ -6,7 +6,7 @@ import sys
 import scipy.sparse as sps
 
 from ..core.utils.indexing import TokenIndexDictionary
-from ..core.corpus.corpus import CorpusMetaData, StreamedCorpus
+from ..core.corpus.corpus import CorpusMetadata, StreamedCorpus
 
 
 logger = logging.getLogger()
@@ -15,28 +15,28 @@ logger = logging.getLogger()
 def main():
     corpus_metas = [
         # dict(
-        #     corpus=CorpusMetaData(
+        #     corpus=CorpusMetadata(
         #         name="toy",
         #         path="/Users/caiwingfield/corpora/toy-corpus/toy.corpus"),
         #     index_path="/Users/caiwingfield/vectors/indexes/toy.index",
         #     out_dir="/Users/caiwingfield/vectors/n-gram"
         # ),
         dict(
-            corpus=CorpusMetaData(
+            corpus=CorpusMetadata(
                 name="BBC",
                 path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus"),
             index_path="/Users/caiwingfield/vectors/indexes/BBC.index",
             out_dir="/Users/caiwingfield/vectors/n-gram"
         ),
         dict(
-            corpus=CorpusMetaData(
+            corpus=CorpusMetadata(
                 name="BNC",
                 path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"),
             index_path="/Users/caiwingfield/vectors/indexes/BNC.index",
             out_dir="/Users/caiwingfield/vectors/n-gram"
         ),
         dict(
-            corpus=CorpusMetaData(
+            corpus=CorpusMetadata(
                 name="UKWAC",
                 path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus"),
             index_path="/Users/caiwingfield/vectors/indexes/UKWAC.index",

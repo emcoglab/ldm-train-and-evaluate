@@ -4,7 +4,7 @@ import pickle
 import sys
 
 from ..core.corpus.distribution import freq_dist_from_corpus
-from ..core.corpus.corpus import CorpusMetaData, StreamedCorpus
+from ..core.corpus.corpus import CorpusMetadata, StreamedCorpus
 
 logger = logging.getLogger(__name__)
 
@@ -13,29 +13,29 @@ def main():
 
     corpus_metas = [
         dict(
-            source=CorpusMetaData(
+            source=CorpusMetadata(
                 name="BBC",
                 path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus",
                 info_path="/Users/caiwingfield/corpora/BBC/4.1 info"),
-            target=CorpusMetaData(
+            target=CorpusMetadata(
                 name="BBC",
                 path="/Users/caiwingfield/corpora/BBC/5 Filtered/BBC.corpus",
                 info_path="/Users/caiwingfield/corpora/BBC/5.1 info")),
         dict(
-            source=CorpusMetaData(
+            source=CorpusMetadata(
                 name="BNC",
                 path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus",
                 info_path="/Users/caiwingfield/corpora/BNC/2.1 info"),
-            target=CorpusMetaData(
+            target=CorpusMetadata(
                 name="BNC",
                 path="/Users/caiwingfield/corpora/BNC/3 Filtered/BNC.corpus",
                 info_path="/Users/caiwingfield/corpora/BNC/3.1 info")),
         dict(
-            source=CorpusMetaData(
+            source=CorpusMetadata(
                 name="UKWAC",
                 path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
                 info_path="/Users/caiwingfield/corpora/UKWAC/3.1 info"),
-            target=CorpusMetaData(
+            target=CorpusMetadata(
                 name="UKWAC",
                 path="/Users/caiwingfield/corpora/UKWAC/4 FIltered/UKWAC.corpus",
                 info_path="/Users/caiwingfield/corpora/UKWAC/4.1 info"))]

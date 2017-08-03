@@ -1,4 +1,4 @@
-class CorpusMetaData:
+class CorpusMetadata:
     """
     Corpus metadata
     """
@@ -13,10 +13,10 @@ class StreamedCorpus(object):
     """
     Corpus which yields individual tokens
     """
-    def __init__(self, metadata: CorpusMetaData):
+    def __init__(self, metadata: CorpusMetadata):
         """
 
-        :type metadata: CorpusMetaData
+        :type metadata: CorpusMetadata
         :param metadata:
         """
         self.metadata = metadata
@@ -31,11 +31,11 @@ class BatchedCorpus(object):
     """
     Corpus which yields batches of tokens
     """
-    def __init__(self, metadata: CorpusMetaData, batch_size: int):
+    def __init__(self, metadata: CorpusMetadata, batch_size: int):
         """
 
         :type batch_size: int
-        :type metadata: CorpusMetaData
+        :type metadata: CorpusMetadata
         :param metadata:
         :param batch_size:
         Size of batch

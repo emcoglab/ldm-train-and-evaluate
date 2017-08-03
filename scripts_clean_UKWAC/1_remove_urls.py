@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from ..core.corpus.corpus import CorpusMetaData
+from ..core.corpus.corpus import CorpusMetadata
 
 logger = logging.getLogger()
 
@@ -17,10 +17,10 @@ def is_suspected_url_ref(line):
 
 def main():
     corpus_meta = dict(
-        source=CorpusMetaData(
+        source=CorpusMetadata(
             name="UKWAC",
             path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/0 Raw untagged/cleaned_pre.pos.corpus"),
-        target=CorpusMetaData(
+        target=CorpusMetadata(
             name="UKWAC",
             path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/1 Text only/cleaned_pre.pos.corpus"))
 

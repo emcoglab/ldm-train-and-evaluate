@@ -2,7 +2,7 @@ import logging
 import sys
 
 from ..core.models.predict import PredictModelSkipGram
-from ..core.corpus.corpus import CorpusMetaData
+from ..core.corpus.corpus import CorpusMetadata
 
 logger = logging.getLogger(__name__)
 
@@ -10,17 +10,17 @@ logger = logging.getLogger(__name__)
 def main():
     metas = [
         dict(
-            corpus=CorpusMetaData(
+            corpus=CorpusMetadata(
                 name="BBC",
                 path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus"),
             weights_save=f"/Users/caiwingfield/vectors/skip-gram/BBC_skipgram.weights"),
         dict(
-            corpus=CorpusMetaData(
+            corpus=CorpusMetadata(
                 name="BNC",
                 path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"),
             weights_save=f"/Users/caiwingfield/vectors/skip-gram/BNC_skipgram.weights"),
         dict(
-            corpus=CorpusMetaData(
+            corpus=CorpusMetadata(
                 name="UKWAC",
                 path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus"),
             weights_save=f"/Users/caiwingfield/vectors/skip-gram/UKWAC_skipgram.weights")

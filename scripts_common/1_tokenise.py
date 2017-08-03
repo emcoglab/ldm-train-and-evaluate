@@ -6,7 +6,7 @@ import sys
 import nltk
 
 from ..core.corpus.tokenising import modified_word_tokenize
-from ..core.corpus.corpus import CorpusMetaData
+from ..core.corpus.corpus import CorpusMetadata
 from ..core.corpus.filtering import filter_punctuation
 
 logger = logging.getLogger()
@@ -16,19 +16,19 @@ def main():
 
     corpus_metas = [
         dict(
-            source=CorpusMetaData(
+            source=CorpusMetadata(
                 name="BBC",  path="/Users/caiwingfield/corpora/BBC/3 Replaced symbols"),
-            target=CorpusMetaData(
+            target=CorpusMetadata(
                 name="BBC", path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus")),
         dict(
-            source=CorpusMetaData(
+            source=CorpusMetadata(
                 name="BNC", path="/Users/caiwingfield/corpora/BNC/1 Detagged"),
-            target=CorpusMetaData(
+            target=CorpusMetadata(
                 name="BNC",  path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus")),
         dict(
-            source=CorpusMetaData(
+            source=CorpusMetadata(
                 name="UKWAC", path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/2 Partitioned"),
-            target=CorpusMetaData(
+            target=CorpusMetadata(
                 name="UKWAC", path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/3 Tokenised/UKWAC.corpus"))]
 
     token_delimiter = "\n"

@@ -4,26 +4,26 @@ import pickle
 import sys
 
 from ..core.utils.indexing import TokenIndexDictionary
-from ..core.corpus.corpus import CorpusMetaData
+from ..core.corpus.corpus import CorpusMetadata
 
 logger = logging.getLogger(__name__)
 
 
 def main():
     fdist_metas = [
-        CorpusMetaData(
+        CorpusMetadata(
             name="toy",
             path="/Users/caiwingfield/corpora/toy-corpus/info/Frequency distribution toy.corpus.pickle"
         ),
-        CorpusMetaData(
+        CorpusMetadata(
             name="BBC",
             path="/Users/caiwingfield/corpora/BBC/4.1 info/Frequency distribution BBC.corpus.pickle"
         ),
-        CorpusMetaData(
+        CorpusMetadata(
             name="BNC",
             path="/Users/caiwingfield/corpora/BNC/2.1 info/Frequency distribution BNC.corpus.pickle"
         ),
-        CorpusMetaData(
+        CorpusMetadata(
             name="UKWAC",
             path="/Users/caiwingfield/corpora/UKWAC/3.1 info/Frequency distribution UKWAC.corpus.pickle"
         )]
