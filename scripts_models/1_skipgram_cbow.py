@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from core.models.predict import PredictModelSkipGram, PredictModelCBOW
+from core.models.predict import PredictModelSkipGram, PredictModelCBOW, PredictModelType, PredictModel
 from core.corpus.corpus import CorpusMetadata
 
 logger = logging.getLogger(__name__)
@@ -28,11 +28,11 @@ def main():
 
     for meta in metas:
 
-        for model in ['skip-gram', 'cbow']:
+        for model_type in PredictModelType.list_types():
 
             logger.info(f"Running {model} model")
 
-            save_dir = os.path.join(weights_dir, model)
+            save_dir = os.path.join(weights_dir, model_type.slug)
 
             for window_radius in window_radii:
                 for embedding_size in embedding_sizes:
@@ -43,25 +43,17 @@ def main():
                         save_dir,
                         f"{meta.name}_r={window_radius}_s={embedding_size}_{model}.weights")
 
-                    if model == 'skip-gram':
-                        predict_model = PredictModelSkipGram(
-                            corpus_metadata=meta,
-                            weights_path=weights_path,
-                            window_radius=window_radius,
-                            embedding_size=embedding_size)
-                    elif model == 'cbow':
-                        predict_model = PredictModelCBOW(
-                            corpus_metadata=meta,
-                            weights_path=weights_path,
-                            window_radius=window_radius,
-                            embedding_size=embedding_size)
-                    else:
-                        raise NotImplementedError()
+                    predict_model = PredictModel(
+                        model_type=model_type,
+                        corpus_metadata=meta,
+                        weights_path=weights_path,
+                        window_radius=window_radius,
+                        embedding_size=embedding_size)
 
                     predict_model.build_and_run()
 
                     logger.info(f"For corpus {meta.name}, "
-                                f"model {model}, "
+                                f"model {model_type.name}, "
                                 f"radius {window_radius}, "
                                 f"embedding size {embedding_size}:")
                     logger.info(predict_model.model.most_similar(positive=['woman', 'king'], negative=['man'], topn=4))
