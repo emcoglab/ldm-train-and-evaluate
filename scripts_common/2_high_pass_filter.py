@@ -3,8 +3,8 @@ import os
 import pickle
 import sys
 
-from ..core.corpus.distribution import freq_dist_from_file
-from ..core.corpus.corpus import CorpusMetaData
+from ..core.corpus.distribution import freq_dist_from_corpus
+from ..core.corpus.corpus import CorpusMetaData, StreamedCorpus
 
 logger = logging.getLogger(__name__)
 
@@ -55,21 +55,20 @@ def main():
         else:
             # Compute it
             logger.info(f"Computing frequency distribution from {corpus_meta['source'].name} corpus")
-            freq_dist = freq_dist_from_file(corpus_meta["source"].path)
+            freq_dist = freq_dist_from_corpus(corpus_meta["source"])
 
         logger.info(f"Loading {corpus_meta['source'].name} corpus from {corpus_meta['source'].path}")
 
         token_count = 0
-        with open(corpus_meta["source"].path, mode="r", encoding="utf-8") as source_file:
-            with open(corpus_meta['target'].path, mode="w", encoding="utf-8") as target_file:
-                for line in source_file:
-                    # Only write a token if it's sufficiently frequent
-                    if freq_dist[line.strip()] > ignorable_frequency:
-                        target_file.write(line)
+        with open(corpus_meta["target"].path, mode="w", encoding="utf-8") as target_file:
+            for token in StreamedCorpus(corpus_meta['source']):
+                # Only write a token if it's sufficiently frequent
+                if freq_dist[token] > ignorable_frequency:
+                    target_file.write(token + "\n")
 
-                        token_count += 1
-                        if token_count % 1_000_000 == 0:
-                            logging.info(f"\tWritten {token_count} tokens")
+                    token_count += 1
+                    if token_count % 1_000_000 == 0:
+                        logging.info(f"\tWritten {token_count} tokens")
 
 
 if __name__ == "__main__":

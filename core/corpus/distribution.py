@@ -2,15 +2,16 @@ import logging
 
 import nltk
 
+from .corpus import BatchedCorpus
 
 logger = logging.getLogger(__name__)
 
 
-def freq_dist_from_file(filename, batch_size=1_000_000, verbose=False):
+def freq_dist_from_corpus(metadata, batch_size=1_000_000, verbose=False):
     """
     Produces a nltk.probability.FreqDist from a corpus in batches, without loading the entire thing into RAM at one
     time.
-    :param filename:
+    :param metadata:
     The filename of the corpus file. Should be a single text file with individual tokens on each line.
     :param batch_size:
     The number of tokens to load into RAM at one time.  Increasing will speed up function, but require more memory.
@@ -22,34 +23,14 @@ def freq_dist_from_file(filename, batch_size=1_000_000, verbose=False):
 
     # Read file directly, in batches, accumulating the FreqDist
     freq_dist = nltk.probability.FreqDist()
-    batch = []
-    with open(filename, mode="r", encoding="utf-8") as corpus_file:
+    batched_corpus = BatchedCorpus(metadata, batch_size=batch_size)
 
-        # counters
-        batch_count       = 0
-        token_count       = 0
-        tokens_this_batch = 0
-
-        # Add tokens to the batch
-        for line in corpus_file:
-            batch.append(line.strip())
-            tokens_this_batch += 1
-
-            # When the batch is full
-            if tokens_this_batch >= batch_size:
-                # Dump the batch into the FreqDist
-                freq_dist += nltk.probability.FreqDist(batch)
-
-                batch_count += 1
-                token_count += tokens_this_batch
-                if verbose:
-                    logger.info(f"{batch_count:,} batches processed, {token_count:,} tokens total")
-
-                # Empty the batch
-                batch = []
-                tokens_this_batch = 0
-
-        # Remember to do the final batch
+    logger.info("Building frequency distribution from corpus in batches")
+    batch_i = 0
+    for batch in batched_corpus:
+        batch_i += 1
+        if verbose:
+            logger.info(f"\tWorking on batch {batch_i}, ({batch_i * batch_size} tokens)")
         freq_dist += nltk.probability.FreqDist(batch)
 
     return freq_dist

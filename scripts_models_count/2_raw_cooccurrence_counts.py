@@ -3,11 +3,11 @@ import os
 import pickle
 import sys
 
-import matplotlib.pyplot as pplot
 import scipy.sparse as sps
 
 from ..core.utils.indexing import TokenIndexDictionary
-from ..core.corpus.corpus import CorpusMetaData
+from ..core.corpus.corpus import CorpusMetaData, StreamedCorpus
+
 
 logger = logging.getLogger()
 
@@ -62,9 +62,9 @@ def main():
             else:
                 logger.info(f"Working on {corpus_meta['corpus'].name} corpus, radius {radius}")
 
-                tid = TokenIndexDictionary.load(corpus_meta['index_path'])
+                token_indices = TokenIndexDictionary.load(corpus_meta['index_path'])
 
-                vocab_size = len(tid)
+                vocab_size = len(token_indices)
 
                 # Indices
                 lh_context_is = range(0, radius)
@@ -78,33 +78,33 @@ def main():
 
                 # Start scanning the corpus
                 token_count = 0
-                with open(corpus_meta['corpus'].path, mode="r", encoding="utf-8") as corpus_file:
+                window = []
+                for token in StreamedCorpus(corpus_meta['corpus']):
 
                     # Fill up the initial window, such that the next token to be read will produce the first full window
-                    window = []
-                    for i in range(0, diameter-1):
-                        window.append(corpus_file.readline().strip())
+                    if token_count < diameter-1:
+                        window.append(token)
 
                     # Each iteration of this loop will advance the position of the window by one
-                    for corpus_token in corpus_file:
+                    else:
 
                         # Add a new token on the rhs of the window
-                        window.append(corpus_token.strip())
+                        window.append(token)
 
                         # The window is now full
                         target_token = window[target_i]
-                        target_id = tid.token2id[target_token]
+                        target_id = token_indices.token2id[target_token]
 
                         # Count lh occurrences
                         for i in lh_context_is:
                             context_token = window[i]
-                            context_id = tid.token2id[context_token]
+                            context_id = token_indices.token2id[context_token]
                             cooccur_l[target_id, context_id] += 1
 
                         # Count rh occurrences
                         for i in rh_context_is:
                             context_token = window[i]
-                            context_id = tid.token2id[context_token]
+                            context_id = token_indices.token2id[context_token]
                             cooccur_r[target_id, context_id] += 1
 
                         # Pop the lhs token out of the window to await the next one, which will cause the window to have
@@ -114,14 +114,6 @@ def main():
                         token_count += 1
                         if token_count % 1_000_000 == 0:
                             logger.info(f"\t{token_count:,} tokens processed")
-
-                # logger.info(f"{cooccur_l.count_nonzero()} (L) "
-                #             f"+ {cooccur_r.count_nonzero()} (R) "
-                #             f"= {cooccur_l.count_nonzero() + cooccur_r.count_nonzero()} (total) "
-                #             f"non-zeros in co-occurrence matrix")
-                # logger.info(f"Summing to {int(cooccur_l.sum())} "
-                #             f"+ {int(cooccur_r.sum())} "
-                #             f"= {int(cooccur_l.sum() + cooccur_r.sum())} ")
 
                 logger.info("Saving co-occurrence matrices")
 
@@ -135,18 +127,6 @@ def main():
                     pickle.dump(cooccur_r, cooccur_file)
                 with open(fname_b, mode="wb") as cooccur_file:
                     pickle.dump(cooccur_lr, cooccur_file)
-
-                # cooccur_lr = cooccur_lr.todense()
-                #
-                # logger.info("Saving heatmap")
-                #
-                # f = pplot.figure(num=None, figsize=(30, 30), dpi=192, facecolor='w', edgecolor='k')
-                #
-                # pplot.imshow(cooccur_lr, cmap="hot", interpolation='nearest')
-                #
-                # f.savefig(os.path.join(corpus_meta['out_dir'], f"{corpus_meta['corpus'].name}_r={radius}_heatmap.png"))
-                #
-                # pplot.close(f)
 
 
 if __name__ == "__main__":

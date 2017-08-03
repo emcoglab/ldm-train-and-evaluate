@@ -4,7 +4,7 @@ import os
 import pickle
 import sys
 
-from ..core.corpus.corpus import CorpusMetaData
+from ..core.corpus.corpus import CorpusMetaData, StreamedCorpus
 
 
 logger = logging.getLogger(__name__)
@@ -24,20 +24,24 @@ def main(corpus_path, output_dir, freq_dist_path=None):
         logger.info(f"Wordlist has a vocab of size {len(vocab_wordlist):,}")
 
     logger.info(f"Loading corpus documents from {corpus_path}")
-    with open(corpus_path, mode="r", encoding="utf-8") as corpus_file:
-        vocab_corpus = set()
-        for i, line in enumerate(corpus_file):
-            vocab_corpus.add(line.strip())
-            if i % 10_000_000 == 0:
-                logger.info(f"\tRead {i:,} tokens")
+    vocab_corpus = set()
+    token_i = 0
+    for token in StreamedCorpus(CorpusMetaData(path=corpus_path, name="")):
+        vocab_corpus.add(token)
+
+        token_i += 1
+        if token_i % 10_000_000 == 0:
+            logger.info(f"\tRead {token_i:,} tokens")
 
     # The filter freqs we'll use
     filter_freqs = [0]
-    freq_dist = None
     if freq_dist_path is not None:
         filter_freqs.extend([1, 5, 10, 25, 50, 100])
         with open(freq_dist_path, mode="rb") as freq_dist_file:
             freq_dist = pickle.load(freq_dist_file)
+    else:
+        # TODO: build freq dist
+        raise NotImplementedError()
 
     for filter_freq in filter_freqs:
 
