@@ -7,6 +7,7 @@ import scipy.sparse as sps
 
 from .preferences import Preferences
 from ..core.utils.indexing import TokenIndexDictionary
+from ..core.utils.constants import Chiralities
 
 logger = logging.getLogger()
 
@@ -18,27 +19,25 @@ def main():
 
     for meta in Preferences.source_corpus_metas:
 
+        token_indices = TokenIndexDictionary.load(meta.index_path)
+        vocab_size = len(token_indices)
+
         # We load the unsummed cooccurrence matrices in in sequence, and accumulate them to save the summed
         for radius in range(1, max(Preferences.window_radii) + 1):
 
-            cooccur_filename_l = f"{meta.name}_r={radius}_left.cooccur"
-            cooccur_filename_r = f"{meta.name}_r={radius}_right.cooccur"
+            for chi in Chiralities:
 
-            token_indices = TokenIndexDictionary.load(meta.index_path)
-            vocab_size = len(token_indices)
+                cooccur_filename = f"{meta.name}_r={radius}_{chi}.cooccur"
 
-            # Initialise cooccurrence matrices
-            cooccur_l = sps.lil_matrix((vocab_size, vocab_size))
-            cooccur_r = sps.lil_matrix((vocab_size, vocab_size))
+                # Initialise cooccurrence matrices
+                cooccur = sps.lil_matrix((vocab_size, vocab_size))
 
-            # Load and add unsummed cooccurrence counts to get summed counts
-            logger.info(f"Loading unsummed cooccurrence matrix for radius {radius}")
-            cooccur_l += sio.mmread(os.path.join(unsummed_dir, cooccur_filename_l))
-            cooccur_r += sio.mmread(os.path.join(unsummed_dir, cooccur_filename_r))
+                # Load and add unsummed cooccurrence counts to get summed counts
+                logger.info(f"Loading unsummed {chi}-cooccurrence matrix for radius {radius}")
+                cooccur += sio.mmread(os.path.join(unsummed_dir, cooccur_filename))
 
-            logger.info(f"Saving summed cooccurrence matrix for radius {radius}")
-            sio.mmwrite(os.path.join(summed_dir, cooccur_filename_l), cooccur_l)
-            sio.mmwrite(os.path.join(summed_dir, cooccur_filename_r), cooccur_r)
+                logger.info(f"Saving summed {chi}-cooccurrence matrix for radius {radius}")
+                sio.mmwrite(os.path.join(summed_dir, cooccur_filename), cooccur)
 
 
 if __name__ == "__main__":
