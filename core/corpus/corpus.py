@@ -43,7 +43,6 @@ class BatchedCorpus(object):
         self.metadata = metadata
         self.batch_size = batch_size
 
-    # TODO: does using disjoint "sentences" here lead to unpleasant edge effects?
     def __iter__(self):
         batch = []
         for token in StreamedCorpus(self.metadata):

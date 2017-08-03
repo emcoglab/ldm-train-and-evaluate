@@ -16,7 +16,7 @@ class PredictModelType(Enum):
 
 class PredictModel(object):
 
-    def __init__(self, model_type: PredictModelType, corpus_metadata: CorpusMetadata, weights_path, window_radius: int):
+    def __init__(self, model_type: PredictModelType, corpus_metadata: CorpusMetadata, weights_path, window_radius: int, embedding_size: int):
         """
         :type corpus_metadata: CorpusMetadata
         :type window_radius: int
@@ -24,9 +24,11 @@ class PredictModel(object):
         :param corpus_metadata: Where the corpus should be loaded from
         :param weights_path: Where the weights will be saved/loaded from
         """
+        self.embedding_size = embedding_size
         self.window_radius = window_radius
         self.model_type = model_type
-        self.corpus = BatchedCorpus(corpus_metadata, batch_size=10)
+        self.corpus = BatchedCorpus(corpus_metadata,
+                                    batch_size=1_000)
         self.weights_path = weights_path
 
         # Switch on predict model type
@@ -46,18 +48,20 @@ class PredictModel(object):
         if not os.path.isfile(self.weights_path):
 
             logger.info(f"Training {self._model_name} model")
-
-            # TODO: what size to use?
-            embedding_dims = 100
-            # TODO: do we want to actually ignore low-frequency words?
-            ignorable_frequency = 1
+            ignorable_frequency = 0
 
             self.model = gensim.models.Word2Vec(
+                # This is called "sentences", but they all get concatenated, so it doesn't matter.
                 sentences=self.corpus,
-                size=embedding_dims,
-                window=self.window_radius,
-                min_count=ignorable_frequency,
                 sg=self._sg,
+                size=self.embedding_size,
+                window=self.window_radius,
+                # Recommended value from Mandera et al. (2017).
+                # Baroni et al. (2014) recommend either 5 or 10, but 10 tended to perform slightly better overall.
+                negative=10,
+                # Recommended value from Mandera et al. (2017) and Baroni et al. (2014)
+                sample=1e-5,
+                min_count=ignorable_frequency,
                 workers=4)
 
             self.model.save(self.weights_path)
@@ -68,18 +72,18 @@ class PredictModel(object):
 
 
 class PredictModelCBOW(PredictModel):
-    def __init__(self, corpus_metadata, weights_path, window_radius):
+    def __init__(self, corpus_metadata, weights_path, window_radius, embedding_size):
         """
         :param corpus_metadata:
         :param weights_path:
         """
-        super().__init__(PredictModelType.cbow, corpus_metadata, weights_path, window_radius)
+        super().__init__(PredictModelType.cbow, corpus_metadata, weights_path, window_radius, embedding_size)
 
 
 class PredictModelSkipGram(PredictModel):
-    def __init__(self, corpus_metadata, weights_path, window_radius):
+    def __init__(self, corpus_metadata, weights_path, window_radius, embedding_size):
         """
         :param corpus_metadata:
         :param weights_path:
         """
-        super().__init__(PredictModelType.skip_gram, corpus_metadata, weights_path, window_radius)
+        super().__init__(PredictModelType.skip_gram, corpus_metadata, weights_path, window_radius, embedding_size)

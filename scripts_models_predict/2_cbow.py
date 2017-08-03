@@ -22,25 +22,31 @@ def main():
 
     weights_dir = "/Users/caiwingfield/vectors/cbow/"
 
+    window_radii = [1, 3, 5, 10]
+    # These sizes taken from Mandera et al. (2017)
+    embedding_sizes = [50, 100, 200, 300, 500]
+
     for meta in metas:
 
-        window_radii = [1, 3, 5, 10]
-
         for window_radius in window_radii:
+            for embedding_size in embedding_sizes:
 
-            logger.info(f"Working on {meta.name} corpus")
+                logger.info(f"Working on {meta.name} corpus")
 
-            weights_path = os.path.join(weights_dir, f"{meta.name}_r={window_radius}_cbow.weights")
+                weights_path = os.path.join(
+                    weights_dir,
+                    f"{meta.name}_r={window_radius}_s={embedding_size}_cbow.weights")
 
-            predict_model = PredictModelCBOW(
-                corpus_metadata=meta,
-                weights_path=weights_path,
-                window_radius=window_radius)
+                predict_model = PredictModelCBOW(
+                    corpus_metadata=meta,
+                    weights_path=weights_path,
+                    window_radius=window_radius,
+                    embedding_size=embedding_size)
 
-            predict_model.build_and_run()
+                predict_model.build_and_run()
 
-            logger.info(f"For corpus {meta.name}:")
-            logger.info(predict_model.model.most_similar(positive=['woman', 'king'], negative=['man'], topn=4))
+                logger.info(f"For corpus {meta.name}:")
+                logger.info(predict_model.model.most_similar(positive=['woman', 'king'], negative=['man'], topn=4))
 
 
 if __name__ == '__main__':
