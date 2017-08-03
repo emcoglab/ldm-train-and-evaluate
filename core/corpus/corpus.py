@@ -43,12 +43,10 @@ class BatchedCorpus(object):
         self.metadata = metadata
         self.batch_size = batch_size
 
-        self._streamed_corpus = StreamedCorpus(metadata)
-
     # TODO: does using disjoint "sentences" here lead to unpleasant edge effects?
     def __iter__(self):
         batch = []
-        for token in self._streamed_corpus:
+        for token in StreamedCorpus(self.metadata):
             batch.append(token)
             if len(batch) >= self.batch_size:
                 yield batch
