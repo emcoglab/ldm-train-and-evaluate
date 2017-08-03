@@ -2,31 +2,20 @@ import logging
 import os
 import sys
 
-from core.models.predict import PredictModelSkipGram, PredictModelCBOW, PredictModelType, PredictModel
-from core.corpus.corpus import CorpusMetadata
+from .preferences import Preferences
+from ..core.models.predict import PredictModelType, PredictModel
 
 logger = logging.getLogger(__name__)
 
 
 def main():
-    metas = [
-        CorpusMetadata(
-            name="BBC",
-            path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus"),
-        CorpusMetadata(
-            name="BNC",
-            path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"),
-        CorpusMetadata(
-            name="UKWAC",
-            path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus")]
 
     weights_dir = "/Users/caiwingfield/vectors/"
 
-    window_radii = [1, 3, 5, 10]
     # These sizes taken from Mandera et al. (2017)
     embedding_sizes = [50, 100, 200, 300, 500]
 
-    for meta in metas:
+    for meta in Preferences.source_corpus_metas:
 
         for model_type in PredictModelType.list_types():
 
@@ -34,7 +23,7 @@ def main():
 
             save_dir = os.path.join(weights_dir, model_type.slug)
 
-            for window_radius in window_radii:
+            for window_radius in Preferences.window_radii:
                 for embedding_size in embedding_sizes:
 
                     logger.info(f"Working on {meta.name} corpus")

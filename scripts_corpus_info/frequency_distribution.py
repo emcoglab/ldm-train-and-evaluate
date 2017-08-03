@@ -14,6 +14,7 @@ from ..core.corpus.tokenising import modified_word_tokenize
 logger = logging.getLogger(__name__)
 
 
+# TODO: Make this into numbered script, referencing preferences
 def save_frequency_distribution_graph(freq_dist, filename, corpus_name="corpus", top_n=0):
     """
     Saves a frequency distribution graph.

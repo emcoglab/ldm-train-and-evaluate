@@ -5,6 +5,7 @@ import sys
 import scipy.io as sio
 import scipy.sparse as sps
 
+from .preferences import Preferences
 from ..core.corpus.corpus import CorpusMetadata, WindowedCorpus
 from ..core.utils.indexing import TokenIndexDictionary
 
@@ -12,29 +13,12 @@ logger = logging.getLogger()
 
 
 def main():
-    metas = [
-        # CorpusMetadata(
-        #     name="toy",
-        #     path="/Users/caiwingfield/corpora/toy-corpus/toy.corpus",
-        #     index_path="/Users/caiwingfield/vectors/indexes/toy.index"),
-        CorpusMetadata(
-            name="BBC",
-            path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus",
-            index_path="/Users/caiwingfield/vectors/indexes/BBC.index"),
-        CorpusMetadata(
-            name="BNC",
-            path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus",
-            index_path="/Users/caiwingfield/vectors/indexes/BNC.index"),
-        CorpusMetadata(
-            name="UKWAC",
-            path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
-            index_path="/Users/caiwingfield/vectors/indexes/UKWAC.index"),
-    ]
+
     out_dir = "/Users/caiwingfield/vectors/n-gram"
 
-    for meta in metas:
+    for meta in Preferences.source_corpus_metas:
 
-        for radius in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
+        for radius in range(1, max(Preferences.window_radii) + 1):
 
             filename_l = os.path.join(out_dir, f"{meta.name}_r={radius}_left.cooccur")
             filename_r = os.path.join(out_dir, f"{meta.name}_r={radius}_right.cooccur")
