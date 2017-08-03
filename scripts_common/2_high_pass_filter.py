@@ -3,8 +3,8 @@ import os
 import pickle
 import sys
 
-from ..core.corpus.distribution import freq_dist_from_corpus
-from ..core.corpus.corpus import CorpusMetadata, StreamedCorpus
+from ..core.corpus.corpus import CorpusMetadata, StreamedCorpus, BatchedCorpus
+from ..core.corpus.distribution import FreqDistConstructor
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,8 @@ def main():
         else:
             # Compute it
             logger.info(f"Computing frequency distribution from {corpus_meta['source'].name} corpus")
-            freq_dist = freq_dist_from_corpus(corpus_meta["source"])
+            freq_dist = FreqDistConstructor.from_batched_corpus(
+                BatchedCorpus(corpus_meta["source"], batch_size=1_000_000))
 
         logger.info(f"Loading {corpus_meta['source'].name} corpus from {corpus_meta['source'].path}")
 

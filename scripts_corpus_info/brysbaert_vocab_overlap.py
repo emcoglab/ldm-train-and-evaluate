@@ -4,9 +4,8 @@ import os
 import pickle
 import sys
 
-from ..core.corpus.distribution import freq_dist_from_corpus
-from ..core.corpus.corpus import CorpusMetadata, StreamedCorpus
-
+from ..core.corpus.corpus import CorpusMetadata, StreamedCorpus, BatchedCorpus
+from ..core.corpus.distribution import FreqDistConstructor
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +42,8 @@ def main(corpus_path, output_dir, freq_dist_path=None):
             freq_dist = pickle.load(freq_dist_file)
     else:
         logger.info("Building frequency distribution")
-        freq_dist = freq_dist_from_corpus(CorpusMetadata(path=corpus_path, name=""), verbose=True)
+        freq_dist = FreqDistConstructor.from_batched_corpus(
+            BatchedCorpus(CorpusMetadata(path=corpus_path, name=""), batch_size=1_000_000))
 
     for filter_freq in filter_freqs:
 

@@ -4,7 +4,6 @@ import re
 import sys
 
 import nltk
-import nltk.corpus as corpus
 
 from ..core.corpus.tokenising import modified_word_tokenize
 from ..core.corpus.filtering import filter_punctuation
@@ -20,7 +19,7 @@ def main(corpus_dir, output_filename):
     :return:
     """
 
-    corpus_text = corpus.PlaintextCorpusReader(
+    corpus_text = nltk.corpus.PlaintextCorpusReader(
         corpus_dir, ".+\..+")
 
     tokens = filter_punctuation(modified_word_tokenize(corpus_text.raw()))

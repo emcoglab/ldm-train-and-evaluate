@@ -6,10 +6,10 @@ import sys
 
 import nltk
 
-from ..core.corpus.tokenising import modified_word_tokenize
-from ..core.corpus.distribution import freq_dist_from_corpus
+from ..core.corpus.corpus import CorpusMetadata, BatchedCorpus
+from ..core.corpus.distribution import FreqDistConstructor
 from ..core.corpus.filtering import filter_punctuation
-from ..core.corpus.corpus import CorpusMetadata
+from ..core.corpus.tokenising import modified_word_tokenize
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +133,8 @@ def main(corpus_path, output_dir, tokenised):
         freq_dist = nltk.probability.FreqDist(corpus)
 
     else:  # tokenised
-        freq_dist = freq_dist_from_corpus(CorpusMetadata(path=corpus_path, name=""), verbose=True)
+        freq_dist = FreqDistConstructor.from_batched_corpus(
+            BatchedCorpus(CorpusMetadata(path=corpus_path, name=""), batch_size=1_000_000))
 
     logger.info(f"Saving frequency distribution information")
     save_frequency_distribution_info(
