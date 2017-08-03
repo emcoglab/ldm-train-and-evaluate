@@ -6,45 +6,33 @@ import sys
 import scipy.sparse as sps
 
 from ..core.utils.indexing import TokenIndexDictionary
-from ..core.corpus.corpus import CorpusMetadata, StreamedCorpus
-
+from ..core.corpus.corpus import CorpusMetadata, StreamedCorpus, WindowedCorpus
 
 logger = logging.getLogger()
 
 
 def main():
-    corpus_metas = [
-        # dict(
-        #     corpus=CorpusMetadata(
-        #         name="toy",
-        #         path="/Users/caiwingfield/corpora/toy-corpus/toy.corpus"),
-        #     index_path="/Users/caiwingfield/vectors/indexes/toy.index",
-        #     out_dir="/Users/caiwingfield/vectors/n-gram"
-        # ),
-        dict(
-            corpus=CorpusMetadata(
-                name="BBC",
-                path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus"),
-            index_path="/Users/caiwingfield/vectors/indexes/BBC.index",
-            out_dir="/Users/caiwingfield/vectors/n-gram"
-        ),
-        dict(
-            corpus=CorpusMetadata(
-                name="BNC",
-                path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus"),
-            index_path="/Users/caiwingfield/vectors/indexes/BNC.index",
-            out_dir="/Users/caiwingfield/vectors/n-gram"
-        ),
-        dict(
-            corpus=CorpusMetadata(
-                name="UKWAC",
-                path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus"),
-            index_path="/Users/caiwingfield/vectors/indexes/UKWAC.index",
-            out_dir="/Users/caiwingfield/vectors/n-gram"
-        ),
+    metas = [
+        # CorpusMetadata(
+        #     name="toy",
+        #     path="/Users/caiwingfield/corpora/toy-corpus/toy.corpus",
+        #     index_path="/Users/caiwingfield/vectors/indexes/toy.index"),
+        CorpusMetadata(
+            name="BBC",
+            path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus",
+            index_path="/Users/caiwingfield/vectors/indexes/BBC.index"),
+        CorpusMetadata(
+            name="BNC",
+            path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus",
+            index_path="/Users/caiwingfield/vectors/indexes/BNC.index"),
+        CorpusMetadata(
+            name="UKWAC",
+            path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
+            index_path="/Users/caiwingfield/vectors/indexes/UKWAC.index"),
     ]
+    out_dir = "/Users/caiwingfield/vectors/n-gram"
 
-    for corpus_meta in corpus_metas:
+    for meta in metas:
 
         for radius in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
 
@@ -52,17 +40,17 @@ def main():
             # The size of the symmetric window is twice the radius, plus 1 (centre)
             diameter = 2 * radius + 1
 
-            fname_l = os.path.join(corpus_meta['out_dir'], f"{corpus_meta['corpus'].name}_r={radius}_left.cooccur")
-            fname_r = os.path.join(corpus_meta['out_dir'], f"{corpus_meta['corpus'].name}_r={radius}_right.cooccur")
-            fname_b = os.path.join(corpus_meta['out_dir'], f"{corpus_meta['corpus'].name}_r={radius}_both.cooccur")
+            fname_l = os.path.join(out_dir, f"{meta.name}_r={radius}_left.cooccur")
+            fname_r = os.path.join(out_dir, f"{meta.name}_r={radius}_right.cooccur")
+            fname_b = os.path.join(out_dir, f"{meta.name}_r={radius}_both.cooccur")
 
             # Skip ones which are already done
             if os.path.isfile(fname_b):
-                logger.info(f"Skipping {corpus_meta['corpus'].name} corpus, radius {radius}")
+                logger.info(f"Skipping {meta.name} corpus, radius {radius}")
             else:
-                logger.info(f"Working on {corpus_meta['corpus'].name} corpus, radius {radius}")
+                logger.info(f"Working on {meta.name} corpus, radius {radius}")
 
-                token_indices = TokenIndexDictionary.load(corpus_meta['index_path'])
+                token_indices = TokenIndexDictionary.load(meta.index_path)
 
                 vocab_size = len(token_indices)
 
@@ -77,19 +65,8 @@ def main():
                 cooccur_r = sps.lil_matrix((vocab_size, vocab_size))
 
                 # Start scanning the corpus
-                token_count = 0
-                window = []
-                for token in StreamedCorpus(corpus_meta['corpus']):
-
-                    # Fill up the initial window, such that the next token to be read will produce the first full window
-                    if token_count < diameter-1:
-                        window.append(token)
-
-                    # Each iteration of this loop will advance the position of the window by one
-                    else:
-
-                        # Add a new token on the rhs of the window
-                        window.append(token)
+                window_count = 0
+                for window in WindowedCorpus(meta, radius):
 
                         # The window is now full
                         target_token = window[target_i]
@@ -107,13 +84,9 @@ def main():
                             context_id = token_indices.token2id[context_token]
                             cooccur_r[target_id, context_id] += 1
 
-                        # Pop the lhs token out of the window to await the next one, which will cause the window to have
-                        # moved exactly one token over in the corpus
-                        window = window[1:]
-
-                        token_count += 1
-                        if token_count % 1_000_000 == 0:
-                            logger.info(f"\t{token_count:,} tokens processed")
+                        window_count += 1
+                        if window_count % 1_000_000 == 0:
+                            logger.info(f"\t{window_count:,} tokens processed")
 
                 logger.info("Saving co-occurrence matrices")
 
