@@ -13,17 +13,22 @@ class BatchedCorpus(object):
     """
     Corpus which yields batches of tokens
     """
-    def __init__(self, filename, batch_size: int):
+    def __init__(self, metadata: CorpusMetaData, batch_size: int):
         """
-        :param filename: Location of corpus file
-        :param batch_size: Size of batch
+
+        :type batch_size: int
+        :type metadata: CorpusMetaData
+        :param metadata:
+        :param batch_size:
+        Size of batch
         """
-        self.filename = filename
+        self.metadata = metadata
         self.batch_size = batch_size
 
+    # TODO: does using disjoint "sentences" here lead to unpleasant edge effects?
     def __iter__(self):
         batch = []
-        with open(self.filename, mode="r", encoding="utf-8") as corpus_file:
+        with open(self.metadata.path, mode="r", encoding="utf-8") as corpus_file:
             for token in corpus_file:
                 batch.append(token.strip())
                 if len(batch) >= self.batch_size:

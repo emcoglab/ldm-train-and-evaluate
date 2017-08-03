@@ -16,14 +16,14 @@ class PredictModelType(Enum):
 
 class PredictModel(object):
 
-    def __init__(self, model_type: PredictModelType, corpus_path, weights_path):
+    def __init__(self, model_type: PredictModelType, corpus_metadata, weights_path):
         """
         :param model_type: The type of model
-        :param corpus_path: Where the corpus should be loaded from
+        :param corpus_metadata: Where the corpus should be loaded from
         :param weights_path: Where the weights will be saved/loaded from
         """
         self.model_type = model_type
-        self.corpus_path = corpus_path
+        self.corpus = BatchedCorpus(corpus_metadata, batch_size=10)
         self.weights_path = weights_path
 
         # Switch on predict model type
@@ -51,11 +51,8 @@ class PredictModel(object):
             # TODO: do we want to actually ignore low-frequency words?
             ignorable_frequency = 1
 
-            # TODO: does using disjoint "sentences" here lead to unpleasant edge effects?
-            corpus = BatchedCorpus(filename=self.corpus_path, batch_size=10)
-
             self.model = gensim.models.Word2Vec(
-                sentences=corpus,
+                sentences=self.corpus,
                 size=embedding_dims,
                 window=window_radius,
                 min_count=ignorable_frequency,
@@ -70,18 +67,18 @@ class PredictModel(object):
 
 
 class PredictModelCBOW(PredictModel):
-    def __init__(self, corpus_path, weights_path):
+    def __init__(self, corpus_metadata, weights_path):
         """
-        :param corpus_path:
+        :param corpus_metadata:
         :param weights_path:
         """
-        super().__init__(PredictModelType.cbow, corpus_path, weights_path)
+        super().__init__(PredictModelType.cbow, corpus_metadata, weights_path)
 
 
 class PredictModelSkipGram(PredictModel):
-    def __init__(self, corpus_path, weights_path):
+    def __init__(self, corpus_metadata, weights_path):
         """
-        :param corpus_path:
+        :param corpus_metadata:
         :param weights_path:
         """
-        super().__init__(PredictModelType.skip_gram, corpus_path, weights_path)
+        super().__init__(PredictModelType.skip_gram, corpus_metadata, weights_path)

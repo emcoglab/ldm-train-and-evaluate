@@ -31,7 +31,7 @@ def main():
         logger.info(f"Working on {meta['corpus'].name} corpus")
 
         predict_model = PredictModelCBOW(
-            corpus_path=meta['corpus'].path,
+            corpus_metadata=meta['corpus'],
             weights_path=meta['weights_save'])
 
         predict_model.build_and_run()
