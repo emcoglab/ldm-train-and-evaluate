@@ -1,11 +1,10 @@
 import argparse
 import logging
 import os
-import pickle
 import sys
 
 from ..core.corpus.corpus import CorpusMetadata, StreamedCorpus, BatchedCorpus
-from ..core.corpus.distribution import FreqDistConstructor
+from ..core.corpus.distribution import FreqDist
 
 logger = logging.getLogger(__name__)
 
@@ -38,12 +37,10 @@ def main(corpus_path, output_dir, freq_dist_path=None):
     if freq_dist_path is not None and os.path.isfile(freq_dist_path):
         logger.info("Loading frequency distribution")
         filter_freqs.extend([1, 5, 10, 25, 50, 100])
-        with open(freq_dist_path, mode="rb") as freq_dist_file:
-            # TODO: don't use pickle
-            freq_dist = pickle.load(freq_dist_file)
+        freq_dist = FreqDist.load(freq_dist_path)
     else:
         logger.info("Building frequency distribution")
-        freq_dist = FreqDistConstructor.from_batched_corpus(
+        freq_dist = FreqDist.from_batched_corpus(
             BatchedCorpus(CorpusMetadata(path=corpus_path, name=""), batch_size=1_000_000))
 
     for filter_freq in filter_freqs:

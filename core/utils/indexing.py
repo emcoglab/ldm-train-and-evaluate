@@ -1,20 +1,19 @@
-import pickle
+import json
 
 import nltk
 
 
 class TokenIndexDictionary(object):
 
-    def __init__(self, token2id, id2token):
+    def __init__(self, token2id):
         """
         Constructor.
         :param token2id:
-        :param id2token:
         """
         # A dictionary of token-keyed indices
         self.token2id = token2id
         # A dictionary of index-keyed tokens
-        self.id2token = id2token
+        self.id2token = dict((v, k) for k, v in token2id.items())
 
     def __len__(self):
         """
@@ -25,13 +24,12 @@ class TokenIndexDictionary(object):
 
     def save(self, filename):
         """
-        Saves an TokenIndexDictionary to a file
+        Saves a TokenIndexDictionary to a file
         :param filename:
         :return:
         """
         with open(filename, mode="wb") as file:
-            # TODO: Don't use pickle
-            pickle.dump(self, file)
+            json.dump(self, file)
 
     @classmethod
     def from_freqdist(cls, freq_dist: nltk.probability.FreqDist) -> 'TokenIndexDictionary':
@@ -40,15 +38,13 @@ class TokenIndexDictionary(object):
         :param freq_dist:
         :return:
         """
-        word2id = {}
+        token2id = {}
         current_id = 0
         for token, _freq in freq_dist.most_common():
-            word2id[token] = current_id
+            token2id[token] = current_id
             current_id += 1
 
-        id2word = dict((v, k) for k, v in word2id.items())
-
-        return cls(word2id, id2word)
+        return cls(token2id)
 
     @classmethod
     def load(cls, filename) -> 'TokenIndexDictionary':
@@ -58,4 +54,4 @@ class TokenIndexDictionary(object):
         :return:
         """
         with open(filename, mode="rb") as file:
-            return pickle.load(file)
+            return cls(json.load(file))

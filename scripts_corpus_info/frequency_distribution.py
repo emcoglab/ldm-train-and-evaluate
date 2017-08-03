@@ -1,20 +1,18 @@
 import argparse
 import logging
 import os
-import pickle
 import sys
 
 import nltk
 
 from ..core.corpus.corpus import CorpusMetadata, BatchedCorpus
-from ..core.corpus.distribution import FreqDistConstructor
+from ..core.corpus.distribution import FreqDist
 from ..core.corpus.filtering import filter_punctuation
 from ..core.corpus.tokenising import modified_word_tokenize
 
 logger = logging.getLogger(__name__)
 
 
-# TODO: Make this into numbered script, referencing preferences
 def save_frequency_distribution_graph(freq_dist, filename, corpus_name="corpus", top_n=0):
     """
     Saves a frequency distribution graph.
@@ -112,12 +110,7 @@ def save_frequency_distribution_info(freq_dist, filename):
             info_file.write(f"{i}\t{token}\t{count:,}\n")
 
 
-def save_frequency_distribution(freq_dist, filename):
-    with open(filename, mode="wb") as file:
-        # TODO: Don't use pickle
-        pickle.dump(freq_dist, file)
-
-
+# TODO: Make this into numbered script, referencing preferences
 def main(corpus_path, output_dir, tokenised):
     corpus_name = os.path.basename(corpus_path)
 
@@ -135,7 +128,7 @@ def main(corpus_path, output_dir, tokenised):
         freq_dist = nltk.probability.FreqDist(corpus)
 
     else:  # tokenised
-        freq_dist = FreqDistConstructor.from_batched_corpus(
+        freq_dist = FreqDist.from_batched_corpus(
             BatchedCorpus(CorpusMetadata(path=corpus_path, name=""), batch_size=1_000_000))
 
     logger.info(f"Saving frequency distribution information")
@@ -147,9 +140,7 @@ def main(corpus_path, output_dir, tokenised):
         os.path.join(output_dir, f"Frequency distribution graph {corpus_name}.png"),
         corpus_name=corpus_name,
         top_n=200)
-    save_frequency_distribution(
-        freq_dist,
-        os.path.join(output_dir, f"Frequency distribution {corpus_name}.pickle"))
+    freq_dist.save(os.path.join(output_dir, f"Frequency distribution {corpus_name}.pickle"))
 
 
 if __name__ == "__main__":

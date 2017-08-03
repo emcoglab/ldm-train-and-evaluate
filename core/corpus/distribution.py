@@ -1,4 +1,5 @@
 import logging
+import pickle
 
 import nltk
 
@@ -8,7 +9,19 @@ logger = logging.getLogger(__name__)
 
 
 # noinspection PyAbstractClass
-class FreqDistConstructor(nltk.probability.FreqDist):
+class FreqDist(nltk.probability.FreqDist):
+    """
+    Extension methods for the nltk.probability.FreqDist class
+    """
+
+    def save(self, filename):
+        with open(filename, mode="wb") as file:
+            pickle.dump(self, file)
+
+    @classmethod
+    def load(cls, filename) -> nltk.probability.FreqDist:
+        with open(filename, mode="rb") as file:
+            return pickle.load(file)
 
     @classmethod
     def from_batched_corpus(cls, batched_corpus: BatchedCorpus) -> nltk.probability.FreqDist:

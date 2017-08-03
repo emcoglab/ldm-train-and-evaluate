@@ -1,10 +1,9 @@
 import logging
 import os
-import pickle
 import sys
 
 from ..core.corpus.corpus import CorpusMetadata, StreamedCorpus, BatchedCorpus
-from ..core.corpus.distribution import FreqDistConstructor
+from ..core.corpus.distribution import FreqDist
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +41,7 @@ def main():
 
     # The frequency at which we ignore tokens.
     # Set to 0 to include all tokens, set to 1 to include tokens that occur more than once, etc.
+    # TODO: decide if we want to do this or not
     ignorable_frequency = 1
 
     for corpus_meta in corpus_metas:
@@ -50,12 +50,11 @@ def main():
         if os.path.isfile(freq_dist_path):
             # If freq dist file previously saved, load it
             logger.info(f"Loading frequency distribution from {freq_dist_path}")
-            with open(freq_dist_path, mode="rb") as freq_dist_file:
-                freq_dist = pickle.load(freq_dist_file)
+            freq_dist = FreqDist.load(freq_dist_path)
         else:
             # Compute it
             logger.info(f"Computing frequency distribution from {corpus_meta['source'].name} corpus")
-            freq_dist = FreqDistConstructor.from_batched_corpus(
+            freq_dist = FreqDist.from_batched_corpus(
                 BatchedCorpus(corpus_meta["source"], batch_size=1_000_000))
 
         logger.info(f"Loading {corpus_meta['source'].name} corpus from {corpus_meta['source'].path}")
