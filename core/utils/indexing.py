@@ -28,8 +28,8 @@ class TokenIndexDictionary(object):
         :param filename:
         :return:
         """
-        with open(filename, mode="wb") as file:
-            json.dump(self, file,
+        with open(filename, mode="w") as file:
+            json.dump(self.token2id, file,
                       # Remove whitespace for smaller files
                       separators=(',', ':'))
 
@@ -55,5 +55,5 @@ class TokenIndexDictionary(object):
         :param filename:
         :return:
         """
-        with open(filename, mode="rb") as file:
+        with open(filename, mode="r") as file:
             return cls(json.load(file))

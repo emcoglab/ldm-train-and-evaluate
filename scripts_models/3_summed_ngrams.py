@@ -14,8 +14,8 @@ logger = logging.getLogger()
 
 def main():
 
-    unsummed_dir = "/Users/caiwingfield/vectors/n-gram"
-    summed_dir = "/Users/caiwingfield/vectors/n-gram_summed"
+    unsummed_dir = "/Users/caiwingfield/vectors/ngram_unsummed"
+    summed_dir = "/Users/caiwingfield/vectors/ngram"
 
     for meta in Preferences.source_corpus_metas:
 
@@ -30,11 +30,11 @@ def main():
                 cooccur_filename = f"{meta.name}_r={radius}_{chi}.cooccur"
 
                 # Initialise cooccurrence matrices
-                cooccur = sps.lil_matrix((vocab_size, vocab_size))
+                cooccur = sps.lil_matrix((vocab_size, vocab_size)).tolil()
 
                 # Load and add unsummed cooccurrence counts to get summed counts
                 logger.info(f"Loading unsummed {chi}-cooccurrence matrix for radius {radius}")
-                cooccur += sio.mmread(os.path.join(unsummed_dir, cooccur_filename))
+                cooccur += sio.mmread(os.path.join(unsummed_dir, cooccur_filename)).tolil()
 
                 logger.info(f"Saving summed {chi}-cooccurrence matrix for radius {radius}")
                 sio.mmwrite(os.path.join(summed_dir, cooccur_filename), cooccur)

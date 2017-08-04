@@ -3,7 +3,7 @@ import os
 import sys
 
 from .preferences import Preferences
-from ..core.models.predict import PredictModelType, PredictModel
+from ..core.models.predict import PredictModel, PredictModelType
 
 logger = logging.getLogger(__name__)
 
@@ -17,20 +17,21 @@ def main():
 
     for meta in Preferences.source_corpus_metas:
 
-        for model_type in PredictModelType.list_types():
+        for model_type in PredictModelType:
 
-            logger.info(f"Running {model} model")
+            logger.info(f"Running {model_type} model")
 
             save_dir = os.path.join(weights_dir, model_type.slug)
 
             for window_radius in Preferences.window_radii:
                 for embedding_size in embedding_sizes:
 
-                    logger.info(f"Working on {meta.name} corpus")
+                    logger.info(f"Building size-{embedding_size} {model_type} model from {meta.name} corpus, "
+                                f"window radius {window_radius}")
 
                     weights_path = os.path.join(
                         save_dir,
-                        f"{meta.name}_r={window_radius}_s={embedding_size}_{model}.weights")
+                        f"{meta.name}_r={window_radius}_s={embedding_size}_{model_type}.weights")
 
                     predict_model = PredictModel(
                         model_type=model_type,

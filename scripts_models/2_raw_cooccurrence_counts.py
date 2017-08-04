@@ -15,7 +15,7 @@ logger = logging.getLogger()
 
 def main():
 
-    out_dir = "/Users/caiwingfield/vectors/n-gram"
+    out_dir = "/Users/caiwingfield/vectors/ngram"
 
     for meta in Preferences.source_corpus_metas:
 

@@ -1,48 +1,53 @@
 import logging
 import os
+from enum import Enum
 
 import gensim
 
-from core.corpus.corpus import BatchedCorpus, CorpusMetadata
+from ..corpus.corpus import BatchedCorpus, CorpusMetadata
 
 logger = logging.getLogger(__name__)
 
 
-# noinspection SpellCheckingInspection
-class PredictModelType(object):
-    def __init__(self, name, slug, sg_val):
-        """
-        :param name:
-         The name of the model type
-        :param slug:
-         A path-safe representation of the model type
-        :param sg_val:
-         0 or 1
-        """
-        self.sg_val = sg_val
-        self.slug = slug
-        self.name = name
+class PredictModelType(Enum):
+    skip_gram = 1
+    cbow = 0
 
-    cbow = __init__(
-        name="CBOW",
-        slug="cbow",
-        sg_val=0)
-
-    skip_gram = __init__(
-        name="Skip-gram",
-        slug="skipgram",
-        sg_val=1)
-
-    @classmethod
-    def list_types(cls):
+    @property
+    def slug(self):
         """
-        list valid types of predict model
+        A path-safe representation of the model type
         :return:
         """
-        return [
-            cls.cbow,
-            cls.skip_gram
-        ]
+        if self is PredictModelType.cbow:
+            return "cbow"
+        elif self is PredictModelType.skip_gram:
+            return "skipgram"
+        else:
+            raise ValueError()
+
+    @property
+    def name(self):
+        """
+        THe name of the model type
+        :return:
+        """
+        if self is PredictModelType.cbow:
+            return "CBOW"
+        elif self is PredictModelType.skip_gram:
+            return "Skip-gram"
+        else:
+            raise ValueError()
+
+    @property
+    def sg_val(self):
+        """0 or 1"""
+        if self is PredictModelType.cbow:
+            return 0
+        elif self is PredictModelType.skip_gram:
+            return 1
+        else:
+            raise ValueError()
 
 
 class PredictModel(object):
@@ -70,7 +75,6 @@ class PredictModel(object):
         if not os.path.isfile(self.weights_path):
 
             logger.info(f"Training {self.type.name} model")
-            ignorable_frequency = 0
 
             self.model = gensim.models.Word2Vec(
                 # This is called "sentences", but they all get concatenated, so it doesn't matter.
@@ -81,9 +85,10 @@ class PredictModel(object):
                 # Recommended value from Mandera et al. (2017).
                 # Baroni et al. (2014) recommend either 5 or 10, but 10 tended to perform slightly better overall.
                 negative=10,
-                # Recommended value from Mandera et al. (2017) and Baroni et al. (2014)
+                # Recommended value from Mandera et al. (2017) and Baroni et al. (2014).
                 sample=1e-5,
-                min_count=ignorable_frequency,
+                # If we do filtering of word frequency, we'll do it in the corpus.
+                min_count=0,
                 workers=4)
 
             self.model.save(self.weights_path)
