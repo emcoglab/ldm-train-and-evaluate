@@ -12,15 +12,15 @@ logger = logging.getLogger(__name__)
 
 # TODO: got more baseclassing to do with CBOW vs Skip-gram
 class PredictModel(VectorSpaceModel):
-    def __init__(self, model_type: VectorSpaceModel.Type, corpus_metadata: CorpusMetadata, vector_save_path,
+    def __init__(self, model_type: VectorSpaceModel.Type, corpus: CorpusMetadata, vector_save_path,
                  window_radius: int, embedding_size: int):
         super().__init__(
-            corpus_metadata=corpus_metadata,
+            corpus=corpus,
             vector_save_path=vector_save_path,
             window_radius=window_radius,
             model_type=model_type)
         self.embedding_size = embedding_size
-        self._corpus = BatchedCorpus(corpus_metadata, batch_size=1_000)
+        self._corpus = BatchedCorpus(corpus, batch_size=1_000)
 
         self._model: gensim.models.Word2Vec = None
 
@@ -45,10 +45,11 @@ class PredictModel(VectorSpaceModel):
                 min_count=0,
                 workers=4)
 
-            self._model.save(self.vector_save_path)
-
         else:
             self.load()
+
+    def save(self):
+        self._model.save(self.vector_save_path)
 
     def nearest_neighbours(self, word: str, distance_type: Distance.Type, n: int):
         if distance_type is Distance.Type.cosine:

@@ -102,15 +102,15 @@ class VectorSpaceModel(metaclass=ABCMeta):
             else:
                 raise ValueError()
             
-    def __init__(self, corpus_metadata: CorpusMetadata, model_type: Type, vector_save_path: str,
+    def __init__(self, corpus: CorpusMetadata, model_type: Type, vector_save_path: str,
                  window_radius: int):
         self.window_radius = window_radius
         self.type = model_type
         self.vector_save_path = vector_save_path
-        self.corpus_metadata = corpus_metadata
+        self.corpus = corpus
 
         # When implementing this class, this must be set by train()
-        self._model = None
+        self._matrix = None
 
     @abstractmethod
     def vector_for_word(self, word: str):
@@ -150,6 +150,13 @@ class VectorSpaceModel(metaclass=ABCMeta):
         """
         Loads a pretrained model.
         :return:
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def save(self):
+        """
+        Saves a model in its current state.
         """
         raise NotImplementedError()
 

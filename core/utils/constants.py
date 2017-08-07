@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Chiralities(Enum):
+class Chirality(Enum):
     """
     Represents either left or right.
     """
@@ -10,9 +10,9 @@ class Chiralities(Enum):
 
     @property
     def name(self):
-        if self == Chiralities.left:
+        if self == Chirality.left:
             return "left"
-        elif self == Chiralities.right:
+        elif self == Chirality.right:
             return "right"
         else:
             raise ValueError()

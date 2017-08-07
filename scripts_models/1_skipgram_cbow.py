@@ -39,12 +39,13 @@ def main():
 
                     predict_model = PredictModel(
                         model_type=model_type,
-                        corpus_metadata=meta,
+                        corpus=meta,
                         vector_save_path=weights_path,
                         window_radius=window_radius,
                         embedding_size=embedding_size)
 
                     predict_model.train()
+                    predict_model.save()
 
 
 if __name__ == '__main__':
