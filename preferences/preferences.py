@@ -9,6 +9,10 @@ class Preferences(object):
     # We will test models with windows of each of these radii
     window_radii = [1, 3, 5, 10]
 
+    # For the predict models, we will test a number of different embedding sizes
+    # These sizes taken from Mandera et al. (2017)
+    predict_embedding_sizes = [50, 100, 200, 300, 500]
+
     # The final locations of the processed corpora
     source_corpus_metas = [
         # CorpusMetadata(
