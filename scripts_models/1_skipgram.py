@@ -16,7 +16,7 @@ def main():
             for window_radius in Preferences.window_radii:
 
                 predict_model = SkipGramModel(
-                    corpus=meta,
+                    corpus_meta=meta,
                     save_dir=weights_dir,
                     window_radius=window_radius,
                     embedding_size=embedding_size

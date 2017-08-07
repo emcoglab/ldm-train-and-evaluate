@@ -26,7 +26,7 @@ def main():
 
     model = CountModel(
         model_type=model_type,
-        corpus=corpus_metadata,
+        corpus_meta=corpus_metadata,
         vector_save_path=matrix_dir,
         window_radius=window_radius
     )

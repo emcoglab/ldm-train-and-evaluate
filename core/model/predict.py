@@ -16,10 +16,10 @@ class PredictModel(VectorSpaceModel):
     """
     A vector space model where words are predicted rather than counted.
     """
-    def __init__(self, model_type: VectorSpaceModel.ModelType, corpus: CorpusMetadata, save_dir, window_radius: int,
+    def __init__(self, model_type: VectorSpaceModel.ModelType, corpus_meta: CorpusMetadata, save_dir, window_radius: int,
                  embedding_size: int):
         super().__init__(
-            corpus=corpus,
+            corpus_meta=corpus_meta,
             save_dir=save_dir,
             window_radius=window_radius,
             model_type=model_type)
@@ -34,12 +34,9 @@ class PredictModel(VectorSpaceModel):
         # Parallel workers
         self._workers = 4
 
-        self._corpus = BatchedCorpus(corpus, batch_size=1_000)
+        self._corpus = BatchedCorpus(corpus_meta, batch_size=1_000)
 
-        self._weights_filename = f"{self._corpus.name}_" \
-                                 f"r={self.window_radius}_" \
-                                 f"s={self._embedding_size}_" \
-                                 f"{self.model_type.slug}.weights"
+        self._weights_filename = f"{corpus_meta.name}_r={self.window_radius}_s={embedding_size}_{model_type.slug}"
 
         self._model: gensim.models.Word2Vec = None
 
@@ -92,8 +89,8 @@ class CbowModel(PredictModel):
     """
     A vector space model trained using CBOW.
     """
-    def __init__(self, corpus: CorpusMetadata, save_dir, window_radius: int, embedding_size: int):
-        super().__init__(VectorSpaceModel.ModelType.cbow, corpus, save_dir, window_radius, embedding_size)
+    def __init__(self, corpus_meta: CorpusMetadata, save_dir, window_radius: int, embedding_size: int):
+        super().__init__(VectorSpaceModel.ModelType.cbow, corpus_meta, save_dir, window_radius, embedding_size)
 
     def train(self, force_retrain: bool = False):
 
@@ -122,8 +119,8 @@ class SkipGramModel(PredictModel):
     """
     A vector space model trained using Skip-gram.
     """
-    def __init__(self, corpus: CorpusMetadata, save_dir, window_radius: int, embedding_size: int):
-        super().__init__(VectorSpaceModel.ModelType.skip_gram, corpus, save_dir, window_radius, embedding_size)
+    def __init__(self, corpus_meta: CorpusMetadata, save_dir, window_radius: int, embedding_size: int):
+        super().__init__(VectorSpaceModel.ModelType.skip_gram, corpus_meta, save_dir, window_radius, embedding_size)
 
     def train(self, force_retrain: bool = False):
 

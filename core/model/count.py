@@ -19,16 +19,16 @@ class CountModel(VectorSpaceModel):
     """
     A model where vectors are computed by counting contexts/
     """
-    def __init__(self, model_type: VectorSpaceModel.ModelType, corpus: CorpusMetadata, save_dir,
+    def __init__(self, model_type: VectorSpaceModel.ModelType, corpus_meta: CorpusMetadata, save_dir,
                  window_radius: int, token_indices: TokenIndexDictionary):
         super().__init__(
-            corpus=corpus,
+            corpus_meta=corpus_meta,
             model_type=model_type,
             save_dir=save_dir,
             window_radius=window_radius)
         self._token_indices = token_indices
 
-        self._matrix_filename = f"{self.corpus.name}_r={self.window_radius}_{self.model_type.name}"
+        self._matrix_filename = f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.name}"
         self._matrix = None
 
     @property
@@ -44,7 +44,7 @@ class CountModel(VectorSpaceModel):
         sio.mmwrite(os.path.join(self.save_dir, self._matrix_filename), self._matrix)
 
     def load(self):
-        logger.info(f"Loading {self.corpus.name} corpus, radius {self.window_radius}")
+        logger.info(f"Loading {self.corpus_meta.name} corpus, radius {self.window_radius}")
         self._matrix = sio.mmread(os.path.join(self.save_dir, self._matrix_filename))
 
     def vector_for_id(self, word_id: int):
@@ -92,13 +92,13 @@ class UnsummedNgramCountModel(CountModel):
     """
     A model where vectors consist of context counts at a fixed distance either on the left or right of a window.
     """
-    def __init__(self, corpus: CorpusMetadata, save_dir,
+    def __init__(self, corpus_meta: CorpusMetadata, save_dir,
                  window_radius: int, token_indices: TokenIndexDictionary, chirality: Chirality):
-        super().__init__(VectorSpaceModel.ModelType.ngram_unsummed, corpus, save_dir, window_radius, token_indices)
+        super().__init__(VectorSpaceModel.ModelType.ngram_unsummed, corpus_meta, save_dir, window_radius, token_indices)
         self._chirality = chirality
 
         # Overwrite, to include chirality
-        self._matrix_filename = f"{self.corpus.name}_r={self.window_radius}_{self.model_type}_{self._chirality}"
+        self._matrix_filename = f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type}_{self._chirality}"
 
     def train(self, force_retrain: bool = False):
 
@@ -106,10 +106,10 @@ class UnsummedNgramCountModel(CountModel):
 
         # Skip ones which are already done
         if os.path.isfile(self._matrix_filename) and not force_retrain:
-            logger.info(f"Loading {self.corpus.name} corpus, radius {self.window_radius}")
+            logger.info(f"Loading {self.corpus_meta.name} corpus, radius {self.window_radius}")
             self._matrix = sio.mmread(self._matrix_filename)
         else:
-            logger.info(f"Working on {self.corpus.name} corpus, radius {self.window_radius}")
+            logger.info(f"Working on {self.corpus_meta.name} corpus, radius {self.window_radius}")
 
             # Initialise cooccurrence matrices
 
@@ -125,7 +125,7 @@ class UnsummedNgramCountModel(CountModel):
 
             # Start scanning the corpus
             window_count = 0
-            for window in WindowedCorpus(self.corpus, self.window_radius):
+            for window in WindowedCorpus(self.corpus_meta, self.window_radius):
 
                 # The target token is the one in the middle, whose index is the radius of the window
                 target_token = window[self.window_radius]
@@ -154,9 +154,9 @@ class NgramCountModel(CountModel):
     """
     A model where vectors consist of the counts of context words within a window
     """
-    def __init__(self, corpus: CorpusMetadata, save_dir, unsummed_path, window_radius: int,
+    def __init__(self, corpus_meta: CorpusMetadata, save_dir, unsummed_path, window_radius: int,
                  token_indices: TokenIndexDictionary):
-        super().__init__(VectorSpaceModel.ModelType.ngram, corpus, save_dir, window_radius, token_indices)
+        super().__init__(VectorSpaceModel.ModelType.ngram, corpus_meta, save_dir, window_radius, token_indices)
         self._unsummed_path = unsummed_path
 
     def train(self, force_retrain: bool = False):
@@ -173,7 +173,7 @@ class NgramCountModel(CountModel):
                 for chirality in Chirality:
                     # Load each unsummed model
                     unsummed_model = UnsummedNgramCountModel(
-                        corpus=self.corpus,
+                        corpus_meta=self.corpus_meta,
                         save_dir=self._unsummed_path,
                         window_radius=self.window_radius,
                         token_indices=self._token_indices,
@@ -188,9 +188,9 @@ class LogNgramModel(CountModel):
     """
     A model where vectors consist of the log of context counts within a window.
     """
-    def __init__(self, corpus: CorpusMetadata, save_dir, ngram_path, window_radius: int,
+    def __init__(self, corpus_meta: CorpusMetadata, save_dir, ngram_path, window_radius: int,
                  token_indices: TokenIndexDictionary):
-        super().__init__(VectorSpaceModel.ModelType.log_ngram, corpus, save_dir, window_radius, token_indices)
+        super().__init__(VectorSpaceModel.ModelType.log_ngram, corpus_meta, save_dir, window_radius, token_indices)
         self._ngram_path = ngram_path
 
     def train(self, force_retrain: bool = False):
@@ -204,7 +204,7 @@ class LogNgramModel(CountModel):
 
             # Load the ngram model
             ngram_model = NgramCountModel(
-                corpus=self.corpus,
+                corpus_meta=self.corpus_meta,
                 save_dir=self._ngram_path,
                 window_radius=self.window_radius,
                 token_indices=self._token_indices)
@@ -219,9 +219,9 @@ class NgramProbabilityModel(CountModel):
     """
     A model where vectors consist of the probability that a given context is found within a window.
     """
-    def __init__(self, corpus: CorpusMetadata, save_dir, ngram_path, window_radius: int,
+    def __init__(self, corpus_meta: CorpusMetadata, save_dir, ngram_path, window_radius: int,
                  token_indices: TokenIndexDictionary):
-        super().__init__(VectorSpaceModel.ModelType.ngram_probability, corpus, save_dir, window_radius,
+        super().__init__(VectorSpaceModel.ModelType.ngram_probability, corpus_meta, save_dir, window_radius,
                          token_indices)
         self._ngram_path = ngram_path
 
@@ -236,7 +236,7 @@ class NgramProbabilityModel(CountModel):
 
             # Load the ngram model
             ngram_model = NgramCountModel(
-                corpus=self.corpus,
+                corpus_meta=self.corpus_meta,
                 save_dir=self._ngram_path,
                 window_radius=self.window_radius,
                 token_indices=self._token_indices)

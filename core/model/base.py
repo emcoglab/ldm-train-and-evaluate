@@ -147,12 +147,12 @@ class VectorSpaceModel(metaclass=ABCMeta):
             """
             return [t for t in VectorSpaceModel.ModelType if t.metatype is VectorSpaceModel.MetaType.count]
             
-    def __init__(self, corpus: CorpusMetadata, model_type: ModelType, save_dir: str,
+    def __init__(self, corpus_meta: CorpusMetadata, model_type: ModelType, save_dir: str,
                  window_radius: int):
         self.window_radius = window_radius
         self.model_type = model_type
         self.save_dir = os.path.join(save_dir, model_type.slug)
-        self.corpus = corpus
+        self.corpus_meta = corpus_meta
 
         # When implementing this class, this must be set by train()
         self._matrix = None

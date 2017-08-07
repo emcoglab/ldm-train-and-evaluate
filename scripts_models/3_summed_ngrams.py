@@ -17,7 +17,7 @@ def main():
         for radius in Preferences.window_radii:
 
             model = NgramCountModel(
-                corpus=meta,
+                corpus_meta=meta,
                 save_dir="/Users/caiwingfield/vectors/",
                 unsummed_path="/Users/caiwingfield/vectors/ngram_unsummed",
                 window_radius=radius,

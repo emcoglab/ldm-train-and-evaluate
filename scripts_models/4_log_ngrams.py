@@ -17,7 +17,7 @@ def main():
         for radius in Preferences.window_radii:
 
             model = LogNgramModel(
-                corpus=meta,
+                corpus_meta=meta,
                 save_dir="/Users/caiwingfield/vectors/",
                 ngram_path="/Users/caiwingfield/vectors/ngram",
                 window_radius=radius,

@@ -17,7 +17,7 @@ def main():
         for radius in range(1, max(Preferences.window_radii) + 1):
             for chirality in Chirality:
                 model = UnsummedNgramCountModel(
-                    corpus=meta,
+                    corpus_meta=meta,
                     save_dir="/Users/caiwingfield/vectors/",
                     window_radius=radius,
                     token_indices=token_indices,
