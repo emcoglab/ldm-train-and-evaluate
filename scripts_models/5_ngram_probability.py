@@ -10,9 +10,6 @@ logger = logging.getLogger()
 
 def main():
 
-    ngram_dir = "/Users/caiwingfield/vectors/ngram"
-    prob_dir  = "/Users/caiwingfield/vectors/ngram_log"
-
     for meta in Preferences.source_corpus_metas:
 
         token_indices = TokenIndexDictionary.load(meta.index_path)
@@ -21,9 +18,9 @@ def main():
 
             model = NgramProbabilityModel(
                 corpus=meta,
-                save_dir=prob_dir,
+                save_dir="/Users/caiwingfield/vectors/",
+                ngram_path="/Users/caiwingfield/vectors/ngram",
                 window_radius=radius,
-                ngram_path=ngram_dir,
                 token_indices=token_indices
             )
             model.train()

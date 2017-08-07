@@ -1,7 +1,6 @@
 import logging
 import sys
 
-from ..core.model.base import VectorSpaceModel
 from ..core.model.predict import SkipGramModel
 from ..preferences.preferences import Preferences
 
@@ -10,9 +9,7 @@ logger = logging.getLogger(__name__)
 
 def main():
 
-    model_type = VectorSpaceModel.ModelType.skip_gram
-
-    weights_dir = "/Users/caiwingfield/vectors/" + model_type.slug
+    weights_dir = "/Users/caiwingfield/vectors/"
 
     for meta in Preferences.source_corpus_metas:
         for embedding_size in Preferences.predict_embedding_sizes:

@@ -18,7 +18,7 @@ def main():
             for chirality in Chirality:
                 model = UnsummedNgramCountModel(
                     corpus=meta,
-                    save_dir="/Users/caiwingfield/vectors/ngram_unsummed",
+                    save_dir="/Users/caiwingfield/vectors/",
                     window_radius=radius,
                     token_indices=token_indices,
                     chirality=chirality)

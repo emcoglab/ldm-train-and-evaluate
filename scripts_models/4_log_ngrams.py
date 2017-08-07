@@ -10,9 +10,6 @@ logger = logging.getLogger()
 
 def main():
 
-    ngram_dir = "/Users/caiwingfield/vectors/ngram"
-    log_dir   = "/Users/caiwingfield/vectors/ngram_log"
-
     for meta in Preferences.source_corpus_metas:
 
         token_indices = TokenIndexDictionary.load(meta.index_path)
@@ -21,8 +18,8 @@ def main():
 
             model = LogNgramModel(
                 corpus=meta,
-                save_dir=log_dir,
-                ngram_path=ngram_dir,
+                save_dir="/Users/caiwingfield/vectors/",
+                ngram_path="/Users/caiwingfield/vectors/ngram",
                 window_radius=radius,
                 token_indices=token_indices
             )
