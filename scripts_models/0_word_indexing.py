@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from .preferences import Preferences
+from ..preferences.preferences import Preferences
 from ..core.corpus.distribution import FreqDist
 from ..core.utils.indexing import TokenIndexDictionary
 

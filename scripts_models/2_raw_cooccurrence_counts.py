@@ -5,10 +5,10 @@ import sys
 import scipy.io as sio
 import scipy.sparse as sps
 
-from .preferences import Preferences
+from ..preferences.preferences import Preferences
 from ..core.corpus.corpus import WindowedCorpus
-from ..core.utils.indexing import TokenIndexDictionary
 from ..core.utils.constants import Chiralities
+from ..core.utils.indexing import TokenIndexDictionary
 
 logger = logging.getLogger()
 

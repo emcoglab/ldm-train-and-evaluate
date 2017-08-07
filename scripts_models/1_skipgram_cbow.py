@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from .preferences import Preferences
+from ..preferences.preferences import Preferences
 from ..core.models.predict import PredictModel, PredictModelType
 
 logger = logging.getLogger(__name__)

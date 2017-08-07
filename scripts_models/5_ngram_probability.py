@@ -5,7 +5,7 @@ import sys
 import numpy as np
 import scipy.io as sio
 
-from .preferences import Preferences
+from ..preferences.preferences import Preferences
 from ..core.utils.constants import Chiralities
 
 logger = logging.getLogger()
