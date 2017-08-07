@@ -18,7 +18,7 @@ def main():
 
             model = NgramCountModel(
                 corpus=meta,
-                vector_save_path="/Users/caiwingfield/vectors/ngram",
+                save_dir="/Users/caiwingfield/vectors/ngram",
                 unsummed_path="/Users/caiwingfield/vectors/ngram_unsummed",
                 window_radius=radius,
                 token_indices=token_indices)

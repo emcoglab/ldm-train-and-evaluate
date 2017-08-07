@@ -21,7 +21,7 @@ def main():
 
             model = LogNgramModel(
                 corpus=meta,
-                vector_save_path=log_dir,
+                save_dir=log_dir,
                 ngram_path=ngram_dir,
                 window_radius=radius,
                 token_indices=token_indices

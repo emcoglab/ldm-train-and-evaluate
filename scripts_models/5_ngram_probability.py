@@ -21,7 +21,7 @@ def main():
 
             model = NgramProbabilityModel(
                 corpus=meta,
-                vector_save_path=prob_dir,
+                save_dir=prob_dir,
                 window_radius=radius,
                 ngram_path=ngram_dir,
                 token_indices=token_indices
