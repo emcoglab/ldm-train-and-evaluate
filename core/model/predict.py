@@ -48,7 +48,7 @@ class PredictModel(VectorSpaceModel):
         self._model = gensim.models.Word2Vec.load(os.path.join(self.save_dir, self._weights_filename))
 
     @abstractmethod
-    def train(self, force_retrain: bool = False):
+    def _retrain(self):
         raise NotImplementedError()
 
     def nearest_neighbours(self, word: str, distance_type: Distance.Type, n: int):
@@ -97,27 +97,22 @@ class CbowModel(PredictModel):
         super().__init__(VectorSpaceModel.ModelType.cbow,
                          corpus_meta, save_dir, window_radius, embedding_size)
 
-    def train(self, force_retrain: bool = False):
+    def _retrain(self):
 
-        if force_retrain or not os.path.isfile(self.save_dir):
+        logger.info(f"Training {self.model_type.name} model")
 
-            logger.info(f"Training {self.model_type.name} model")
-
-            self._model = gensim.models.Word2Vec(
-                # This is called "sentences", but they all get concatenated, so it doesn't matter.
-                sentences=self._corpus,
-                # This is CBOW, so don't use Skip-gram
-                sg=0,
-                size=self.embedding_size,
-                window=self.window_radius,
-                negative=self._negative_sampling,
-                sample=self._sub_sample,
-                # If we do filtering of word frequency, we'll do it in the corpus.
-                min_count=0,
-                workers=self._workers)
-
-        else:
-            self.load()
+        self._model = gensim.models.Word2Vec(
+            # This is called "sentences", but they all get concatenated, so it doesn't matter.
+            sentences=self._corpus,
+            # This is CBOW, so don't use Skip-gram
+            sg=0,
+            size=self.embedding_size,
+            window=self.window_radius,
+            negative=self._negative_sampling,
+            sample=self._sub_sample,
+            # If we do filtering of word frequency, we'll do it in the corpus.
+            min_count=0,
+            workers=self._workers)
 
 
 class SkipGramModel(PredictModel):
@@ -132,24 +127,19 @@ class SkipGramModel(PredictModel):
         super().__init__(VectorSpaceModel.ModelType.skip_gram,
                          corpus_meta, save_dir, window_radius, embedding_size)
 
-    def train(self, force_retrain: bool = False):
+    def _retrain(self):
 
-        if force_retrain or not os.path.isfile(self.save_dir):
+        logger.info(f"Training {self.model_type.name} model")
 
-            logger.info(f"Training {self.model_type.name} model")
-
-            self._model = gensim.models.Word2Vec(
-                # This is called "sentences", but they all get concatenated, so it doesn't matter.
-                sentences=self._corpus,
-                # This is Skip-gram, so make sure we use it!
-                sg=1,
-                size=self.embedding_size,
-                window=self.window_radius,
-                negative=self._negative_sampling,
-                sample=self._sub_sample,
-                # If we do filtering of word frequency, we'll do it in the corpus.
-                min_count=0,
-                workers=self._workers)
-
-        else:
-            self.load()
+        self._model = gensim.models.Word2Vec(
+            # This is called "sentences", but they all get concatenated, so it doesn't matter.
+            sentences=self._corpus,
+            # This is Skip-gram, so make sure we use it!
+            sg=1,
+            size=self.embedding_size,
+            window=self.window_radius,
+            negative=self._negative_sampling,
+            sample=self._sub_sample,
+            # If we do filtering of word frequency, we'll do it in the corpus.
+            min_count=0,
+            workers=self._workers)

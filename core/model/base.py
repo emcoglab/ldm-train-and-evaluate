@@ -204,15 +204,21 @@ class ScalarModel(LanguageModel):
 
         self._model_filename = f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.name}"
 
-        # When implementing this class, this must be set by train()
+        # When implementing this class, this must be set by retrain()
         self._model = None
 
     @property
     def vector(self):
         return self._model
 
-    @abstractmethod
     def train(self, force_retrain: bool = False):
+        if force_retrain or not os.path.isfile(self._model_filename):
+            self._retrain()
+        else:
+            self.load()
+
+    @abstractmethod
+    def _retrain(self):
         raise NotImplementedError()
 
     @abstractmethod
@@ -275,8 +281,14 @@ class VectorSpaceModel(LanguageModel):
         """
         return self.nearest_neighbours(word, distance_type, 1)[0]
 
-    @abstractmethod
     def train(self, force_retrain: bool = False):
+        if force_retrain or not os.path.isfile(self._model_filename):
+            self._retrain()
+        else:
+            self.load()
+
+    @abstractmethod
+    def _retrain(self):
         raise NotImplementedError()
 
     @abstractmethod
