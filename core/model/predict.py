@@ -7,7 +7,7 @@ import gensim
 
 from ..utils.maths import Distance
 from ..corpus.corpus import CorpusMetadata, BatchedCorpus
-from ..model.base import VectorSpaceModel
+from ..model.base import VectorSpaceModel, LanguageModel
 
 logger = logging.getLogger(__name__)
 
@@ -16,14 +16,14 @@ class PredictModel(VectorSpaceModel):
     """
     A vector space model where words are predicted rather than counted.
     """
-    def __init__(self, model_type: VectorSpaceModel.ModelType, corpus_meta: CorpusMetadata, save_dir, window_radius: int,
+    def __init__(self,
+                 model_type: LanguageModel.ModelType,
+                 corpus_meta: CorpusMetadata,
+                 save_dir: str,
+                 window_radius: int,
                  embedding_size: int):
-        super().__init__(
-            corpus_meta=corpus_meta,
-            save_dir=save_dir,
-            window_radius=window_radius,
-            model_type=model_type)
-        self._embedding_size = embedding_size
+        super().__init__(model_type, corpus_meta, save_dir, window_radius)
+        self.embedding_size = embedding_size
 
         # Recommended value from Mandera et al. (2017).
         # Baroni et al. (2014) recommend either 5 or 10, but 10 tended to perform slightly better overall.
@@ -89,8 +89,13 @@ class CbowModel(PredictModel):
     """
     A vector space model trained using CBOW.
     """
-    def __init__(self, corpus_meta: CorpusMetadata, save_dir, window_radius: int, embedding_size: int):
-        super().__init__(VectorSpaceModel.ModelType.cbow, corpus_meta, save_dir, window_radius, embedding_size)
+    def __init__(self,
+                 corpus_meta: CorpusMetadata,
+                 save_dir: str,
+                 window_radius: int,
+                 embedding_size: int):
+        super().__init__(VectorSpaceModel.ModelType.cbow,
+                         corpus_meta, save_dir, window_radius, embedding_size)
 
     def train(self, force_retrain: bool = False):
 
@@ -103,7 +108,7 @@ class CbowModel(PredictModel):
                 sentences=self._corpus,
                 # This is CBOW, so don't use Skip-gram
                 sg=0,
-                size=self._embedding_size,
+                size=self.embedding_size,
                 window=self.window_radius,
                 negative=self._negative_sampling,
                 sample=self._sub_sample,
@@ -119,8 +124,13 @@ class SkipGramModel(PredictModel):
     """
     A vector space model trained using Skip-gram.
     """
-    def __init__(self, corpus_meta: CorpusMetadata, save_dir, window_radius: int, embedding_size: int):
-        super().__init__(VectorSpaceModel.ModelType.skip_gram, corpus_meta, save_dir, window_radius, embedding_size)
+    def __init__(self,
+                 corpus_meta: CorpusMetadata,
+                 save_dir: str,
+                 window_radius: int,
+                 embedding_size: int):
+        super().__init__(VectorSpaceModel.ModelType.skip_gram,
+                         corpus_meta, save_dir, window_radius, embedding_size)
 
     def train(self, force_retrain: bool = False):
 
@@ -133,7 +143,7 @@ class SkipGramModel(PredictModel):
                 sentences=self._corpus,
                 # This is Skip-gram, so make sure we use it!
                 sg=1,
-                size=self._embedding_size,
+                size=self.embedding_size,
                 window=self.window_radius,
                 negative=self._negative_sampling,
                 sample=self._sub_sample,

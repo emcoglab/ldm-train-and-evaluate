@@ -1,19 +1,14 @@
 import logging
 import sys
 
-from ..core.utils.maths import Distance
 from ..core.corpus.corpus import CorpusMetadata
-from ..core.model.count import CountModel
-from ..core.model.base import VectorSpaceModel
+from ..core.model.count import NgramCountModel
+from ..core.utils.maths import Distance
 
 logger = logging.getLogger()
 
 
 def main():
-    # TODO: Should work for vectors from all model types
-    model_type = VectorSpaceModel.Type.ngram
-    matrix_dir = "/Users/caiwingfield/vectors/ngram"
-
     # TODO: Should work for all Preferences.window_radii
     window_radius = 1
 
@@ -24,12 +19,9 @@ def main():
         info_path="/Users/caiwingfield/corpora/BNC/2.1 info",
         index_path="/Users/caiwingfield/vectors/indexes/BNC.index")
 
-    model = CountModel(
-        model_type=model_type,
-        corpus_meta=corpus_metadata,
-        vector_save_path=matrix_dir,
-        window_radius=window_radius
-    )
+    # TODO: Should work for vectors from all model types
+    model = NgramCountModel(model_type="/Users/caiwingfield/vectors", corpus_meta=corpus_metadata,
+                            save_dir="/Users/caiwingfield/vectors")
 
     model.load()
 

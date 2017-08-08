@@ -1,13 +1,22 @@
 import os
+import logging
 
 from abc import ABCMeta, abstractmethod
 from enum import Enum, auto
 
+import scipy.io as sio
+
+from ..utils.indexing import TokenIndexDictionary
 from ..utils.maths import Distance
 from ..corpus.corpus import CorpusMetadata
 
+logger = logging.getLogger(__name__)
 
-class VectorSpaceModel(metaclass=ABCMeta):
+
+class LanguageModel(metaclass=ABCMeta):
+    """
+    A model of the language.
+    """
     class MetaType(Enum):
         count = auto()
         predict = auto()
@@ -146,21 +155,105 @@ class VectorSpaceModel(metaclass=ABCMeta):
             :return:
             """
             return [t for t in VectorSpaceModel.ModelType if t.metatype is VectorSpaceModel.MetaType.count]
-            
-    def __init__(self, corpus_meta: CorpusMetadata, model_type: ModelType, save_dir: str,
-                 window_radius: int):
-        self.window_radius = window_radius
+
+    def __init__(self,
+                 model_type: ModelType,
+                 corpus_meta: CorpusMetadata,
+                 save_dir: str):
         self.model_type = model_type
-        self.save_dir = os.path.join(save_dir, model_type.slug)
         self.corpus_meta = corpus_meta
+        self.save_dir = os.path.join(save_dir, model_type.slug)
+
+    @abstractmethod
+    def train(self, force_retrain: bool = False):
+        """
+        Trains the model from its corpus, and saves the resultant state to drive.
+        Will load existing model instead if possible.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def load(self):
+        """
+        Loads a model.
+        :return:
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def save(self):
+        """
+        Saves a model in its current state.
+        """
+        raise NotImplementedError()
+
+
+class ScalarModel(LanguageModel):
+    """
+    A language model where each word is associated with a scalar value.
+    """
+    def __init__(self,
+                 model_type: VectorSpaceModel.ModelType,
+                 corpus_meta: CorpusMetadata,
+                 save_dir: str,
+                 window_radius: int,
+                 token_indices: TokenIndexDictionary):
+        super().__init__(model_type, corpus_meta, save_dir)
+        self.token_indices = token_indices
+        self.window_radius = window_radius
+
+        self._model_filename = f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.name}"
 
         # When implementing this class, this must be set by train()
-        self._matrix = None
+        self._model = None
+
+    @property
+    def vector(self):
+        return self._model
+
+    @abstractmethod
+    def train(self, force_retrain: bool = False):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def save(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def load(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def scalar_for_word(self, word: str):
+        """
+        Returns the scalar value for a word.
+        :param word:
+        :return:
+        """
+        raise NotImplementedError()
+
+
+class VectorSpaceModel(LanguageModel):
+    """
+    A language model where each word is associated with a point in a vector space.
+    """
+    def __init__(self,
+                 model_type: LanguageModel.ModelType,
+                 corpus_meta: CorpusMetadata,
+                 save_dir: str,
+                 window_radius: int):
+        super().__init__(model_type, corpus_meta, save_dir)
+        self.window_radius = window_radius
+
+        self._model_filename = f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.name}"
+
+        # When implementing this class, this must be set by train()
+        self._model = None
 
     @abstractmethod
     def vector_for_word(self, word: str):
         """
-        Returns the vector representation of a word
+        Returns the vector representation of a word.
         :param word:
         :return:
         """
@@ -184,25 +277,14 @@ class VectorSpaceModel(metaclass=ABCMeta):
 
     @abstractmethod
     def train(self, force_retrain: bool = False):
-        """
-        Trains the model from its corpus, and saves the resulting vectors to drive.
-        Will load existing vectors instead if possible.
-        """
         raise NotImplementedError()
 
     @abstractmethod
     def load(self):
-        """
-        Loads a pretrained model.
-        :return:
-        """
         raise NotImplementedError()
 
     @abstractmethod
     def save(self):
-        """
-        Saves a model in its current state.
-        """
         raise NotImplementedError()
 
     def distance_between(self, word_1, word_2, distance_type: Distance.Type):

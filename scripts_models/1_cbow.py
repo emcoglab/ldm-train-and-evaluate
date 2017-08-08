@@ -15,12 +15,7 @@ def main():
         for embedding_size in Preferences.predict_embedding_sizes:
             for window_radius in Preferences.window_radii:
 
-                predict_model = CbowModel(
-                    corpus_meta=meta,
-                    save_dir=weights_dir,
-                    window_radius=window_radius,
-                    embedding_size=embedding_size
-                )
+                predict_model = CbowModel(meta, weights_dir, window_radius, embedding_size)
                 predict_model.train()
                 predict_model.save()
 

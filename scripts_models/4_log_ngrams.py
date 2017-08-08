@@ -16,13 +16,7 @@ def main():
 
         for radius in Preferences.window_radii:
 
-            model = LogNgramModel(
-                corpus_meta=meta,
-                save_dir="/Users/caiwingfield/vectors/",
-                ngram_path="/Users/caiwingfield/vectors/ngram",
-                window_radius=radius,
-                token_indices=token_indices
-            )
+            model = LogNgramModel(meta, "/Users/caiwingfield/vectors/", radius, token_indices)
             model.train()
             model.save()
 
