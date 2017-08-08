@@ -1,3 +1,20 @@
+"""
+===========================
+Continuous Bag of Words (CBOW) model.
+===========================
+
+Dr. Cai Wingfield
+---------------------------
+Embodied Cognition Lab
+Department of Psychology
+University of Lancaster
+c.wingfield@lancaster.ac.uk
+caiwingfield.net
+---------------------------
+2017
+---------------------------
+"""
+
 import logging
 import sys
 

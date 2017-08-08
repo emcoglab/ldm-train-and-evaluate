@@ -1,3 +1,23 @@
+"""
+===========================
+Sometimes subtitles of live broadcasts come in one word at a time.
+This manifests in the subtitle file as a repeated entry with
+one additional word each time, leading to lots of repeated sequences.
+Here we can search for these to see if it's a big problem.
+===========================
+
+Dr. Cai Wingfield
+---------------------------
+Embodied Cognition Lab
+Department of Psychology
+University of Lancaster
+c.wingfield@lancaster.ac.uk
+caiwingfield.net
+---------------------------
+2017
+---------------------------
+"""
+
 import glob
 import os
 

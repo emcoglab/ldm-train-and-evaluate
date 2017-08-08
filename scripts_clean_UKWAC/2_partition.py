@@ -1,3 +1,21 @@
+"""
+===========================
+The UKWAC is a *big* corpus, which can't be held in memory all at once.
+Here we split it up into several "documents".
+===========================
+
+Dr. Cai Wingfield
+---------------------------
+Embodied Cognition Lab
+Department of Psychology
+University of Lancaster
+c.wingfield@lancaster.ac.uk
+caiwingfield.net
+---------------------------
+2017
+---------------------------
+"""
+
 import logging
 import os
 import sys

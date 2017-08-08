@@ -1,3 +1,20 @@
+"""
+===========================
+Replace badly encoded but potentially linguistically meaningful characters.
+===========================
+
+Dr. Cai Wingfield
+---------------------------
+Embodied Cognition Lab
+Department of Psychology
+University of Lancaster
+c.wingfield@lancaster.ac.uk
+caiwingfield.net
+---------------------------
+2017
+---------------------------
+"""
+
 import glob
 import os
 import sys

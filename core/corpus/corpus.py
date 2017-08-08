@@ -1,6 +1,24 @@
+"""
+===========================
+Classes related to corpora.
+===========================
+
+Dr. Cai Wingfield
+---------------------------
+Embodied Cognition Lab
+Department of Psychology
+University of Lancaster
+c.wingfield@lancaster.ac.uk
+caiwingfield.net
+---------------------------
+2017
+---------------------------
+"""
+
+
 class CorpusMetadata:
     """
-    Corpus metadata
+    Corpus metadata.
     """
 
     def __init__(self, name, path, info_path=None, index_path=None):
@@ -12,7 +30,7 @@ class CorpusMetadata:
 
 class StreamedCorpus(object):
     """
-    Corpus which yields individual tokens
+    Corpus which yields individual tokens.
     """
 
     def __init__(self, metadata: CorpusMetadata):
@@ -31,7 +49,7 @@ class StreamedCorpus(object):
 
 class WindowedCorpus(object):
     """
-    Corpus presented through a sliding window
+    Corpus presented through a sliding window.
     """
 
     def __init__(self, metadata: CorpusMetadata, window_radius: int):
@@ -69,7 +87,7 @@ class WindowedCorpus(object):
 
 class BatchedCorpus(object):
     """
-    Corpus which yields batches of tokens
+    Corpus which yields batches of tokens.
     """
 
     def __init__(self, metadata: CorpusMetadata, batch_size: int):

@@ -1,3 +1,20 @@
+"""
+===========================
+Compute and save frequency distribution information from a corpus.
+===========================
+
+Dr. Cai Wingfield
+---------------------------
+Embodied Cognition Lab
+Department of Psychology
+University of Lancaster
+c.wingfield@lancaster.ac.uk
+caiwingfield.net
+---------------------------
+2017
+---------------------------
+"""
+
 import argparse
 import logging
 import os

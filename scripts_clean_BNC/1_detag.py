@@ -1,3 +1,21 @@
+"""
+===========================
+Remove XML markup from BNC XML-formatted documents,
+leaving only the linguistic content.
+===========================
+
+Dr. Cai Wingfield
+---------------------------
+Embodied Cognition Lab
+Department of Psychology
+University of Lancaster
+c.wingfield@lancaster.ac.uk
+caiwingfield.net
+---------------------------
+2017
+---------------------------
+"""
+
 import os
 import sys
 import glob

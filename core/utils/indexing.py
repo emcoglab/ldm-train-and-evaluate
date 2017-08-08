@@ -1,3 +1,20 @@
+"""
+===========================
+Converting string tokens to and from int indexes.
+===========================
+
+Dr. Cai Wingfield
+---------------------------
+Embodied Cognition Lab
+Department of Psychology
+University of Lancaster
+c.wingfield@lancaster.ac.uk
+caiwingfield.net
+---------------------------
+2017
+---------------------------
+"""
+
 import json
 
 import nltk

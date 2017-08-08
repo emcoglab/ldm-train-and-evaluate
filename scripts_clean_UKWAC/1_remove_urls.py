@@ -1,3 +1,21 @@
+"""
+===========================
+UKWAC documents are separated by the URLs from which they were retrieved.
+We don't want these, so remove them here.
+===========================
+
+Dr. Cai Wingfield
+---------------------------
+Embodied Cognition Lab
+Department of Psychology
+University of Lancaster
+c.wingfield@lancaster.ac.uk
+caiwingfield.net
+---------------------------
+2017
+---------------------------
+"""
+
 import logging
 import sys
 

@@ -1,3 +1,20 @@
+"""
+===========================
+Produce token–index dictionaries from a corpus, so tokens can easily be used to index vectors and matrices.
+===========================
+
+Dr. Cai Wingfield
+---------------------------
+Embodied Cognition Lab
+Department of Psychology
+University of Lancaster
+c.wingfield@lancaster.ac.uk
+caiwingfield.net
+---------------------------
+2017
+---------------------------
+"""
+
 import logging
 import os
 import sys

@@ -1,3 +1,20 @@
+"""
+===========================
+Universal constants; things that will never change.
+===========================
+
+Dr. Cai Wingfield
+---------------------------
+Embodied Cognition Lab
+Department of Psychology
+University of Lancaster
+c.wingfield@lancaster.ac.uk
+caiwingfield.net
+---------------------------
+2017
+---------------------------
+"""
+
 from enum import Enum
 
 

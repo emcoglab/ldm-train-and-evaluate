@@ -1,3 +1,20 @@
+"""
+===========================
+Looking various non-word tokens in a corpus.
+===========================
+
+Dr. Cai Wingfield
+---------------------------
+Embodied Cognition Lab
+Department of Psychology
+University of Lancaster
+c.wingfield@lancaster.ac.uk
+caiwingfield.net
+---------------------------
+2017
+---------------------------
+"""
+
 import argparse
 import logging
 import re
