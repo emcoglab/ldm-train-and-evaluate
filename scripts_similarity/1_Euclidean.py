@@ -1,9 +1,10 @@
 import logging
 import sys
 
+from ..core.utils.indexing import TokenIndexDictionary
 from ..core.corpus.corpus import CorpusMetadata
 from ..core.model.count import NgramCountModel
-from ..core.utils.maths import Distance
+from ..core.utils.maths import DistanceType
 
 logger = logging.getLogger()
 
@@ -20,14 +21,13 @@ def main():
         index_path="/Users/caiwingfield/vectors/indexes/BNC.index")
 
     # TODO: Should work for vectors from all model types
-    model = NgramCountModel(model_type="/Users/caiwingfield/vectors", corpus_meta=corpus_metadata,
-                            save_dir="/Users/caiwingfield/vectors")
+    model = NgramCountModel(corpus_metadata, "/Users/caiwingfield/vectors", window_radius, TokenIndexDictionary.load(corpus_metadata.index_path))
 
     model.load()
 
     w = "frog"
     n = 10
-    d = Distance.DistanceType.Euclidean
+    d = DistanceType.Euclidean
     neighbours = model.nearest_neighbours(w, d, n)
     logger.info(f"{n} nearest neighbours to {w}: {neighbours}")
 

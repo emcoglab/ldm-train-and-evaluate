@@ -7,6 +7,7 @@ import scipy.io as sio
 import scipy.sparse as sps
 
 from ..corpus.corpus import CorpusMetadata, WindowedCorpus
+from ..corpus.distribution import FreqDist
 from ..model.base import VectorSpaceModel, ScalarModel, LanguageModel
 from ..utils.constants import Chirality
 from ..utils.indexing import TokenIndexDictionary
@@ -230,9 +231,11 @@ class NgramProbabilityModel(CountModel):
                  corpus_meta: CorpusMetadata,
                  save_dir: str,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary):
+                 token_indices: TokenIndexDictionary,
+                 freq_dist: FreqDist):
         super().__init__(VectorSpaceModel.ModelType.ngram_probability,
                          corpus_meta, save_dir, window_radius, token_indices)
+        self._freq_dist = freq_dist
 
     def _retrain(self):
         # Load the ngram model
@@ -245,8 +248,7 @@ class NgramProbabilityModel(CountModel):
         # The width of the window is twice the radius
         # We don't do 2r+1 because we only count the context words, not the target word
         self._model /= self.window_radius * 2
-        # TODO: get the corpus size from somewhere... maybe a freqdist?
-        self._model /= corpus_size
+        self._model /= self._freq_dist.N()
 
 
 class TokenProbabilityModel(ScalarModel):
@@ -265,9 +267,11 @@ class TokenProbabilityModel(ScalarModel):
                  corpus_meta: CorpusMetadata,
                  save_dir: str,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary):
+                 token_indices: TokenIndexDictionary,
+                 freq_dist: FreqDist):
         super().__init__(VectorSpaceModel.ModelType.token_probability,
                          corpus_meta, save_dir, window_radius, token_indices)
+        self._freq_dist = freq_dist
 
     def _retrain(self):
         # Load the ngram model
@@ -275,15 +279,13 @@ class TokenProbabilityModel(ScalarModel):
         ngram_model.load()
 
         # The probability is just the ngram count, divided by the width of the window and the size of the corpus
-        # TODO: this is the wrong initialisation.
-        # TODO: sum in here.
-        self._model = ngram_model.matrix
+        # TODO: am I summing over the correct axis here?
+        self._model = np.sum(ngram_model.matrix, 1)
         del ngram_model
         # The width of the window is twice the radius
         # We don't do 2r+1 because we only count the context words, not the target word
         self._model /= self.window_radius * 2
-        # TODO: get the corpus size from somewhere... maybe a freqdist?
-        self._model /= corpus_size
+        self._model /= self._freq_dist.N()
 
     def scalar_for_word(self, word: str):
         return self._model[self.token_indices.token2id[word]]
@@ -345,9 +347,11 @@ class ContextProbabilityModel(ScalarModel):
                  corpus_meta: CorpusMetadata,
                  save_dir: str,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary):
+                 token_indices: TokenIndexDictionary,
+                 freq_dist: FreqDist):
         super().__init__(VectorSpaceModel.ModelType.context_probability,
                          corpus_meta, save_dir, window_radius, token_indices)
+        self._freq_dist = freq_dist
 
     def scalar_for_word(self, word: str):
         return self._model[self.token_indices.token2id[word]]
@@ -366,15 +370,13 @@ class ContextProbabilityModel(ScalarModel):
         ngram_model.load()
 
         # The probability is just the ngram count, divided by the width of the window and the size of the corpus
-        # TODO: this is the wrong initialisation.
-        # TODO: sum in here.
-        self._model = ngram_model.matrix
+        # TODO: am I summing over the correct axis here?
+        self._model = np.sum(ngram_model.matrix, 1)
         del ngram_model
         # The width of the window is twice the radius
         # We don't do 2r+1 because we only count the context words, not the target word
         self._model /= self.window_radius * 2
-        # TODO: get the corpus size from somewhere... maybe a freqdist?
-        self._model /= corpus_size
+        self._model /= self._freq_dist.N()
 
 
 # TODO: is there another, more intuitive "ratio" formula for this?
@@ -458,5 +460,8 @@ class PPMIModel(CountModel):
         pmi_model = PMIModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
         pmi_model.load()
 
-        # TODO: check that this is actually how you do max
-        self._model = np.maximum(0, pmi_model.matrix)
+        # Elementwise max
+        self._model = np.maximum(
+            pmi_model.matrix,
+            # same-shape zero matrix
+            sps.lil_matrix(pmi_model.matrix.shape))
