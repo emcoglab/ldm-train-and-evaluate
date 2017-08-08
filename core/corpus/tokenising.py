@@ -16,6 +16,7 @@ caiwingfield.net
 """
 
 import re
+
 import nltk
 
 _treebank_word_tokenizer = nltk.tokenize.TreebankWordTokenizer()
