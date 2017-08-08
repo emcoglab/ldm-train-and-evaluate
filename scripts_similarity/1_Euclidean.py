@@ -23,7 +23,7 @@ from ..core.corpus.corpus import CorpusMetadata
 from ..core.model.count import NgramCountModel
 from ..core.utils.maths import DistanceType
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def main():

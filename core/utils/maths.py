@@ -15,18 +15,20 @@ caiwingfield.net
 ---------------------------
 """
 
-from enum import Enum
+from enum import Enum, auto
 
 import numpy
 from scipy import spatial
+from scipy import stats
 
 
 class DistanceType(Enum):
     """
     Representative of a distance type.
     """
-    Euclidean = 0
-    cosine = 1
+    Euclidean = auto()
+    cosine = auto()
+    correlation = auto()
 
 
 def distance(u: numpy.ndarray, v: numpy.ndarray, distance_type: DistanceType) -> float:
@@ -35,14 +37,16 @@ def distance(u: numpy.ndarray, v: numpy.ndarray, distance_type: DistanceType) ->
     """
 
     if distance_type is DistanceType.Euclidean:
-        return _euclidean(u, v)
+        return _euclidean_distance(u, v)
     elif distance_type is DistanceType.cosine:
-        return _cosine(u, v)
+        return _cosine_distance(u, v)
+    elif distance_type is DistanceType.correlation:
+        return _correlation_distance(u, v)
     else:
         raise ValueError()
 
 
-def _euclidean(u: numpy.ndarray, v: numpy.ndarray):
+def _euclidean_distance(u: numpy.ndarray, v: numpy.ndarray):
     """
     Euclidean distance.
     :param u:
@@ -52,7 +56,7 @@ def _euclidean(u: numpy.ndarray, v: numpy.ndarray):
     return numpy.linalg.norm(u - v)
 
 
-def _cosine(u: numpy.ndarray, v: numpy.ndarray):
+def _cosine_distance(u: numpy.ndarray, v: numpy.ndarray):
     """
     Cosine distance.
     :param u:
@@ -60,3 +64,14 @@ def _cosine(u: numpy.ndarray, v: numpy.ndarray):
     :return:
     """
     return spatial.distance.cosine(u, v)
+
+
+def _correlation_distance(u: numpy.ndarray, v: numpy.ndarray):
+    """
+    Correlation distance.
+    :param u:
+    :param v:
+    :return:
+    """
+    r, p = stats.pearsonr(u, v)
+    return 1 - r
