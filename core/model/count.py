@@ -19,6 +19,7 @@ class CountModel(VectorSpaceModel):
     """
     A model where vectors are computed by counting contexts/
     """
+
     def __init__(self,
                  model_type: LanguageModel.ModelType,
                  corpus_meta: CorpusMetadata,
@@ -203,13 +204,13 @@ class LogNgramModel(CountModel):
                          corpus_meta, save_dir, window_radius, token_indices)
 
     def _retrain(self):
-
         # Load the ngram model
         ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
         ngram_model.load()
 
         # Apply log to entries in the ngram matrix
         self._model = ngram_model.matrix
+        del ngram_model
         self._model.data = np.log10(self._model.data)
 
 
@@ -234,13 +235,13 @@ class NgramProbabilityModel(CountModel):
                          corpus_meta, save_dir, window_radius, token_indices)
 
     def _retrain(self):
-
         # Load the ngram model
         ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
         ngram_model.load()
 
         # The probability is just the ngram count, divided by the width of the window and the size of the corpus
         self._model = ngram_model.matrix
+        del ngram_model
         # The width of the window is twice the radius
         # We don't do 2r+1 because we only count the context words, not the target word
         self._model /= self.window_radius * 2
@@ -269,7 +270,6 @@ class TokenProbabilityModel(ScalarModel):
                          corpus_meta, save_dir, window_radius, token_indices)
 
     def _retrain(self):
-
         # Load the ngram model
         ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
         ngram_model.load()
@@ -278,6 +278,7 @@ class TokenProbabilityModel(ScalarModel):
         # TODO: this is the wrong initialisation.
         # TODO: sum in here.
         self._model = ngram_model.matrix
+        del ngram_model
         # The width of the window is twice the radius
         # We don't do 2r+1 because we only count the context words, not the target word
         self._model /= self.window_radius * 2
@@ -315,8 +316,17 @@ class ConditionalProbabilityModel(CountModel):
                          corpus_meta, save_dir, window_radius, token_indices)
 
     def _retrain(self):
-        # TODO
-        pass
+        ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
+        ngram_model.load()
+
+        self._model = ngram_model.matrix
+        del ngram_model
+
+        token_probability_model = TokenProbabilityModel(self.corpus_meta, self.save_dir, self.window_radius,
+                                                        self.token_indices)
+        token_probability_model.load()
+        # TODO: this is probably not how you do this
+        self._model /= token_probability_model.vector
 
 
 class ContextProbabilityModel(ScalarModel):
@@ -351,7 +361,6 @@ class ContextProbabilityModel(ScalarModel):
         self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
 
     def _retrain(self):
-
         # Load the ngram model
         ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
         ngram_model.load()
@@ -360,6 +369,7 @@ class ContextProbabilityModel(ScalarModel):
         # TODO: this is the wrong initialisation.
         # TODO: sum in here.
         self._model = ngram_model.matrix
+        del ngram_model
         # The width of the window is twice the radius
         # We don't do 2r+1 because we only count the context words, not the target word
         self._model /= self.window_radius * 2
@@ -378,8 +388,27 @@ class ProbabilityRatioModel(CountModel):
     c: context token
     t: target token
     """
-    # TODO
-    pass
+
+    def __init__(self,
+                 corpus_meta: CorpusMetadata,
+                 save_dir: str,
+                 window_radius: int,
+                 token_indices: TokenIndexDictionary):
+        super().__init__(LanguageModel.ModelType.probability_ratios,
+                         corpus_meta, save_dir, window_radius, token_indices)
+
+    def _retrain(self):
+        ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
+        ngram_model.load()
+
+        self._model = ngram_model.matrix
+        del ngram_model
+
+        token_probability_model = ContextProbabilityModel(self.corpus_meta, self.save_dir, self.window_radius,
+                                                          self.token_indices)
+        token_probability_model.load()
+        # TODO: this is probably not how you do this
+        self._model /= token_probability_model.vector
 
 
 class PMIModel(CountModel):
@@ -391,8 +420,20 @@ class PMIModel(CountModel):
     c: context token
     t: target token
     """
-    # TODO
-    pass
+
+    def __init__(self,
+                 corpus_meta: CorpusMetadata,
+                 save_dir: str,
+                 window_radius: int,
+                 token_indices: TokenIndexDictionary):
+        super().__init__(LanguageModel.ModelType.pmi,
+                         corpus_meta, save_dir, window_radius, token_indices)
+
+    def _retrain(self):
+        ratios_model = ProbabilityRatioModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
+        ratios_model.load()
+
+        self._model = np.log2(ratios_model.matrix)
 
 
 class PPMIModel(CountModel):
@@ -404,5 +445,18 @@ class PPMIModel(CountModel):
     c: context token
     t: target token
     """
-    # TODO
-    pass
+
+    def __init__(self,
+                 corpus_meta: CorpusMetadata,
+                 save_dir: str,
+                 window_radius: int,
+                 token_indices: TokenIndexDictionary):
+        super().__init__(LanguageModel.ModelType.ppmi,
+                         corpus_meta, save_dir, window_radius, token_indices)
+
+    def _retrain(self):
+        pmi_model = PMIModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
+        pmi_model.load()
+
+        # TODO: check that this is actually how you do max
+        self._model = np.maximum(0, pmi_model.matrix)
