@@ -27,7 +27,7 @@ def main():
 
     w = "frog"
     n = 10
-    d = Distance.Type.Euclidean
+    d = Distance.DistanceType.Euclidean
     neighbours = model.nearest_neighbours(w, d, n)
     logger.info(f"{n} nearest neighbours to {w}: {neighbours}")
 

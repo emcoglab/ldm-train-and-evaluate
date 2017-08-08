@@ -1,14 +1,11 @@
-import os
 import logging
-
+import os
 from abc import ABCMeta, abstractmethod
 from enum import Enum, auto
 
-import scipy.io as sio
-
-from ..utils.indexing import TokenIndexDictionary
-from ..utils.maths import Distance
 from ..corpus.corpus import CorpusMetadata
+from ..utils.indexing import TokenIndexDictionary
+from ..utils.maths import DistanceType, distance
 
 logger = logging.getLogger(__name__)
 
@@ -266,13 +263,13 @@ class VectorSpaceModel(LanguageModel):
         raise NotImplementedError()
 
     @abstractmethod
-    def nearest_neighbours(self, word: str, distance_type: Distance.Type, n: int):
+    def nearest_neighbours(self, word: str, distance_type: DistanceType, n: int):
         """
         Finds the nearest neighbours to a word.
         """
         raise NotImplementedError()
 
-    def nearest_neighbour(self, word: str, distance_type: Distance.Type):
+    def nearest_neighbour(self, word: str, distance_type: DistanceType):
         """
         Finds the nearest neighbour to a word.
         :param word:
@@ -299,7 +296,7 @@ class VectorSpaceModel(LanguageModel):
     def save(self):
         raise NotImplementedError()
 
-    def distance_between(self, word_1, word_2, distance_type: Distance.Type):
+    def distance_between(self, word_1, word_2, distance_type: DistanceType):
         """
         Returns the distance between the two specified words
         :param word_1:
@@ -307,4 +304,4 @@ class VectorSpaceModel(LanguageModel):
         :param distance_type:
         :return:
         """
-        return Distance.d(self.vector_for_word(word_1), self.vector_for_word(word_2), distance_type)
+        return distance(self.vector_for_word(word_1), self.vector_for_word(word_2), distance_type)

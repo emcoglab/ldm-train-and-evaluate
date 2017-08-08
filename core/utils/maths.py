@@ -1,30 +1,45 @@
-import math
 from enum import Enum
 
-import numpy as np
+import numpy
+from scipy import spatial
 
 
-class Distance(object):
-    class Type(Enum):
-        """
-        Representative of a distance type
-        """
-        Euclidean = 0
-        cosine = 1
+class DistanceType(Enum):
+    """
+    Representative of a distance type.
+    """
+    Euclidean = 0
+    cosine = 1
 
-    @staticmethod
-    def d(u, v, distance_type: Type) -> float:
-        """
-        Distance from vector u to vector v
-        :param u:
-        :param v:
-        :param distance_type:
-        :return:
-        """
-        if distance_type is Distance.Type.Euclidean:
-            return math.sqrt(sum([e ** 2 for e in u - v]))
-        elif distance_type is Distance.Type.cosine:
-            # TODO: What is the fast way to do this again?
-            return np.dot(u, v) / 0
-        else:
-            raise ValueError()
+
+def distance(u: numpy.ndarray, v: numpy.ndarray, distance_type: DistanceType) -> float:
+    """
+    Distance from vector u to vector v using the specified distance type.
+    """
+
+    if distance_type is DistanceType.Euclidean:
+        return _euclidean(u, v)
+    elif distance_type is DistanceType.cosine:
+        return _cosine(u, v)
+    else:
+        raise ValueError()
+
+
+def _euclidean(u: numpy.ndarray, v: numpy.ndarray):
+    """
+    Euclidean distance.
+    :param u:
+    :param v:
+    :return:
+    """
+    return numpy.linalg.norm(u - v)
+
+
+def _cosine(u: numpy.ndarray, v: numpy.ndarray):
+    """
+    Cosine distance.
+    :param u:
+    :param v:
+    :return:
+    """
+    return spatial.distance.cosine(u, v)

@@ -10,7 +10,7 @@ from ..corpus.corpus import CorpusMetadata, WindowedCorpus
 from ..model.base import VectorSpaceModel, ScalarModel, LanguageModel
 from ..utils.constants import Chirality
 from ..utils.indexing import TokenIndexDictionary
-from ..utils.maths import Distance
+from ..utils.maths import DistanceType, distance
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ class CountModel(VectorSpaceModel):
         word_id = self.token_indices.token2id(word)
         return self.vector_for_id(word_id)
 
-    def nearest_neighbours(self, word: str, distance_type: Distance.Type, n: int):
+    def nearest_neighbours(self, word: str, distance_type: DistanceType, n: int):
 
         vocab_size = len(self.token_indices)
 
@@ -73,7 +73,7 @@ class CountModel(VectorSpaceModel):
                 continue
 
             candidate_vector = self.vector_for_id(candidate_id)
-            distance_to_target = Distance.d(candidate_vector, target_vector, distance_type)
+            distance_to_target = distance(candidate_vector, target_vector, distance_type)
 
             # Add it to the shortlist
             nearest_neighbours.append((candidate_id, distance_to_target))

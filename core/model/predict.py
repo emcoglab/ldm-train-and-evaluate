@@ -5,7 +5,7 @@ from abc import abstractmethod
 
 import gensim
 
-from ..utils.maths import Distance
+from ..utils.maths import distance, DistanceType
 from ..corpus.corpus import CorpusMetadata, BatchedCorpus
 from ..model.base import VectorSpaceModel, LanguageModel
 
@@ -51,8 +51,8 @@ class PredictModel(VectorSpaceModel):
     def _retrain(self):
         raise NotImplementedError()
 
-    def nearest_neighbours(self, word: str, distance_type: Distance.Type, n: int):
-        if distance_type is Distance.Type.cosine:
+    def nearest_neighbours(self, word: str, distance_type: DistanceType, n: int):
+        if distance_type is DistanceType.cosine:
             # gensim implements cosine anyway, so this is an easy shortcut
             return self._model.wv.most_similar(positive=word, topn=n)
         else:
@@ -69,7 +69,7 @@ class PredictModel(VectorSpaceModel):
                     continue
 
                 candidate_vector = self.vector_for_word(candidate_word)
-                distance_to_target = Distance.d(candidate_vector, target_vector, distance_type)
+                distance_to_target = distance(candidate_vector, target_vector, distance_type)
 
                 # Add it to the shortlist
                 nearest_neighbours.append((candidate_word, distance_to_target))
