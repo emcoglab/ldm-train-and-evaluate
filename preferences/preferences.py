@@ -32,22 +32,18 @@ class Preferences(object):
 
     # The final locations of the processed corpora
     source_corpus_metas = [
-        # CorpusMetadata(
-        #     name="toy",
-        #     path="/Users/caiwingfield/corpora/toy-corpus/toy.corpus",
-        #     index_path="/Users/caiwingfield/vectors/indexes/toy.index"),
         CorpusMetadata(
             name="BBC",
             path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus",
-            info_path="/Users/caiwingfield/corpora/BBC/4.1 info",
+            freq_dist_path="/Users/caiwingfield/corpora/BBC/4.1 info/Frequency distribution BBC.corpus.pickle",
             index_path="/Users/caiwingfield/vectors/indexes/BBC.index"),
         CorpusMetadata(
             name="BNC",
             path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus",
-            info_path="/Users/caiwingfield/corpora/BNC/2.1 info",
+            freq_dist_path="/Users/caiwingfield/corpora/BNC/2.1 info/Frequency distribution BNC.corpus.pickle",
             index_path="/Users/caiwingfield/vectors/indexes/BNC.index"),
         CorpusMetadata(
             name="UKWAC",
             path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
-            info_path="/Users/caiwingfield/corpora/UKWAC/3.1 info",
+            freq_dist_path="/Users/caiwingfield/corpora/UKWAC/3.1 info/Frequency distribution UKWAC.corpus.pickle",
             index_path="/Users/caiwingfield/vectors/indexes/UKWAC.index")]

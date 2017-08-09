@@ -27,18 +27,16 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    index_dir = "/Users/caiwingfield/vectors/indexes"
-
     for meta in Preferences.source_corpus_metas:
         logger.info(f"Producing word index dictionaries for {meta.name} corpus")
 
         # TODO: this file name should be written in script_corpus_info.frequency_distribution,
-        # TODO: when it's redone as a numbered script
+        # TODO: or better yet Preferences, when it's redone as a numbered script
         freq_dist = FreqDist.load(os.path.join(meta.info_path, f"Frequency distribution {meta.name}.corpus.pickle"))
 
         token_index = TokenIndexDictionary.from_freqdist(freq_dist)
 
-        token_index.save(os.path.join(index_dir, f"{meta.name}.index"))
+        token_index.save(meta.index_path)
 
 
 if __name__ == "__main__":

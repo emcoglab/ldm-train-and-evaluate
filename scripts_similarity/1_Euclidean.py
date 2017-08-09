@@ -18,10 +18,10 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.utils.indexing import TokenIndexDictionary
-from ..core.corpus.corpus import CorpusMetadata
 from ..core.model.count import NgramCountModel
+from ..core.utils.indexing import TokenIndexDictionary
 from ..core.utils.maths import DistanceType
+from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +31,7 @@ def main():
     window_radius = 1
 
     # TODO: Should work for all corpora
-    corpus_metadata = CorpusMetadata(
-        name="BNC",
-        path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus",
-        info_path="/Users/caiwingfield/corpora/BNC/2.1 info",
-        index_path="/Users/caiwingfield/vectors/indexes/BNC.index")
+    corpus_metadata = Preferences.source_corpus_metas[2]  # BNC
 
     # TODO: Should work for vectors from all model types
     model = NgramCountModel(corpus_metadata, "/Users/caiwingfield/vectors", window_radius, TokenIndexDictionary.load(corpus_metadata.index_path))

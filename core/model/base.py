@@ -308,13 +308,15 @@ class VectorSpaceModel(LanguageModel):
     def train(self, force_retrain: bool = False, load_if_previously_saved: bool = True):
         previously_saved = os.path.isfile(os.path.join(self.save_dir, self._model_filename))
         if force_retrain or not previously_saved:
+            logger.info(f"Training {self.model_type.name} model.")
             self._retrain()
+            logger.info(f"Saving {self.model_type.name} model to {self._model_filename}.")
             self._save()
         elif load_if_previously_saved:
+            logger.info(f"Loading previously saved {self.model_type.name} model from {self._model_filename}.")
             self._load()
         else:
-            logger.info(f"Skipping {self.model_type.name} model")
-            logger.info(f"File exists: {self._model_filename}")
+            logger.info(f"Skipping {self.model_type.name} model: File exists {self._model_filename}.")
             pass
 
     @abstractmethod

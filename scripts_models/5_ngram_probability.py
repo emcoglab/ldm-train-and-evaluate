@@ -18,6 +18,7 @@ caiwingfield.net
 import logging
 import sys
 
+from ..core.corpus.distribution import FreqDist
 from ..core.model.count import NgramProbabilityModel
 from ..core.utils.indexing import TokenIndexDictionary
 from ..preferences.preferences import Preferences
@@ -29,8 +30,9 @@ def main():
 
     for meta in Preferences.source_corpus_metas:
         token_indices = TokenIndexDictionary.load(meta.index_path)
+        freq_dist = FreqDist.load(meta.freq_dist_path)
         for radius in Preferences.window_radii:
-            model = NgramProbabilityModel(meta, "/Users/caiwingfield/vectors/", radius, token_indices)
+            model = NgramProbabilityModel(meta, "/Users/caiwingfield/vectors/", radius, token_indices, freq_dist)
             model.train(load_if_previously_saved=False)
 
 

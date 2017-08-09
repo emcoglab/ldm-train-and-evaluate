@@ -32,29 +32,30 @@ def main():
             source=CorpusMetadata(
                 name="BBC",
                 path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus",
-                info_path="/Users/caiwingfield/corpora/BBC/4.1 info"),
+                # TODO: info_paths have changed.
+                freq_dist_path="/Users/caiwingfield/corpora/BBC/4.1 info"),
             target=CorpusMetadata(
                 name="BBC",
                 path="/Users/caiwingfield/corpora/BBC/5 Filtered/BBC.corpus",
-                info_path="/Users/caiwingfield/corpora/BBC/5.1 info")),
+                freq_dist_path="/Users/caiwingfield/corpora/BBC/5.1 info")),
         dict(
             source=CorpusMetadata(
                 name="BNC",
                 path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus",
-                info_path="/Users/caiwingfield/corpora/BNC/2.1 info"),
+                freq_dist_path="/Users/caiwingfield/corpora/BNC/2.1 info"),
             target=CorpusMetadata(
                 name="BNC",
                 path="/Users/caiwingfield/corpora/BNC/3 Filtered/BNC.corpus",
-                info_path="/Users/caiwingfield/corpora/BNC/3.1 info")),
+                freq_dist_path="/Users/caiwingfield/corpora/BNC/3.1 info")),
         dict(
             source=CorpusMetadata(
                 name="UKWAC",
                 path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
-                info_path="/Users/caiwingfield/corpora/UKWAC/3.1 info"),
+                freq_dist_path="/Users/caiwingfield/corpora/UKWAC/3.1 info"),
             target=CorpusMetadata(
                 name="UKWAC",
                 path="/Users/caiwingfield/corpora/UKWAC/4 FIltered/UKWAC.corpus",
-                info_path="/Users/caiwingfield/corpora/UKWAC/4.1 info"))]
+                freq_dist_path="/Users/caiwingfield/corpora/UKWAC/4.1 info"))]
 
     # The frequency at which we ignore tokens.
     # Set to 0 to include all tokens, set to 1 to include tokens that occur more than once, etc.
@@ -63,7 +64,7 @@ def main():
 
     for corpus_meta in corpus_metas:
 
-        freq_dist_path = os.path.join(corpus_meta["source"].info_path, corpus_meta["source"].name + ".corpus.pickle")
+        freq_dist_path = os.path.join(corpus_meta["source"].freq_dist_path, corpus_meta["source"].name + ".corpus.pickle")
         if os.path.isfile(freq_dist_path):
             # If freq dist file previously saved, load it
             logger.info(f"Loading frequency distribution from {freq_dist_path}")

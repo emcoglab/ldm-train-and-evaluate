@@ -62,7 +62,6 @@ class PredictModel(VectorSpaceModel):
         self._model.save(os.path.join(self.save_dir, self._model_filename))
 
     def _load(self):
-        logger.info(f"Loading pre-trained {self.model_type.name} model from {self._model_filename}")
         self._model = gensim.models.Word2Vec.load(os.path.join(self.save_dir, self._model_filename))
 
     @abstractmethod
@@ -117,7 +116,9 @@ class CbowModel(PredictModel):
 
     def _retrain(self):
 
-        logger.info(f"Training {self.model_type.name} model")
+        logger.info(f"Corpus: {self.corpus_meta.name}, "
+                    f"r={self.window_radius}, "
+                    f"s={self.embedding_size}")
 
         self._model = gensim.models.Word2Vec(
             # This is called "sentences", but they all get concatenated, so it doesn't matter.
@@ -147,8 +148,7 @@ class SkipGramModel(PredictModel):
 
     def _retrain(self):
 
-        logger.info(f"Training {self.model_type.name} model "
-                    f"on {self.corpus_meta.name} corpus, "
+        logger.info(f"Corpus: {self.corpus_meta.name}, "
                     f"r={self.window_radius}, "
                     f"s={self.embedding_size}")
 
