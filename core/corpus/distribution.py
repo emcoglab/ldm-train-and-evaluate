@@ -42,7 +42,13 @@ class FreqDist(nltk.probability.FreqDist):
 
     @classmethod
     def from_batched_corpus(cls, batched_corpus: BatchedCorpus) -> 'FreqDist':
-        freq_dist = nltk.probability.FreqDist()
+        # Initially create an empty FreqDist
+        freq_dist = cls()
+        # Then add to it from each batch of the corpus.
+        # Means we don't have to have the whole corpus in memory at once!
+        token_count = 0
         for batch in batched_corpus:
-            freq_dist += nltk.probability.FreqDist(batch)
+            freq_dist += cls(batch)
+            token_count += batched_corpus.batch_size
+            logger.info(f"\t{token_count:,} tokens counted")
         return freq_dist
