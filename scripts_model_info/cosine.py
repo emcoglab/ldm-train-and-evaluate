@@ -21,6 +21,7 @@ import sys
 from ..core.model.count import LogNgramModel
 from ..core.utils.indexing import TokenIndexDictionary
 from ..core.utils.maths import DistanceType
+from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -50,8 +51,7 @@ def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format='%(asctime)s | %(levelname)s | %(module)s | %(message)s', datefmt="%Y-%m-%d %H:%M:%S",
-                        level=logging.INFO)
-    logger.info("running %s" % " ".join(sys.argv))
+    logging.basicConfig(format=log_message, datefmt=date_format, level=logging.INFO)
+    logger.info("Running %s" % " ".join(sys.argv))
     main()
     logger.info("Done!")

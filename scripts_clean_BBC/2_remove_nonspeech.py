@@ -16,15 +16,15 @@ caiwingfield.net
 """
 
 import glob
-import os
-import sys
-import string
 import logging
+import os
+import string
+import sys
 
+from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
-from ..core.corpus.corpus import CorpusMetadata
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def is_suspected_nonspeech(line):
@@ -95,8 +95,7 @@ def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format='%(asctime)s | %(levelname)s | %(module)s | %(message)s', datefmt="%Y-%m-%d %H:%M:%S",
-                        level=logging.INFO)
+    logging.basicConfig(format=log_message, datefmt=date_format, level=logging.INFO)
     logger.info("running %s" % " ".join(sys.argv))
     main()
     logger.info("Done!")

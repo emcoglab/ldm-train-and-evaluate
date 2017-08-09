@@ -20,9 +20,10 @@ import logging
 import os
 import sys
 
+from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -68,8 +69,7 @@ def main():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(format='%(asctime)s | %(levelname)s | %(module)s | %(message)s', datefmt="%Y-%m-%d %H:%M:%S",
-                        level=logging.INFO)
+    logging.basicConfig(format=log_message, datefmt=date_format, level=logging.INFO)
     logger.info("Running %s" % " ".join(sys.argv))
     main()
     logger.info("Done!")

@@ -19,6 +19,7 @@ import logging
 import math
 import sys
 
+from ..core.utils.logging import log_message, date_format
 from ..core.corpus.distribution import FreqDist
 from ..core.model.count import PPMIModel
 from ..core.model.evaluation import ToeflTest
@@ -74,8 +75,7 @@ def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format='%(asctime)s | %(levelname)s | %(module)s | %(message)s', datefmt="%Y-%m-%d %H:%M:%S",
-                        level=logging.INFO)
-    logger.info("running %s" % " ".join(sys.argv))
+    logging.basicConfig(format=log_message, datefmt=date_format, level=logging.INFO)
+    logger.info("Running %s" % " ".join(sys.argv))
     main()
     logger.info("Done!")

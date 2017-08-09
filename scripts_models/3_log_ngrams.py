@@ -21,8 +21,9 @@ import sys
 from ..core.model.count import LogNgramModel
 from ..core.utils.indexing import TokenIndexDictionary
 from ..preferences.preferences import Preferences
+from ..core.utils.logging import log_message, date_format
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def main():

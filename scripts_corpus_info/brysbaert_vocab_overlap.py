@@ -19,6 +19,7 @@ import logging
 import os
 import sys
 
+from ..core.utils.logging import log_message, date_format
 from ..core.corpus.distribution import FreqDist
 from ..preferences.preferences import Preferences
 
@@ -82,10 +83,7 @@ def log_and_write(message, info_file):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        format='%(asctime)s | %(levelname)s | %(module)s | %(message)s',
-        datefmt="%Y-%m-%d %H:%M:%S",
-        level=logging.INFO)
+    logging.basicConfig(format=log_message, datefmt=date_format, level=logging.INFO)
     logger.info("Running %s" % " ".join(sys.argv))
 
     main()
