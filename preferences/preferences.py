@@ -30,6 +30,9 @@ class Preferences(object):
     # These sizes taken from Mandera et al. (2017)
     predict_embedding_sizes = [50, 100, 200, 300, 500]
 
+    # The base directory for the models to be saved
+    model_dir = "/Users/caiwingfield/vectors/"
+
     # The final locations of the processed corpora
     source_corpus_metas = [
         CorpusMetadata(

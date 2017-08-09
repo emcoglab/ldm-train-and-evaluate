@@ -30,7 +30,7 @@ def main():
         for embedding_size in Preferences.predict_embedding_sizes:
             for window_radius in Preferences.window_radii:
                 # TODO: move this path into Preferences
-                predict_model = CbowModel(meta, "/Users/caiwingfield/vectors/", window_radius, embedding_size)
+                predict_model = CbowModel(meta, Preferences.model_dir, window_radius, embedding_size)
                 predict_model.train(load_if_previously_saved=False)
 
 

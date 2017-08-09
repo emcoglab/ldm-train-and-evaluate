@@ -30,7 +30,7 @@ def main():
     for meta in Preferences.source_corpus_metas:
         token_indices = TokenIndexDictionary.load(meta.index_path)
         for radius in Preferences.window_radii:
-            model = LogNgramModel(meta, "/Users/caiwingfield/vectors/", radius, token_indices)
+            model = LogNgramModel(meta, Preferences.model_dir, radius, token_indices)
             model.train(load_if_previously_saved=False)
 
 

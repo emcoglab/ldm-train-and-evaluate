@@ -29,7 +29,7 @@ def main():
     for meta in Preferences.source_corpus_metas:
         for embedding_size in Preferences.predict_embedding_sizes:
             for window_radius in Preferences.window_radii:
-                predict_model = SkipGramModel(meta, "/Users/caiwingfield/vectors/", window_radius, embedding_size)
+                predict_model = SkipGramModel(meta, Preferences.model_dir, window_radius, embedding_size)
                 predict_model.train(load_if_previously_saved=False)
 
 

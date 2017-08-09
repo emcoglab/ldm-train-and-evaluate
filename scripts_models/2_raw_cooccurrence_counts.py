@@ -31,7 +31,7 @@ def main():
         token_indices = TokenIndexDictionary.load(meta.index_path)
         for radius in range(1, max(Preferences.window_radii) + 1):
             for chirality in Chirality:
-                model = UnsummedNgramCountModel(meta, "/Users/caiwingfield/vectors/", radius, token_indices, chirality)
+                model = UnsummedNgramCountModel(meta, Preferences.model_dir, radius, token_indices, chirality)
                 model.train(load_if_previously_saved=False)
 
 
