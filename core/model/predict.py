@@ -52,11 +52,12 @@ class PredictModel(VectorSpaceModel):
         self._workers = 4
 
         self._corpus = BatchedCorpus(corpus_meta, batch_size=1_000)
-
-        # Overwrite this to include embedding size
-        self._model_filename = f"{corpus_meta.name}_r={self.window_radius}_s={embedding_size}_{model_type.slug}"
-
         self._model: gensim.models.Word2Vec = None
+
+    @property
+    def _model_filename(self):
+        # Include embedding size
+        return f"{self.corpus_meta.name}_r={self.window_radius}_s={self.embedding_size}_{self.model_type.slug}"
 
     def _save(self):
         logger.info(f"Saving {self.corpus_meta.name} to {self._model_filename}")

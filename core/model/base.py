@@ -180,8 +180,13 @@ class LanguageModel(metaclass=ABCMeta):
         # This allows us to instantiate and load other models from the correct root.
         self._root_dir = save_dir
 
-        # Must be set in __init__ of subclasses
-        self._model_filename = None
+    @property
+    @abstractmethod
+    def _model_filename(self) -> str:
+        """
+        The file name of the model.
+        """
+        raise NotImplementedError()
 
     @property
     def save_dir(self) -> str:
@@ -230,7 +235,7 @@ class LanguageModel(metaclass=ABCMeta):
         raise NotImplementedError()
 
 
-class VectorSpaceModel(LanguageModel):
+class VectorSpaceModel(LanguageModel, metaclass=ABCMeta):
     """
     A language model where each word is associated with a point in a vector space.
     """
@@ -243,10 +248,12 @@ class VectorSpaceModel(LanguageModel):
         super().__init__(model_type, corpus_meta, save_dir)
         self.window_radius = window_radius
 
-        self._model_filename = f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.slug}"
-
         # When implementing this class, this must be set by train()
         self._model = None
+
+    @property
+    def _model_filename(self):
+        return f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.slug}"
 
     @abstractmethod
     def vector_for_word(self, word: str):

@@ -17,7 +17,7 @@ caiwingfield.net
 
 import logging
 import os
-from abc import abstractmethod
+from abc import abstractmethod, ABCMeta
 
 import numpy as np
 import scipy.io as sio
@@ -46,6 +46,11 @@ class CountModel(VectorSpaceModel):
                  token_indices: TokenIndexDictionary):
         super().__init__(model_type, corpus_meta, save_dir, window_radius)
         self.token_indices = token_indices
+
+    @property
+    def _model_filename(self):
+        # We're using Matrix Market format files
+        return super()._model_filename + ".mtx"
 
     @property
     def matrix(self):
@@ -109,7 +114,7 @@ class CountModel(VectorSpaceModel):
         return [self.token_indices.id2token(i) for i, dist in nearest_neighbours]
 
 
-class ScalarCountModel(LanguageModel):
+class ScalarCountModel(LanguageModel, metaclass=ABCMeta):
     """
     A language model where each word is associated with a scalar value.
     """
@@ -124,10 +129,12 @@ class ScalarCountModel(LanguageModel):
         self.token_indices = token_indices
         self.window_radius = window_radius
 
-        self._model_filename = f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.name}"
-
         # When implementing this class, this must be set by retrain()
         self._model: np.ndarray = None
+
+    @property
+    def _model_filename(self):
+        return f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.name}.mtx"
 
     @property
     def vector(self):
@@ -170,9 +177,10 @@ class UnsummedNgramCountModel(CountModel):
                          corpus_meta, save_dir, window_radius, token_indices)
         self._chirality = chirality
 
-        # Overwrite, to include chirality
-        self._model_filename = f"{self.corpus_meta.name}_" \
-                               f"r={self.window_radius}_{self.model_type.slug}_{self._chirality}"
+    # Overwrite, to include chirality
+    @property
+    def _model_filename(self):
+        return f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.slug}_{self._chirality}.mtx"
 
     def _retrain(self):
 
