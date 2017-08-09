@@ -43,7 +43,7 @@ def main():
 
     w = "frog"
     n = 10
-    d = DistanceType.Euclidean
+    d = DistanceType.cosine
     logger.info(f"Finding nearest {n} neighbours to {w}...")
     neighbours = model.nearest_neighbours(w, d, n)
     logger.info(f"Nearest {n} neighbours to {w}: {neighbours}")
