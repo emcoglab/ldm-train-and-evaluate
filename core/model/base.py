@@ -177,7 +177,13 @@ class LanguageModel(metaclass=ABCMeta):
                  save_dir: str):
         self.model_type = model_type
         self.corpus_meta = corpus_meta
-        self.save_dir = os.path.join(save_dir, model_type.slug)
+        # We need to remember the root directory for all models, as well as the save directory for this model.
+        # This allows us to instantiate and load other models from the correct root.
+        self._root_dir = save_dir
+
+    @property
+    def save_dir(self) -> str:
+        return os.path.join(self._root_dir, self.model_type.slug)
 
     @abstractmethod
     def train(self, force_retrain: bool = False, load_if_previously_saved: bool = True):

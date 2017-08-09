@@ -123,7 +123,8 @@ class UnsummedNgramCountModel(CountModel):
         self._chirality = chirality
 
         # Overwrite, to include chirality
-        self._model_filename = f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.slug}_{self._chirality}"
+        self._model_filename = f"{self.corpus_meta.name}_" \
+                               f"r={self.window_radius}_{self.model_type.slug}_{self._chirality}"
 
     def _retrain(self):
 
@@ -195,11 +196,11 @@ class NgramCountModel(CountModel):
         self._model = sps.lil_matrix((vocab_size, vocab_size))
 
         # We load the unsummed cooccurrence matrices in in sequence, and accumulate them to save the summed
-        for radius in range(1, max(self.window_radius) + 1):
+        for radius in range(1, self.window_radius + 1):
             # Accumulate both left and right occurrences
             for chirality in Chirality:
                 # Get each unsummed model
-                unsummed_model = UnsummedNgramCountModel(self.corpus_meta, self.save_dir, self.window_radius,
+                unsummed_model = UnsummedNgramCountModel(self.corpus_meta, self._root_dir, self.window_radius,
                                                          self.token_indices,
                                                          chirality)
                 unsummed_model.train()
@@ -229,7 +230,7 @@ class LogNgramModel(CountModel):
     def _retrain(self):
         logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
         # Get the ngram model
-        ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
+        ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
         ngram_model.train()
 
         # Apply log to entries in the ngram matrix
@@ -264,7 +265,7 @@ class NgramProbabilityModel(CountModel):
         logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
 
         # Get the ngram model
-        ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
+        ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
         ngram_model.train()
 
         # The probability is just the ngram count, divided by the width of the window and the size of the corpus
@@ -301,7 +302,7 @@ class TokenProbabilityModel(ScalarModel):
     def _retrain(self):
         logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
         # Get the ngram model
-        ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
+        ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
         ngram_model.train()
 
         # The probability is just the ngram count, divided by the width of the window and the size of the corpus
@@ -347,13 +348,13 @@ class ConditionalProbabilityModel(CountModel):
 
     def _retrain(self):
         logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
-        ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
+        ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
         ngram_model.train()
 
         self._model = ngram_model.matrix
         del ngram_model
 
-        token_probability_model = TokenProbabilityModel(self.corpus_meta, self.save_dir, self.window_radius,
+        token_probability_model = TokenProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
                                                         self.token_indices, self._freq_dist)
         token_probability_model.train()
 
@@ -397,7 +398,7 @@ class ContextProbabilityModel(ScalarModel):
     def _retrain(self):
         logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
         # Get the ngram model
-        ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
+        ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
         ngram_model.train()
 
         # The probability is just the ngram count, divided by the width of the window and the size of the corpus
@@ -434,13 +435,13 @@ class ProbabilityRatioModel(CountModel):
 
     def _retrain(self):
         logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
-        ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
+        ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
         ngram_model.train()
 
         self._model = ngram_model.matrix
         del ngram_model
 
-        token_probability_model = ContextProbabilityModel(self.corpus_meta, self.save_dir, self.window_radius,
+        token_probability_model = ContextProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
                                                           self.token_indices, self._freq_dist)
         token_probability_model.train()
         # TODO: this is probably not how you do this
@@ -469,7 +470,7 @@ class PMIModel(CountModel):
 
     def _retrain(self):
         logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
-        ratios_model = ProbabilityRatioModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices,
+        ratios_model = ProbabilityRatioModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices,
                                              self._freq_dist)
         ratios_model.train()
 
@@ -498,7 +499,7 @@ class PPMIModel(CountModel):
 
     def _retrain(self):
         logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
-        pmi_model = PMIModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices, self._freq_dist)
+        pmi_model = PMIModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices, self._freq_dist)
         pmi_model.train()
 
         # Elementwise max
