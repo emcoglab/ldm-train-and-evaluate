@@ -28,14 +28,11 @@ logger = logging.getLogger()
 
 def main():
     for meta in Preferences.source_corpus_metas:
-
         token_indices = TokenIndexDictionary.load(meta.index_path)
-
         for radius in range(1, max(Preferences.window_radii) + 1):
             for chirality in Chirality:
                 model = UnsummedNgramCountModel(meta, "/Users/caiwingfield/vectors/", radius, token_indices, chirality)
-                model.train()
-                model.save()
+                model.train(load_if_previously_saved=False)
 
 
 if __name__ == "__main__":

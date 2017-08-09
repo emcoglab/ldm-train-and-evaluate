@@ -55,11 +55,11 @@ class CountModel(VectorSpaceModel):
     def _retrain(self):
         raise NotImplementedError()
 
-    def save(self):
+    def _save(self):
         logger.info(f"Saving cooccurrence matrix")
         sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
 
-    def load(self):
+    def _load(self):
         logger.info(f"Loading {self.corpus_meta.name} corpus, radius {self.window_radius}")
         self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
 
@@ -197,7 +197,7 @@ class NgramCountModel(CountModel):
                 unsummed_model = UnsummedNgramCountModel(self.corpus_meta, self.save_dir, self.window_radius,
                                                          self.token_indices,
                                                          chirality)
-                unsummed_model.load()
+                unsummed_model._load()
 
                 # And add it to the current matrix
                 self._model += unsummed_model.matrix
@@ -224,7 +224,7 @@ class LogNgramModel(CountModel):
     def _retrain(self):
         # Load the ngram model
         ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
-        ngram_model.load()
+        ngram_model._load()
 
         # Apply log to entries in the ngram matrix
         self._model = ngram_model.matrix
@@ -257,7 +257,7 @@ class NgramProbabilityModel(CountModel):
     def _retrain(self):
         # Load the ngram model
         ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
-        ngram_model.load()
+        ngram_model._load()
 
         # The probability is just the ngram count, divided by the width of the window and the size of the corpus
         self._model = ngram_model.matrix
@@ -293,7 +293,7 @@ class TokenProbabilityModel(ScalarModel):
     def _retrain(self):
         # Load the ngram model
         ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
-        ngram_model.load()
+        ngram_model._load()
 
         # The probability is just the ngram count, divided by the width of the window and the size of the corpus
         # TODO: am I summing over the correct axis here?
@@ -307,11 +307,11 @@ class TokenProbabilityModel(ScalarModel):
     def scalar_for_word(self, word: str):
         return self._model[self.token_indices.token2id[word]]
 
-    def save(self):
+    def _save(self):
         logger.info(f"Saving cooccurrence matrix")
         sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
 
-    def load(self):
+    def _load(self):
         logger.info(f"Loading {self.corpus_meta.name} corpus, radius {self.window_radius}")
         self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
 
@@ -336,14 +336,14 @@ class ConditionalProbabilityModel(CountModel):
 
     def _retrain(self):
         ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
-        ngram_model.load()
+        ngram_model._load()
 
         self._model = ngram_model.matrix
         del ngram_model
 
         token_probability_model = TokenProbabilityModel(self.corpus_meta, self.save_dir, self.window_radius,
                                                         self.token_indices)
-        token_probability_model.load()
+        token_probability_model._load()
         # TODO: this is probably not how you do this
         self._model /= token_probability_model.vector
 
@@ -373,18 +373,18 @@ class ContextProbabilityModel(ScalarModel):
     def scalar_for_word(self, word: str):
         return self._model[self.token_indices.token2id[word]]
 
-    def save(self):
+    def _save(self):
         logger.info(f"Saving cooccurrence matrix")
         sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
 
-    def load(self):
+    def _load(self):
         logger.info(f"Loading {self.corpus_meta.name} corpus, radius {self.window_radius}")
         self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
 
     def _retrain(self):
         # Load the ngram model
         ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
-        ngram_model.load()
+        ngram_model._load()
 
         # The probability is just the ngram count, divided by the width of the window and the size of the corpus
         # TODO: am I summing over the correct axis here?
@@ -418,14 +418,14 @@ class ProbabilityRatioModel(CountModel):
 
     def _retrain(self):
         ngram_model = NgramCountModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
-        ngram_model.load()
+        ngram_model._load()
 
         self._model = ngram_model.matrix
         del ngram_model
 
         token_probability_model = ContextProbabilityModel(self.corpus_meta, self.save_dir, self.window_radius,
                                                           self.token_indices)
-        token_probability_model.load()
+        token_probability_model._load()
         # TODO: this is probably not how you do this
         self._model /= token_probability_model.vector
 
@@ -450,7 +450,7 @@ class PMIModel(CountModel):
 
     def _retrain(self):
         ratios_model = ProbabilityRatioModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
-        ratios_model.load()
+        ratios_model._load()
 
         self._model = np.log2(ratios_model.matrix)
 
@@ -475,7 +475,7 @@ class PPMIModel(CountModel):
 
     def _retrain(self):
         pmi_model = PMIModel(self.corpus_meta, self.save_dir, self.window_radius, self.token_indices)
-        pmi_model.load()
+        pmi_model._load()
 
         # Elementwise max
         self._model = np.maximum(

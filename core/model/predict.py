@@ -44,25 +44,26 @@ class PredictModel(VectorSpaceModel):
 
         # Recommended value from Mandera et al. (2017).
         # Baroni et al. (2014) recommend either 5 or 10, but 10 tended to perform slightly better overall.
-        self._negative_sampling = 10,
+        self._negative_sampling = 10
         # Recommended value from Mandera et al. (2017) and Baroni et al. (2014).
-        self._sub_sample = 1e-5,
+        self._sub_sample = 1e-5
 
         # Parallel workers
         self._workers = 4
 
         self._corpus = BatchedCorpus(corpus_meta, batch_size=1_000)
 
-        self._weights_filename = f"{corpus_meta.name}_r={self.window_radius}_s={embedding_size}_{model_type.slug}"
+        # Overwrite this to include embedding size
+        self._model_filename = f"{corpus_meta.name}_r={self.window_radius}_s={embedding_size}_{model_type.slug}"
 
         self._model: gensim.models.Word2Vec = None
 
-    def save(self):
-        self._model.save(os.path.join(self.save_dir, self._weights_filename))
+    def _save(self):
+        self._model.save(os.path.join(self.save_dir, self._model_filename))
 
-    def load(self):
-        logger.info(f"Loading pre-trained {self.model_type.name} model")
-        self._model = gensim.models.Word2Vec.load(os.path.join(self.save_dir, self._weights_filename))
+    def _load(self):
+        logger.info(f"Loading pre-trained {self.model_type.name} model from {self._model_filename}")
+        self._model = gensim.models.Word2Vec.load(os.path.join(self.save_dir, self._model_filename))
 
     @abstractmethod
     def _retrain(self):
@@ -146,7 +147,10 @@ class SkipGramModel(PredictModel):
 
     def _retrain(self):
 
-        logger.info(f"Training {self.model_type.name} model")
+        logger.info(f"Training {self.model_type.name} model "
+                    f"on {self.corpus_meta.name} corpus, "
+                    f"r={self.window_radius}, "
+                    f"s={self.embedding_size}")
 
         self._model = gensim.models.Word2Vec(
             # This is called "sentences", but they all get concatenated, so it doesn't matter.

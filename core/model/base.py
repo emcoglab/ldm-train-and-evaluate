@@ -31,6 +31,7 @@ class LanguageModel(metaclass=ABCMeta):
     """
     A model of the language.
     """
+
     class MetaType(Enum):
         count = auto()
         predict = auto()
@@ -179,15 +180,17 @@ class LanguageModel(metaclass=ABCMeta):
         self.save_dir = os.path.join(save_dir, model_type.slug)
 
     @abstractmethod
-    def train(self, force_retrain: bool = False):
+    def train(self, force_retrain: bool = False, load_if_previously_saved: bool = True):
         """
         Trains the model from its corpus, and saves the resultant state to drive.
         Will load existing model instead if possible.
+        :param force_retrain: Retrain the model, even if there is a pre-existing saved state.
+        :param load_if_previously_saved: Load a saved state if it's there to be loaded
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def load(self):
+    def _load(self):
         """
         Loads a model.
         :return:
@@ -195,7 +198,7 @@ class LanguageModel(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def save(self):
+    def _save(self):
         """
         Saves a model in its current state.
         """
@@ -206,8 +209,9 @@ class ScalarModel(LanguageModel):
     """
     A language model where each word is associated with a scalar value.
     """
+
     def __init__(self,
-                 model_type: VectorSpaceModel.ModelType,
+                 model_type: LanguageModel.ModelType,
                  corpus_meta: CorpusMetadata,
                  save_dir: str,
                  window_radius: int,
@@ -225,22 +229,27 @@ class ScalarModel(LanguageModel):
     def vector(self):
         return self._model
 
-    def train(self, force_retrain: bool = False):
-        if force_retrain or not os.path.isfile(self._model_filename):
+    def train(self, force_retrain: bool = False, load_if_previously_saved: bool = True):
+        previously_saved = os.path.isfile(os.path.join(self.save_dir, self._model_filename))
+        if force_retrain or not previously_saved:
             self._retrain()
+            self._save()
+        elif load_if_previously_saved:
+            self._load()
         else:
-            self.load()
+            logger.info(f"Skipping {self.model_type.name} model")
+            pass
 
     @abstractmethod
     def _retrain(self):
         raise NotImplementedError()
 
     @abstractmethod
-    def save(self):
+    def _save(self):
         raise NotImplementedError()
 
     @abstractmethod
-    def load(self):
+    def _load(self):
         raise NotImplementedError()
 
     @abstractmethod
@@ -257,6 +266,7 @@ class VectorSpaceModel(LanguageModel):
     """
     A language model where each word is associated with a point in a vector space.
     """
+
     def __init__(self,
                  model_type: LanguageModel.ModelType,
                  corpus_meta: CorpusMetadata,
@@ -265,7 +275,7 @@ class VectorSpaceModel(LanguageModel):
         super().__init__(model_type, corpus_meta, save_dir)
         self.window_radius = window_radius
 
-        self._model_filename = f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.name}"
+        self._model_filename = f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.slug}"
 
         # When implementing this class, this must be set by train()
         self._model = None
@@ -295,22 +305,28 @@ class VectorSpaceModel(LanguageModel):
         """
         return self.nearest_neighbours(word, distance_type, 1)[0]
 
-    def train(self, force_retrain: bool = False):
-        if force_retrain or not os.path.isfile(self._model_filename):
+    def train(self, force_retrain: bool = False, load_if_previously_saved: bool = True):
+        previously_saved = os.path.isfile(os.path.join(self.save_dir, self._model_filename))
+        if force_retrain or not previously_saved:
             self._retrain()
+            self._save()
+        elif load_if_previously_saved:
+            self._load()
         else:
-            self.load()
+            logger.info(f"Skipping {self.model_type.name} model")
+            logger.info(f"File exists: {self._model_filename}")
+            pass
 
     @abstractmethod
     def _retrain(self):
         raise NotImplementedError()
 
     @abstractmethod
-    def load(self):
+    def _load(self):
         raise NotImplementedError()
 
     @abstractmethod
-    def save(self):
+    def _save(self):
         raise NotImplementedError()
 
     def distance_between(self, word_1, word_2, distance_type: DistanceType):

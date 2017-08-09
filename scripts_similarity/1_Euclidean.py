@@ -40,7 +40,7 @@ def main():
     # TODO: Should work for vectors from all model types
     model = NgramCountModel(corpus_metadata, "/Users/caiwingfield/vectors", window_radius, TokenIndexDictionary.load(corpus_metadata.index_path))
 
-    model.load()
+    model.train(load_if_previously_saved=True)
 
     w = "frog"
     n = 10
