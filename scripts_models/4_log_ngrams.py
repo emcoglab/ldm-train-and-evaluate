@@ -31,7 +31,8 @@ def main():
         token_indices = TokenIndexDictionary.load(meta.index_path)
         for radius in Preferences.window_radii:
             model = LogNgramModel(meta, Preferences.model_dir, radius, token_indices)
-            model.train(load_if_previously_saved=False)
+            if not model.could_load:
+                model.train()
 
 
 if __name__ == "__main__":

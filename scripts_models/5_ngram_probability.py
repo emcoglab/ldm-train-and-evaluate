@@ -33,7 +33,8 @@ def main():
         freq_dist = FreqDist.load(meta.freq_dist_path)
         for radius in Preferences.window_radii:
             model = NgramProbabilityModel(meta, Preferences.model_dir, radius, token_indices, freq_dist)
-            model.train(load_if_previously_saved=False)
+            if not model.could_load:
+                model.train()
 
 
 if __name__ == "__main__":

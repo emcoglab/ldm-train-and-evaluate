@@ -21,7 +21,6 @@ from abc import ABCMeta, abstractmethod
 from enum import Enum, auto
 
 from ..corpus.corpus import CorpusMetadata
-from ..utils.indexing import TokenIndexDictionary
 from ..utils.maths import DistanceType, distance
 
 logger = logging.getLogger(__name__)
@@ -189,40 +188,37 @@ class LanguageModel(metaclass=ABCMeta):
         return os.path.join(self._root_dir, self.model_type.slug)
 
     @property
-    def _previously_saved(self) -> bool:
+    def could_load(self) -> bool:
         """
         Whether or not a previously saved model exists on the drive.
         """
         return os.path.isfile(os.path.join(self.save_dir, self._model_filename))
 
-    def train(self, force_retrain: bool = False, load_if_previously_saved: bool = True):
+    def train(self, force_retrain: bool = False):
         """
         Trains the model from its corpus, and saves the resultant state to drive.
         Will load existing model instead if possible.
         :param force_retrain: Retrain the model, even if there is a pre-existing saved state.
-        :param load_if_previously_saved: Load a saved state if it's there to be loaded
         """
-        if force_retrain or not self._previously_saved:
+        if self.could_load and not force_retrain:
+            self._load()
+        else:
             logger.info(f"Training {self.model_type.name} model.")
             self._retrain()
             logger.info(f"Saving {self.model_type.name} model to {self._model_filename}.")
             self._save()
-        elif load_if_previously_saved:
-            logger.info(f"Loading {self.model_type.name} model from {self._model_filename}.")
-            self._load()
-        else:
-            logger.info(f"Skipping {self.model_type.name} model: File exists {self._model_filename}.")
-            pass
 
     @abstractmethod
     def _retrain(self):
+        """
+        Retrains a model from scratch.
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def _load(self):
         """
         Loads a model.
-        :return:
         """
         raise NotImplementedError()
 
@@ -230,52 +226,6 @@ class LanguageModel(metaclass=ABCMeta):
     def _save(self):
         """
         Saves a model in its current state.
-        """
-        raise NotImplementedError()
-
-
-class ScalarModel(LanguageModel):
-    """
-    A language model where each word is associated with a scalar value.
-    """
-
-    def __init__(self,
-                 model_type: LanguageModel.ModelType,
-                 corpus_meta: CorpusMetadata,
-                 save_dir: str,
-                 window_radius: int,
-                 token_indices: TokenIndexDictionary):
-        super().__init__(model_type, corpus_meta, save_dir)
-        self.token_indices = token_indices
-        self.window_radius = window_radius
-
-        self._model_filename = f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.name}"
-
-        # When implementing this class, this must be set by retrain()
-        self._model = None
-
-    @property
-    def vector(self):
-        return self._model
-
-    @abstractmethod
-    def _retrain(self):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def _save(self):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def _load(self):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def scalar_for_word(self, word: str):
-        """
-        Returns the scalar value for a word.
-        :param word:
-        :return:
         """
         raise NotImplementedError()
 

@@ -25,7 +25,7 @@ import scipy.sparse as sps
 
 from ..corpus.corpus import CorpusMetadata, WindowedCorpus
 from ..corpus.distribution import FreqDist
-from ..model.base import VectorSpaceModel, ScalarModel, LanguageModel
+from ..model.base import VectorSpaceModel, LanguageModel
 from ..utils.constants import Chirality
 from ..utils.indexing import TokenIndexDictionary
 from ..utils.maths import DistanceType, distance
@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 class CountModel(VectorSpaceModel):
     """
-    A model where vectors are computed by counting contexts/
+    A model where vectors are computed by counting contexts.
     """
 
     def __init__(self,
@@ -56,9 +56,11 @@ class CountModel(VectorSpaceModel):
         raise NotImplementedError()
 
     def _save(self):
+        logger.info(f"Saving {self.model_type.name} model to {self._model_filename}.")
         sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
 
     def _load(self):
+        logger.info(f"Loading {self.model_type.name} model from {self._model_filename}.")
         self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
 
     # Overwrite to include .mtx extension
@@ -105,6 +107,52 @@ class CountModel(VectorSpaceModel):
                 nearest_neighbours = nearest_neighbours[:-1]
 
         return [self.token_indices.id2token(i) for i, dist in nearest_neighbours]
+
+
+class ScalarCountModel(LanguageModel):
+    """
+    A language model where each word is associated with a scalar value.
+    """
+
+    def __init__(self,
+                 model_type: LanguageModel.ModelType,
+                 corpus_meta: CorpusMetadata,
+                 save_dir: str,
+                 window_radius: int,
+                 token_indices: TokenIndexDictionary):
+        super().__init__(model_type, corpus_meta, save_dir)
+        self.token_indices = token_indices
+        self.window_radius = window_radius
+
+        self._model_filename = f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.name}"
+
+        # When implementing this class, this must be set by retrain()
+        self._model: np.ndarray = None
+
+    @property
+    def vector(self):
+        return self._model
+
+    @abstractmethod
+    def _retrain(self):
+        raise NotImplementedError()
+
+    def _save(self):
+        logger.info(f"Saving {self.corpus_meta.name} to {self._model_filename}")
+        sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
+
+    def _load(self):
+        logger.info(f"Loading {self.corpus_meta.name} from {self._model_filename}")
+        self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
+
+    @abstractmethod
+    def scalar_for_word(self, word: str):
+        """
+        Returns the scalar value for a word.
+        :param word:
+        :return:
+        """
+        raise NotImplementedError()
 
 
 class UnsummedNgramCountModel(CountModel):
@@ -276,7 +324,7 @@ class NgramProbabilityModel(CountModel):
         self._model /= self._freq_dist.N()
 
 
-class TokenProbabilityModel(ScalarModel):
+class TokenProbabilityModel(ScalarCountModel):
     """
     A model where ~vectors~ consist of the probability that any token is the target.
 
@@ -316,14 +364,6 @@ class TokenProbabilityModel(ScalarModel):
     def scalar_for_word(self, word: str):
         return self._model[self.token_indices.token2id[word]]
 
-    def _save(self):
-        logger.info(f"Saving cooccurrence matrix")
-        sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
-
-    def _load(self):
-        logger.info(f"Loading {self.corpus_meta.name} corpus, radius {self.window_radius}")
-        self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
-
 
 class ConditionalProbabilityModel(CountModel):
     """
@@ -361,7 +401,7 @@ class ConditionalProbabilityModel(CountModel):
         self._model /= token_probability_model.vector
 
 
-class ContextProbabilityModel(ScalarModel):
+class ContextProbabilityModel(ScalarCountModel):
     """
     A model where ~vectors~ consist of the probability that any token is the target.
 
@@ -385,14 +425,6 @@ class ContextProbabilityModel(ScalarModel):
 
     def scalar_for_word(self, word: str):
         return self._model[self.token_indices.token2id[word]]
-
-    def _save(self):
-        logger.info(f"Saving cooccurrence matrix")
-        sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
-
-    def _load(self):
-        logger.info(f"Loading {self.corpus_meta.name} corpus, radius {self.window_radius}")
-        self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
 
     def _retrain(self):
         logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")

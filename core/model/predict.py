@@ -59,9 +59,11 @@ class PredictModel(VectorSpaceModel):
         self._model: gensim.models.Word2Vec = None
 
     def _save(self):
+        logger.info(f"Saving {self.corpus_meta.name} to {self._model_filename}")
         self._model.save(os.path.join(self.save_dir, self._model_filename))
 
     def _load(self):
+        logger.info(f"Loading {self.corpus_meta.name} from {self._model_filename}")
         self._model = gensim.models.Word2Vec.load(os.path.join(self.save_dir, self._model_filename))
 
     @abstractmethod

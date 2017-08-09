@@ -32,7 +32,8 @@ def main():
         for radius in range(1, max(Preferences.window_radii) + 1):
             for chirality in Chirality:
                 model = UnsummedNgramCountModel(meta, Preferences.model_dir, radius, token_indices, chirality)
-                model.train(load_if_previously_saved=False)
+                if not model.could_load:
+                    model.train()
 
 
 if __name__ == "__main__":

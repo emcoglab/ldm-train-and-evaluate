@@ -34,9 +34,12 @@ def main():
     corpus_metadata = Preferences.source_corpus_metas[2]  # BNC
 
     # TODO: Should work for vectors from all model types
-    model = NgramCountModel(corpus_metadata, "/Users/caiwingfield/vectors", window_radius, TokenIndexDictionary.load(corpus_metadata.index_path))
+    model = NgramCountModel(corpus_metadata,
+                            Preferences.model_dir,
+                            window_radius,
+                            TokenIndexDictionary.load(corpus_metadata.index_path))
 
-    model.train(load_if_previously_saved=True)
+    model.train()
 
     w = "frog"
     n = 10
