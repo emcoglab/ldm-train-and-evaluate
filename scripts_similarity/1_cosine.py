@@ -42,11 +42,11 @@ def main():
     model.train()
 
     w = "frog"
-    n = 10
+    n = 4
     d = DistanceType.cosine
-    logger.info(f"Finding nearest {n} neighbours to {w}...")
+    logger.info(f'Finding nearest {n} neighbours to "{w}"...')
     neighbours = model.nearest_neighbours(w, d, n)
-    logger.info(f"Nearest {n} neighbours to {w}: {neighbours}")
+    logger.info(f'Nearest {n} neighbours to "{w}": {neighbours}')
 
 
 if __name__ == "__main__":

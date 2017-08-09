@@ -81,6 +81,8 @@ class CountModel(VectorSpaceModel):
         :param word_id:
         :return:
         """
+        # The first coordinate indexes target words, the second indexes context words.
+        # So this should return a vector for the target word whose entries are indexed by context words.
         return self._model[word_id].todense()
 
     def vector_for_word(self, word: str):
@@ -115,7 +117,8 @@ class CountModel(VectorSpaceModel):
                 nearest_neighbours = nearest_neighbours[:-1]
 
             if candidate_id % 10_000 == 0 and candidate_id > 0:
-                logger.info(f"\f{candidate_id:,} out of {vocab_size:,} candidates considered")
+                logger.info(f"\t{candidate_id:,} out of {vocab_size:,} candidates considered. "
+                            f"{self.token_indices.id2token(nearest_neighbours[0][0])} currently the fave")
 
         return [self.token_indices.id2token(i) for i, dist in nearest_neighbours]
 
