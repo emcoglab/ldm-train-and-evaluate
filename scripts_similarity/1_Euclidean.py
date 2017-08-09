@@ -18,7 +18,7 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.model.count import NgramCountModel
+from ..core.model.count import LogNgramModel
 from ..core.utils.indexing import TokenIndexDictionary
 from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
@@ -31,21 +31,22 @@ def main():
     window_radius = 1
 
     # TODO: Should work for all corpora
-    corpus_metadata = Preferences.source_corpus_metas[2]  # BNC
+    corpus_metadata = Preferences.source_corpus_metas[0]  # BBC
 
     # TODO: Should work for vectors from all model types
-    model = NgramCountModel(corpus_metadata,
-                            Preferences.model_dir,
-                            window_radius,
-                            TokenIndexDictionary.load(corpus_metadata.index_path))
+    model = LogNgramModel(corpus_metadata,
+                          Preferences.model_dir,
+                          window_radius,
+                          TokenIndexDictionary.load(corpus_metadata.index_path))
 
     model.train()
 
     w = "frog"
     n = 10
     d = DistanceType.Euclidean
+    logger.info(f"Finding nearest {n} neighbours to {w}...")
     neighbours = model.nearest_neighbours(w, d, n)
-    logger.info(f"{n} nearest neighbours to {w}: {neighbours}")
+    logger.info(f"Nearest {n} neighbours to {w}: {neighbours}")
 
 
 if __name__ == "__main__":

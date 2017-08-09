@@ -17,7 +17,9 @@ caiwingfield.net
 
 import logging
 import os
+
 from abc import abstractmethod, ABCMeta
+from operator import itemgetter
 
 import numpy as np
 import scipy.io as sio
@@ -66,7 +68,7 @@ class CountModel(VectorSpaceModel):
 
     def _load(self):
         logger.info(f"Loading {self.model_type.name} model from {self._model_filename}.")
-        self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
+        self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename)).tolil()
 
     # Overwrite to include .mtx extension
     @property
@@ -79,7 +81,7 @@ class CountModel(VectorSpaceModel):
         :param word_id:
         :return:
         """
-        return self._model[word_id]
+        return self._model[word_id].todense()
 
     def vector_for_word(self, word: str):
         word_id = self.token_indices.token2id(word)
@@ -89,7 +91,7 @@ class CountModel(VectorSpaceModel):
 
         vocab_size = len(self.token_indices)
 
-        target_id = self.token_indices.token2id(word)
+        target_id = self.token_indices.token2id[word]
         target_vector = self.vector_for_id(target_id)
 
         nearest_neighbours = []
@@ -105,11 +107,15 @@ class CountModel(VectorSpaceModel):
 
             # Add it to the shortlist
             nearest_neighbours.append((candidate_id, distance_to_target))
-            nearest_neighbours.sort(key=lambda c_id, c_dist: c_dist)
+            # Sort by distance, which is the second item in the tuple.
+            nearest_neighbours.sort(key=itemgetter(1))
 
             # If the list is overfull, remove the lowest one
             if len(nearest_neighbours) > n:
                 nearest_neighbours = nearest_neighbours[:-1]
+
+            if candidate_id % 10_000 == 0 and candidate_id > 0:
+                logger.info(f"\f{candidate_id:,} out of {vocab_size:,} candidates considered")
 
         return [self.token_indices.id2token(i) for i, dist in nearest_neighbours]
 
@@ -150,7 +156,7 @@ class ScalarCountModel(LanguageModel, metaclass=ABCMeta):
 
     def _load(self):
         logger.info(f"Loading {self.corpus_meta.name} from {self._model_filename}")
-        self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
+        self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename)).tolil()
 
     @abstractmethod
     def scalar_for_word(self, word: str):
@@ -361,6 +367,7 @@ class TokenProbabilityModel(ScalarCountModel):
         ngram_model.train()
 
         # The probability is just the ngram count, divided by the width of the window and the size of the corpus
+        raise NotImplementedError()
         # TODO: am I summing over the correct axis here?
         self._model = np.sum(ngram_model.matrix, 1)
         del ngram_model
@@ -405,6 +412,7 @@ class ConditionalProbabilityModel(CountModel):
                                                         self.token_indices, self._freq_dist)
         token_probability_model.train()
 
+        raise NotImplementedError()
         # TODO: this is probably not how you do this
         self._model /= token_probability_model.vector
 
@@ -441,6 +449,7 @@ class ContextProbabilityModel(ScalarCountModel):
         ngram_model.train()
 
         # The probability is just the ngram count, divided by the width of the window and the size of the corpus
+        raise NotImplementedError()
         # TODO: am I summing over the correct axis here?
         self._model = np.sum(ngram_model.matrix, 1)
         del ngram_model
@@ -483,6 +492,8 @@ class ProbabilityRatioModel(CountModel):
         token_probability_model = ContextProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
                                                           self.token_indices, self._freq_dist)
         token_probability_model.train()
+
+        raise NotImplementedError()
         # TODO: this is probably not how you do this
         self._model /= token_probability_model.vector
 
