@@ -127,7 +127,6 @@ def save_frequency_distribution_info(freq_dist, filename):
             info_file.write(f"{i}\t{token}\t{count:,}\n")
 
 
-# TODO: Make this into numbered script, referencing preferences
 def main(corpus_path, output_dir, tokenised):
     corpus_name = os.path.basename(corpus_path)
 

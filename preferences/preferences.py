@@ -38,15 +38,15 @@ class Preferences(object):
         CorpusMetadata(
             name="BBC",
             path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus",
-            freq_dist_path="/Users/caiwingfield/corpora/BBC/4.1 info/Frequency distribution BBC.corpus.pickle",
+            freq_dist_path="/Users/caiwingfield/corpora/BBC/4.1 info/frequency_distribution_BBC",
             index_path="/Users/caiwingfield/vectors/indexes/BBC.index"),
         CorpusMetadata(
             name="BNC",
             path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus",
-            freq_dist_path="/Users/caiwingfield/corpora/BNC/2.1 info/Frequency distribution BNC.corpus.pickle",
+            freq_dist_path="/Users/caiwingfield/corpora/BNC/2.1 info/frequency_distribution_BNC",
             index_path="/Users/caiwingfield/vectors/indexes/BNC.index"),
         CorpusMetadata(
             name="UKWAC",
             path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
-            freq_dist_path="/Users/caiwingfield/corpora/UKWAC/3.1 info/Frequency distribution UKWAC.corpus.pickle",
+            freq_dist_path="/Users/caiwingfield/corpora/UKWAC/3.1 info/frequency_distribution_UKWAC",
             index_path="/Users/caiwingfield/vectors/indexes/UKWAC.index")]
