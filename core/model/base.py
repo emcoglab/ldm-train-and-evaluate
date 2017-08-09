@@ -181,11 +181,20 @@ class LanguageModel(metaclass=ABCMeta):
         # This allows us to instantiate and load other models from the correct root.
         self._root_dir = save_dir
 
+        # Must be set in __init__ of subclasses
+        self._model_filename = None
+
     @property
     def save_dir(self) -> str:
         return os.path.join(self._root_dir, self.model_type.slug)
 
-    @abstractmethod
+    @property
+    def _previously_saved(self) -> bool:
+        """
+        Whether or not a previously saved model exists on the drive.
+        """
+        return os.path.isfile(os.path.join(self.save_dir, self._model_filename))
+
     def train(self, force_retrain: bool = False, load_if_previously_saved: bool = True):
         """
         Trains the model from its corpus, and saves the resultant state to drive.
@@ -193,6 +202,20 @@ class LanguageModel(metaclass=ABCMeta):
         :param force_retrain: Retrain the model, even if there is a pre-existing saved state.
         :param load_if_previously_saved: Load a saved state if it's there to be loaded
         """
+        if force_retrain or not self._previously_saved:
+            logger.info(f"Training {self.model_type.name} model.")
+            self._retrain()
+            logger.info(f"Saving {self.model_type.name} model to {self._model_filename}.")
+            self._save()
+        elif load_if_previously_saved:
+            logger.info(f"Loading {self.model_type.name} model from {self._model_filename}.")
+            self._load()
+        else:
+            logger.info(f"Skipping {self.model_type.name} model: File exists {self._model_filename}.")
+            pass
+
+    @abstractmethod
+    def _retrain(self):
         raise NotImplementedError()
 
     @abstractmethod
@@ -234,17 +257,6 @@ class ScalarModel(LanguageModel):
     @property
     def vector(self):
         return self._model
-
-    def train(self, force_retrain: bool = False, load_if_previously_saved: bool = True):
-        previously_saved = os.path.isfile(os.path.join(self.save_dir, self._model_filename))
-        if force_retrain or not previously_saved:
-            self._retrain()
-            self._save()
-        elif load_if_previously_saved:
-            self._load()
-        else:
-            logger.info(f"Skipping {self.model_type.name} model")
-            pass
 
     @abstractmethod
     def _retrain(self):
@@ -310,26 +322,6 @@ class VectorSpaceModel(LanguageModel):
         :return:
         """
         return self.nearest_neighbours(word, distance_type, 1)[0]
-
-    @property
-    def _previously_saved(self) -> bool:
-        """
-        Whether or not a previously saved model exists on the drive.
-        """
-        return os.path.isfile(os.path.join(self.save_dir, self._model_filename))
-
-    def train(self, force_retrain: bool = False, load_if_previously_saved: bool = True):
-        if force_retrain or not self._previously_saved:
-            logger.info(f"Training {self.model_type.name} model.")
-            self._retrain()
-            logger.info(f"Saving {self.model_type.name} model to {self._model_filename}.")
-            self._save()
-        elif load_if_previously_saved:
-            logger.info(f"Loading previously saved {self.model_type.name} model from {self._model_filename}.")
-            self._load()
-        else:
-            logger.info(f"Skipping {self.model_type.name} model: File exists {self._model_filename}.")
-            pass
 
     @abstractmethod
     def _retrain(self):
