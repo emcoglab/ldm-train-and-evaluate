@@ -61,6 +61,11 @@ class CountModel(VectorSpaceModel):
     def _load(self):
         self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
 
+    # Overwrite to include .mtx extension
+    @property
+    def _previously_saved(self) -> bool:
+        return os.path.isfile(os.path.join(self.save_dir, self._model_filename + ".mtx"))
+
     def vector_for_id(self, word_id: int):
         """
         Returns the vector representation of a word, given by its index in the corpus.
@@ -118,7 +123,7 @@ class UnsummedNgramCountModel(CountModel):
         self._chirality = chirality
 
         # Overwrite, to include chirality
-        self._matrix_filename = f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type}_{self._chirality}"
+        self._model_filename = f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.slug}_{self._chirality}"
 
     def _retrain(self):
 

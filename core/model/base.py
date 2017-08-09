@@ -305,9 +305,15 @@ class VectorSpaceModel(LanguageModel):
         """
         return self.nearest_neighbours(word, distance_type, 1)[0]
 
+    @property
+    def _previously_saved(self) -> bool:
+        """
+        Whether or not a previously saved model exists on the drive.
+        """
+        return os.path.isfile(os.path.join(self.save_dir, self._model_filename))
+
     def train(self, force_retrain: bool = False, load_if_previously_saved: bool = True):
-        previously_saved = os.path.isfile(os.path.join(self.save_dir, self._model_filename))
-        if force_retrain or not previously_saved:
+        if force_retrain or not self._previously_saved:
             logger.info(f"Training {self.model_type.name} model.")
             self._retrain()
             logger.info(f"Saving {self.model_type.name} model to {self._model_filename}.")
