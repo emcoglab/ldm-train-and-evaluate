@@ -200,8 +200,7 @@ class NgramCountModel(CountModel):
             # Accumulate both left and right occurrences
             for chirality in Chirality:
                 # Get each unsummed model
-                unsummed_model = UnsummedNgramCountModel(self.corpus_meta, self._root_dir, self.window_radius,
-                                                         self.token_indices,
+                unsummed_model = UnsummedNgramCountModel(self.corpus_meta, self._root_dir, radius, self.token_indices,
                                                          chirality)
                 unsummed_model.train()
 
