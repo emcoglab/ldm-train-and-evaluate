@@ -62,12 +62,11 @@ def main():
         # The should be loaded in the order that they were produced
         source_filenames = sorted([os.path.basename(path) for path in source_paths])
 
+        logger.info(f"Loading {corpus_meta['source'].name} corpus from {corpus_meta['source'].path}")
+
         for source_filename in source_filenames:
 
-            logger.info(f"Loading {corpus_meta['source'].name} corpus from {source_filename}")
             corpus = nltk.corpus.PlaintextCorpusReader(corpus_meta['source'].path, source_filename).raw()
-
-            logger.info("Tokenising corpus")
             corpus = modified_word_tokenize(corpus)
 
             # Filter punctuation
