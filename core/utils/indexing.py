@@ -17,7 +17,7 @@ caiwingfield.net
 
 import json
 
-import nltk
+from ..corpus.distribution import FreqDist
 
 
 class TokenIndexDictionary(object):
@@ -51,9 +51,9 @@ class TokenIndexDictionary(object):
                       separators=(',', ':'))
 
     @classmethod
-    def from_freqdist(cls, freq_dist: nltk.probability.FreqDist) -> 'TokenIndexDictionary':
+    def from_freqdist(cls, freq_dist: FreqDist) -> 'TokenIndexDictionary':
         """
-        Constructs an TokenIndexDictionary from a nltk.probability.FreqDist
+        Constructs an TokenIndexDictionary from a FreqDist
         :param freq_dist:
         :return:
         """

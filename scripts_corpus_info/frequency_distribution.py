@@ -92,7 +92,7 @@ def save_frequency_distribution_graph(freq_dist, filename, corpus_name="corpus",
 
 def save_frequency_distribution_info(freq_dist, filename):
     """
-    Saves information about a nltk.probability.FreqDist
+    Saves information about a FreqDist
     :param freq_dist:
     :param filename:
     :return:
@@ -141,7 +141,7 @@ def main(corpus_path, output_dir, tokenised):
         logger.info(f"Filtering corpus")
         corpus = filter_punctuation(corpus)
 
-        freq_dist = nltk.probability.FreqDist(corpus)
+        freq_dist = FreqDist(corpus)
 
     else:  # tokenised
         freq_dist = FreqDist.from_batched_corpus(
