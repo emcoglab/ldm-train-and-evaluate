@@ -15,6 +15,7 @@ caiwingfield.net
 ---------------------------
 """
 
+import os
 import logging
 import pickle
 
@@ -32,6 +33,12 @@ class FreqDist(nltk.probability.FreqDist):
     """
 
     _file_extension = ".freqdist"
+
+    @classmethod
+    def could_load(cls, filename: str) -> bool:
+        if not filename.endswith(FreqDist._file_extension):
+            filename += FreqDist._file_extension
+        return os.path.isfile(filename)
 
     def save(self, filename: str):
         if not filename.endswith(FreqDist._file_extension):

@@ -44,9 +44,9 @@ def main():
                 name="BNC",  path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus")),
         dict(
             source=CorpusMetadata(
-                name="UKWAC", path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/2 Partitioned"),
+                name="UKWAC", path="/Users/caiwingfield/corpora/UKWAC/2 Partitioned"),
             target=CorpusMetadata(
-                name="UKWAC", path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/3 Tokenised/UKWAC.corpus"))]
+                name="UKWAC", path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus"))]
 
     token_delimiter = "\n"
 
@@ -54,9 +54,11 @@ def main():
 
         token_count = 0
 
+        # Skip corpora which are already done.
         if os.path.isfile(corpus_meta['target'].path):
-            raise FileExistsError(f"The file {os.path.basename(corpus_meta['target'].path)}"
-                                  f" already exists in this location.")
+            logger.info(f"The file {os.path.basename(corpus_meta['target'].path)} already exists in this location.")
+            logger.info(f"Skipping!")
+            continue
 
         source_paths = glob.glob(os.path.join(corpus_meta['source'].path, "*.*"))
         # The should be loaded in the order that they were produced

@@ -29,11 +29,15 @@ def main():
 
     for corpus_meta in Preferences.source_corpus_metas:
 
-        logger.info(f"Loading corpus documents from {corpus_meta.path}")
-        freq_dist = FreqDist.from_batched_corpus(BatchedCorpus(corpus_meta, batch_size=1_000_000))
+        if FreqDist.could_load(corpus_meta.freq_dist_path):
+            logger.info(f"Skipping ")
+        else:
 
-        logger.info(f"Saving frequency distribution information to {corpus_meta.freq_dist_path}")
-        freq_dist.save(corpus_meta.freq_dist_path)
+            logger.info(f"Loading corpus documents from {corpus_meta.path}")
+            freq_dist = FreqDist.from_batched_corpus(BatchedCorpus(corpus_meta, batch_size=1_000_000))
+
+            logger.info(f"Saving frequency distribution information to {corpus_meta.freq_dist_path}")
+            freq_dist.save(corpus_meta.freq_dist_path)
 
 
 if __name__ == "__main__":
