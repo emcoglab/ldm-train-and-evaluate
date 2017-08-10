@@ -31,12 +31,18 @@ class FreqDist(nltk.probability.FreqDist):
     Extension of nltk.probability.FreqDist with a few useful helper methods.
     """
 
-    def save(self, filename):
+    _file_extension = ".freqdist"
+
+    def save(self, filename: str):
+        if not filename.endswith(FreqDist._file_extension):
+            filename += FreqDist._file_extension
         with open(filename, mode="wb") as file:
             pickle.dump(self, file)
 
     @classmethod
-    def load(cls, filename) -> 'FreqDist':
+    def load(cls, filename: str) -> 'FreqDist':
+        if not filename.endswith(FreqDist._file_extension):
+            filename += FreqDist._file_extension
         with open(filename, mode="rb") as file:
             return pickle.load(file)
 
