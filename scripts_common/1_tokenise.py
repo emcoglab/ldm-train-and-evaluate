@@ -77,7 +77,10 @@ def main():
 
                 for token in corpus:
 
-                    tokenised_corpus_file.write(token + token_delimiter)
+                    tokenised_corpus_file.write(
+                        # Tokens are case-insensitive
+                        token.lower()
+                        + token_delimiter)
                     token_count += 1
 
                     if token_count % 100_000 == 0 and token_count > 0:
