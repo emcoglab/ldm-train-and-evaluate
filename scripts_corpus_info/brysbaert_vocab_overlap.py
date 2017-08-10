@@ -32,11 +32,11 @@ def main(corpus_path, output_dir, freq_dist_path=None):
         name="Brysbaert 1 word",
         path="/Users/caiwingfield/code/corpus_analysis/scripts_corpus_info/brysbaert1.wordlist")
 
-    token_delimiter = "\n"
+    wordlist_delimiter = "\n"
 
     logger.info(f"Loading wordlist from {wordlist_meta.path}")
     with open(wordlist_meta.path, mode="r", encoding="utf-8") as wordlist_file:
-        vocab_wordlist = set(wordlist_file.read().split(token_delimiter))
+        vocab_wordlist = set([token.lower() for token in wordlist_file.read().split(wordlist_delimiter)])
         logger.info(f"Wordlist has a vocab of size {len(vocab_wordlist):,}")
 
     logger.info(f"Loading corpus documents from {corpus_path}")
