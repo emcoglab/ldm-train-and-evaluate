@@ -16,11 +16,12 @@ caiwingfield.net
 """
 
 import re
+import typing
 
-import nltk
+from .distribution import FreqDist
 
 
-def filter_punctuation(unfiltered_corpus):
+def filter_punctuation(unfiltered_corpus: typing.List[str]) -> typing.List[str]:
     """
     Filters a corpus by ignoring certain punctuation.
 
@@ -34,7 +35,8 @@ def filter_punctuation(unfiltered_corpus):
             if not re.fullmatch('[' + ignorable_punctuation + ']+', token)]
 
 
-def filter_frequency(unfiltered_corpus, ignore_tokens_with_frequencies_at_most=0, freq_dist=None):
+def filter_frequency(unfiltered_corpus: typing.List[str], ignore_tokens_with_frequencies_at_most=0, freq_dist=None) \
+        -> typing.List[str]:
     """
     Filters a corpus by ignoring words which are too rare.
 
@@ -52,7 +54,7 @@ def filter_frequency(unfiltered_corpus, ignore_tokens_with_frequencies_at_most=0
         return unfiltered_corpus
     else:
         if freq_dist is None:
-            freq_dist = nltk.probability.FreqDist(unfiltered_corpus)
+            freq_dist = FreqDist(unfiltered_corpus)
         return [token
                 for token in unfiltered_corpus
                 if freq_dist[token] > ignore_tokens_with_frequencies_at_most]

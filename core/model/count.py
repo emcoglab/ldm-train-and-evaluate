@@ -109,16 +109,19 @@ class CountModel(VectorSpaceModel):
 
             # Add it to the shortlist
             nearest_neighbours.append((candidate_id, distance_to_target))
-            # Sort by distance, which is the second item in the tuple.
-            nearest_neighbours.sort(key=itemgetter(1))
 
             # If the list is overfull, remove the lowest one
             if len(nearest_neighbours) > n:
-                nearest_neighbours = nearest_neighbours[:-1]
+                nearest_neighbours.sort(
+                    # Sort by distance, which is the second item in the tuple.
+                    key=itemgetter(1),
+                    # Sort descending so the first element is the most similar
+                    reverse=True)
+                del nearest_neighbours[-1]
 
             if candidate_id % 10_000 == 0 and candidate_id > 0:
-                logger.info(f"\t{candidate_id:,} out of {vocab_size:,} candidates considered. "
-                            f"{self.token_indices.id2token(nearest_neighbours[0][0])} currently the fave")
+                logger.info(f'\t{candidate_id:,} out of {vocab_size:,} candidates considered. '
+                            f'"{self.token_indices.id2token[nearest_neighbours[0][0]]}" currently the fave')
 
         return [self.token_indices.id2token(i) for i, dist in nearest_neighbours]
 
