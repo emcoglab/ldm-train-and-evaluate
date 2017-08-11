@@ -162,7 +162,7 @@ class ScalarCountModel(LanguageModel, metaclass=ABCMeta):
 
     def _load(self):
         logger.info(f"Loading {self.corpus_meta.name} from {self._model_filename}")
-        self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename)).tolil()
+        self._model = sps.lil_matrix(sio.mmread(os.path.join(self.save_dir, self._model_filename)))
 
     @abstractmethod
     def scalar_for_word(self, word: str):
@@ -374,9 +374,8 @@ class TokenProbabilityModel(ScalarCountModel):
         ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
         ngram_model.train()
 
-        # The probability is just the ngram count, divided by the width of the window and the size of the corpus
-        raise NotImplementedError()
-        # TODO: am I summing over the correct axis here?
+        # The probability is just the token count, divided by the width of the window and the size of the corpus
+        # We're summing over contexts (second dim) to get a count of the targets
         self._model = np.sum(ngram_model.matrix, 1)
         del ngram_model
         # The width of the window is twice the radius
@@ -410,19 +409,31 @@ class ConditionalProbabilityModel(CountModel):
 
     def _retrain(self):
         logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
-        ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
-        ngram_model.train()
+        ngram_probability_model = NgramProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
+                                                        self.token_indices, self._freq_dist)
+        ngram_probability_model.train()
 
-        self._model = ngram_model.matrix
-        del ngram_model
+        self._model = ngram_probability_model.matrix
+        del ngram_probability_model
 
         token_probability_model = TokenProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
                                                         self.token_indices, self._freq_dist)
         token_probability_model.train()
 
-        raise NotImplementedError()
-        # TODO: this is probably not how you do this
-        self._model /= token_probability_model.vector
+        # Here we divide each n-gram probability value by the token probability value.
+        # This amounts to dividing each 0th-dim-slice of the matrix by a single value
+        #
+        #                                  p(c,t)         p(t)
+        #
+        #                               [ [-, -, -] ,     [ -,      <- entire mx row to be div'd by this vec entry
+        # mx indexed by t on 0th dim ->   [-, -, -] ,  /    -,  <- vec indexed by t on 0th dim
+        #                                 [-, -, -] ]       - ]
+        #                                     ^
+        #                                     |
+        #                                     mx indexed by c on 1st dim
+        #
+        # According to https://stackoverflow.com/a/19602209/2883198, this is how you do that:
+        self._model /= token_probability_model.vector[:, None]
 
 
 class ContextProbabilityModel(ScalarCountModel):
@@ -456,10 +467,9 @@ class ContextProbabilityModel(ScalarCountModel):
         ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
         ngram_model.train()
 
-        # The probability is just the ngram count, divided by the width of the window and the size of the corpus
-        raise NotImplementedError()
-        # TODO: am I summing over the correct axis here?
-        self._model = np.sum(ngram_model.matrix, 1)
+        # The probability is just the token count, divided by the width of the window and the size of the corpus
+        # We're summing over targets (first dim) to get the count of the contexts
+        self._model = np.sum(ngram_model.matrix, 0)
         del ngram_model
         # The width of the window is twice the radius
         # We don't do 2r+1 because we only count the context words, not the target word
@@ -467,7 +477,6 @@ class ContextProbabilityModel(ScalarCountModel):
         self._model /= self._freq_dist.N()
 
 
-# TODO: is there another, more intuitive "ratio" formula for this?
 class ProbabilityRatioModel(CountModel):
     """
     A model where vectors consist of the ratio of probabilities.
@@ -501,9 +510,20 @@ class ProbabilityRatioModel(CountModel):
                                                           self.token_indices, self._freq_dist)
         token_probability_model.train()
 
-        raise NotImplementedError()
-        # TODO: this is probably not how you do this
-        self._model /= token_probability_model.vector
+        # Here we divide each conditional n-gram probability value by the context probability value.
+        # This amounts to dividing each 0th-dim-slice of the matrix by a single value
+        #
+        #                                  p(c|t)         p(c)
+        #
+        #                               [ [-, -, -] ,     [ -,      <- entire mx row to be div'd by this vec entry
+        # mx indexed by t on 0th dim ->   [-, -, -] ,  /    -,  <- vec indexed by c on 0th dim
+        #                                 [-, -, -] ]       - ]
+        #                                     ^
+        #                                     |
+        #                                     mx indexed by c on 1st dim
+        #
+        # According to https://stackoverflow.com/a/19602209/2883198, this is how you do that:
+        self._model /= token_probability_model.vector[:, None]
 
 
 class PMIModel(CountModel):
