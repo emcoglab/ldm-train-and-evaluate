@@ -19,11 +19,12 @@ import logging
 import math
 import sys
 
-from ..core.model.count import LogNgramModel
+from ..core.model.count import PPMIModel
 from ..core.model.evaluation import EslTest
 from ..core.utils.indexing import TokenIndexDictionary
 from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
+from ..core.corpus.distribution import FreqDist
 
 logger = logging.getLogger(__name__)
 
@@ -36,16 +37,17 @@ def main():
     corpus_metadata = Preferences.source_corpus_metas[0]  # BBC
 
     # TODO: Should work for vectors from all model types
-    model = LogNgramModel(corpus_metadata,
-                          Preferences.model_dir,
-                          window_radius,
-                          TokenIndexDictionary.load(corpus_metadata.index_path))
+    model = PPMIModel(corpus_metadata,
+                      Preferences.model_dir,
+                      window_radius,
+                      TokenIndexDictionary.load(corpus_metadata.index_path),
+                      FreqDist.load(corpus_metadata.freq_dist_path))
 
     model.train()
 
     esl_test = EslTest()
 
-    distance_type = DistanceType.cosine
+    distance_type = DistanceType.correlation
     grades = []
     for esl_question in esl_test.question_list:
         prompt = esl_question.prompt
