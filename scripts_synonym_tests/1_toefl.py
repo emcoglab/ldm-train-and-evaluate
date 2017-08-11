@@ -56,7 +56,14 @@ def main():
         best_guess_i = -1
         best_guess_d = math.inf
         for guess_i, option in enumerate(options):
-            guess_d = model.distance_between(prompt, option, distance_type)
+            try:
+                guess_d = model.distance_between(prompt, option, distance_type)
+            except KeyError as er:
+                missing_word = er.args[0]
+                logger.warning(f"{missing_word} was not found in the corpus.")
+                # Make sure we don't pick this one
+                guess_d = math.inf
+
             if guess_d < best_guess_d:
                 best_guess_i, best_guess_d = guess_i, guess_d
 

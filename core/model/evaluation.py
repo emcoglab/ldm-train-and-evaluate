@@ -22,10 +22,7 @@ class SynonymQuestion(object):
 
 
 class SynonymTest(object, metaclass=ABCMeta):
-    def __init__(self, question_path: str, answer_path: str):
-        self._answer_path = answer_path
-        self._question_path = question_path
-
+    def __init__(self):
         # Backs self.question_list
         self._question_list: typing.List[SynonymQuestion] = None
 
@@ -52,23 +49,20 @@ class SynonymTest(object, metaclass=ABCMeta):
 
 
 class ToeflTest(SynonymTest):
-    def __init__(self):
-        # TODO: change these paths!
-        question_path = "/Users/cai/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/TOEFL/toefl.qst"
-        answer_path = "/Users/cai/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/TOEFL/toefl.ans"
-        super().__init__(question_path, answer_path)
-
     def _load(self) -> typing.List[SynonymQuestion]:
+        # TODO: change these paths!
+        question_path = "/Users/cai/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/TOEFL_BrEng/toefl.qst"
+        answer_path = "/Users/cai/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/TOEFL_BrEng/toefl.ans"
 
         prompt_re = re.compile(r"^"
                                r"(?P<question_number>\d+)"
                                r"\.\s+"
-                               r"(?P<prompt_word>[a-z]+)"
+                               r"(?P<prompt_word>[a-z\-]+)"
                                r"$")
         option_re = re.compile(r"^"
                                r"(?P<option_letter>[a-d])"
                                r"\.\s+"
-                               r"(?P<option_word>[a-z]+)"
+                               r"(?P<option_word>[a-z\-]+)"
                                r"$")
         answer_re = re.compile(r"^"
                                r"(?P<question_number>\d+)"
@@ -80,7 +74,7 @@ class ToeflTest(SynonymTest):
         # Get questions
         n_options = 4
         questions: typing.List[SynonymQuestion] = []
-        with open(self._question_path, mode="r", encoding="utf-8") as question_file:
+        with open(question_path, mode="r", encoding="utf-8") as question_file:
             # Read groups of lines from file
             while True:
                 prompt_line = question_file.readline().strip()
@@ -106,7 +100,7 @@ class ToeflTest(SynonymTest):
 
         # Get answers
         answers: typing.List[int] = []
-        with open(self._answer_path, mode="r", encoding="utf-8") as answer_file:
+        with open(answer_path, mode="r", encoding="utf-8") as answer_file:
             for answer_line in answer_file:
                 answer_line = answer_line.strip()
                 # Skip empty lines
