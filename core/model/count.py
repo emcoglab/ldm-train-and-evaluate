@@ -86,7 +86,7 @@ class CountModel(VectorSpaceModel):
         return self._model[word_id].todense()
 
     def vector_for_word(self, word: str):
-        word_id = self.token_indices.token2id(word)
+        word_id = self.token_indices.token2id[word]
         return self.vector_for_id(word_id)
 
     def nearest_neighbours(self, word: str, distance_type: DistanceType, n: int):
@@ -301,9 +301,11 @@ class LogNgramModel(CountModel):
         ngram_model.train()
 
         # Apply log to entries in the ngram matrix
-        self._model = ngram_model.matrix
+        # Need to convert to csr first so that the log10 function will work
+        self._model = ngram_model.matrix.tocsr()
         del ngram_model
         self._model.data = np.log10(self._model.data)
+        self._model = self._model.tolil()
 
 
 class NgramProbabilityModel(CountModel):
