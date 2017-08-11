@@ -117,3 +117,33 @@ class ToeflTest(SynonymTest):
             question.correct_i = answers[question_i]
 
         return questions
+
+
+class EslTest(SynonymTest):
+    def _load(self) -> typing.List[SynonymQuestion]:
+        test_path = "/Users/cai/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/ESL/esl.txt"
+        question_re = re.compile(r"^"
+                                 r"(?P<prompt_word>[a-z\-]+)"
+                                 r"\s+\|\s+"
+                                 r"(?P<option_list>[a-z\-\s|])"
+                                 r"$")
+
+        questions: typing.List[SynonymQuestion] = []
+        with open(test_path, mode="r", encoding="utf-8") as test_file:
+            for line in test_file:
+                line = line.strip()
+
+                # Skip comments
+                if line.startswith("#"):
+                    continue
+
+                question_match = re.match(question_re, line)
+
+                questions.append(SynonymQuestion(
+                    prompt=question_match.group("prompt_word"),
+                    options=[option.strip() for option in question_match.group("option_list").split("|")],
+                    # The first one is always the correct one
+                    correct_i=0
+                ))
+
+        return questions
