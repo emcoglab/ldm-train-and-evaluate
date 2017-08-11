@@ -547,7 +547,12 @@ class PMIModel(CountModel):
                                              self._freq_dist)
         ratios_model.train()
 
-        self._model = np.log2(ratios_model.matrix)
+        # Apply log to entries in the ngram matrix
+        # Need to convert to csr first so that the log2 function will work
+        self._model = ratios_model.matrix.tocsr()
+        del ratios_model
+        self._model.data = np.log2(self._model.data)
+        self._model = self._model.tolil()
 
 
 class PPMIModel(CountModel):
