@@ -19,7 +19,6 @@ from enum import Enum, auto
 
 import numpy
 from scipy import spatial
-from scipy import stats
 
 
 class DistanceType(Enum):
@@ -73,5 +72,5 @@ def _correlation_distance(u: numpy.ndarray, v: numpy.ndarray):
     :param v:
     :return:
     """
-    r, p = stats.pearsonr(u, v)
+    r = numpy.corrcoef(u, v)[0, 1]
     return 1 - r

@@ -46,7 +46,7 @@ def main():
 
     toefl_test = ToeflTest()
 
-    distance_type = DistanceType.Euclidean
+    distance_type = DistanceType.correlation
     grades = []
     for toefl_question in toefl_test.question_list:
         prompt = toefl_question.prompt

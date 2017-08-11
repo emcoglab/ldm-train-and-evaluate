@@ -45,7 +45,7 @@ def main():
 
     mcq_test = McqTest()
 
-    distance_type = DistanceType.Euclidean
+    distance_type = DistanceType.correlation
     grades = []
     for mcq_question in mcq_test.question_list:
         prompt = mcq_question.prompt

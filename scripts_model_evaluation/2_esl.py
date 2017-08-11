@@ -45,7 +45,7 @@ def main():
 
     esl_test = EslTest()
 
-    distance_type = DistanceType.Euclidean
+    distance_type = DistanceType.correlation
     grades = []
     for esl_question in esl_test.question_list:
         prompt = esl_question.prompt
