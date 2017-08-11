@@ -121,11 +121,11 @@ class ToeflTest(SynonymTest):
 
 class EslTest(SynonymTest):
     def _load(self) -> typing.List[SynonymQuestion]:
-        test_path = "/Users/cai/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/ESL/esl.txt"
+        test_path = "/Users/cai/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/ESL_BrEng/esl.txt"
         question_re = re.compile(r"^"
                                  r"(?P<prompt_word>[a-z\-]+)"
                                  r"\s+\|\s+"
-                                 r"(?P<option_list>[a-z\-\s|])"
+                                 r"(?P<option_list>[a-z\-\s|]+)"
                                  r"\s*$")
 
         questions: typing.List[SynonymQuestion] = []
