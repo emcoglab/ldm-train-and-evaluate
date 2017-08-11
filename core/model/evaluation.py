@@ -58,18 +58,18 @@ class ToeflTest(SynonymTest):
                                r"(?P<question_number>\d+)"
                                r"\.\s+"
                                r"(?P<prompt_word>[a-z\-]+)"
-                               r"$")
+                               r"\s*$")
         option_re = re.compile(r"^"
                                r"(?P<option_letter>[a-d])"
                                r"\.\s+"
                                r"(?P<option_word>[a-z\-]+)"
-                               r"$")
+                               r"\s*$")
         answer_re = re.compile(r"^"
                                r"(?P<question_number>\d+)"
                                # Who knows what
                                r"\s+\(a,a,-\)\s+\d+\s+"
                                r"(?P<option_letter>[a-d])"
-                               r"$")
+                               r"\s*$")
 
         # Get questions
         n_options = 4
@@ -126,24 +126,26 @@ class EslTest(SynonymTest):
                                  r"(?P<prompt_word>[a-z\-]+)"
                                  r"\s+\|\s+"
                                  r"(?P<option_list>[a-z\-\s|])"
-                                 r"$")
+                                 r"\s*$")
 
         questions: typing.List[SynonymQuestion] = []
         with open(test_path, mode="r", encoding="utf-8") as test_file:
             for line in test_file:
                 line = line.strip()
 
+                # Skip empty lines
+                if not line:
+                    break
                 # Skip comments
                 if line.startswith("#"):
                     continue
 
                 question_match = re.match(question_re, line)
 
-                questions.append(SynonymQuestion(
-                    prompt=question_match.group("prompt_word"),
-                    options=[option.strip() for option in question_match.group("option_list").split("|")],
-                    # The first one is always the correct one
-                    correct_i=0
-                ))
+                prompt = question_match.group("prompt_word")
+                options = [option.strip() for option in question_match.group("option_list").split("|")]
+
+                # The first one is always the correct one
+                questions.append(SynonymQuestion(prompt, options, correct_i=0))
 
         return questions
