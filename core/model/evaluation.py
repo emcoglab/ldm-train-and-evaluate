@@ -37,6 +37,14 @@ class SynonymTest(object, metaclass=ABCMeta):
         return self._question_list
 
     @property
+    @abstractmethod
+    def name(self) -> str:
+        """
+        The name of the test.
+        """
+        raise NotImplementedError()
+
+    @property
     def n_questions(self) -> int:
         """
         The number of questions in the test.
@@ -49,6 +57,14 @@ class SynonymTest(object, metaclass=ABCMeta):
 
 
 class ToeflTest(SynonymTest):
+    """
+    TOEFL test.
+    """
+
+    @property
+    def name(self):
+        return "TOEFL"
+
     def _load(self) -> typing.List[SynonymQuestion]:
         # TODO: change these paths!
         question_path = "/Users/cai/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/TOEFL_BrEng/toefl.qst"
@@ -104,7 +120,7 @@ class ToeflTest(SynonymTest):
             for answer_line in answer_file:
                 answer_line = answer_line.strip()
                 # Skip empty lines
-                if answer_line == "":
+                if not answer_line:
                     continue
 
                 answer_match = re.match(answer_re, answer_line)
@@ -120,6 +136,14 @@ class ToeflTest(SynonymTest):
 
 
 class EslTest(SynonymTest):
+    """
+    ESL test.
+    """
+
+    @property
+    def name(self):
+        return "ESL"
+
     def _load(self) -> typing.List[SynonymQuestion]:
         test_path = "/Users/cai/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/ESL_BrEng/esl.txt"
         question_re = re.compile(r"^"
@@ -135,7 +159,7 @@ class EslTest(SynonymTest):
 
                 # Skip empty lines
                 if not line:
-                    break
+                    continue
                 # Skip comments
                 if line.startswith("#"):
                     continue
@@ -144,6 +168,37 @@ class EslTest(SynonymTest):
 
                 prompt = question_match.group("prompt_word")
                 options = [option.strip() for option in question_match.group("option_list").split("|")]
+
+                # The first one is always the correct one
+                questions.append(SynonymQuestion(prompt, options, correct_i=0))
+
+        return questions
+
+
+class McqTest(SynonymTest):
+    """
+    MCQ test from Levy, Bullinaria and McCormick (2017).
+    """
+
+    @property
+    def name(self):
+        return "LBM's new MCQ"
+
+    def _load(self) -> typing.List[SynonymQuestion]:
+        test_path = "/Users/cai/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/LBM vocab MCQ/newMCQ.txt"
+
+        n_options = 4
+        questions: typing.List[SynonymQuestion] = []
+        with open(test_path, mode="r", encoding="utf-8") as test_file:
+            while True:
+                prompt = test_file.readline().strip()
+                # Stop at the last line
+                if not prompt:
+                    break
+
+                options = []
+                for i in range(n_options):
+                    options.append(test_file.readline().strip())
 
                 # The first one is always the correct one
                 questions.append(SynonymQuestion(prompt, options, correct_i=0))

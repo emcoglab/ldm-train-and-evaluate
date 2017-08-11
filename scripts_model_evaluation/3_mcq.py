@@ -16,14 +16,13 @@ caiwingfield.net
 """
 
 import logging
+import math
 import sys
 
-import math
-
-from ..core.utils.maths import DistanceType
 from ..core.model.count import LogNgramModel
-from ..core.model.evaluation import ToeflTest
+from ..core.model.evaluation import EslTest, McqTest
 from ..core.utils.indexing import TokenIndexDictionary
+from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -44,13 +43,13 @@ def main():
 
     model.train()
 
-    toefl_test = ToeflTest()
+    mcq_test = McqTest()
 
     distance_type = DistanceType.Euclidean
     grades = []
-    for toefl_question in toefl_test.question_list:
-        prompt = toefl_question.prompt
-        options = toefl_question.options
+    for mcq_question in mcq_test.question_list:
+        prompt = mcq_question.prompt
+        options = mcq_question.options
 
         # The current best guess:
         best_guess_i = -1
@@ -67,7 +66,7 @@ def main():
             if guess_d < best_guess_d:
                 best_guess_i, best_guess_d = guess_i, guess_d
 
-        grades.append(int(toefl_question.answer_is_correct(best_guess_i)))
+        grades.append(int(mcq_question.answer_is_correct(best_guess_i)))
 
     logger.info(f"Score = {100 * sum(grades) / len(grades)}%")
 
