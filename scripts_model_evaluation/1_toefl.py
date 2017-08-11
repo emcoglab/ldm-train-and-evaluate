@@ -21,9 +21,10 @@ import sys
 import math
 
 from ..core.utils.maths import DistanceType
-from ..core.model.count import LogNgramModel
+from ..core.model.count import PPMIModel
 from ..core.model.evaluation import ToeflTest
 from ..core.utils.indexing import TokenIndexDictionary
+from ..core.corpus.distribution import FreqDist
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -37,16 +38,17 @@ def main():
     corpus_metadata = Preferences.source_corpus_metas[0]  # BBC
 
     # TODO: Should work for vectors from all model types
-    model = LogNgramModel(corpus_metadata,
-                          Preferences.model_dir,
-                          window_radius,
-                          TokenIndexDictionary.load(corpus_metadata.index_path))
+    model = PPMIModel(corpus_metadata,
+                      Preferences.model_dir,
+                      window_radius,
+                      TokenIndexDictionary.load(corpus_metadata.index_path),
+                      FreqDist.load(corpus_metadata.freq_dist_path))
 
     model.train()
 
     toefl_test = ToeflTest()
 
-    distance_type = DistanceType.correlation
+    distance_type = DistanceType.cosine
     grades = []
     for toefl_question in toefl_test.question_list:
         prompt = toefl_question.prompt

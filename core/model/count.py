@@ -157,21 +157,20 @@ class ScalarCountModel(LanguageModel, metaclass=ABCMeta):
         raise NotImplementedError()
 
     def _save(self):
-        logger.info(f"Saving {self.corpus_meta.name} to {self._model_filename}")
+        logger.info(f"Saving {self.model_type.name} model to {self._model_filename}")
         sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
 
     def _load(self):
-        logger.info(f"Loading {self.corpus_meta.name} from {self._model_filename}")
-        self._model = sps.lil_matrix(sio.mmread(os.path.join(self.save_dir, self._model_filename)))
+        logger.info(f"Loading {self.model_type.name} model from {self._model_filename}")
+        self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
 
-    @abstractmethod
     def scalar_for_word(self, word: str):
         """
         Returns the scalar value for a word.
         :param word:
         :return:
         """
-        raise NotImplementedError()
+        return self._model[self.token_indices.token2id[word]]
 
 
 class UnsummedNgramCountModel(CountModel):
@@ -383,9 +382,6 @@ class TokenProbabilityModel(ScalarCountModel):
         self._model /= self.window_radius * 2
         self._model /= self._freq_dist.N()
 
-    def scalar_for_word(self, word: str):
-        return self._model[self.token_indices.token2id[word]]
-
 
 class ConditionalProbabilityModel(CountModel):
     """
@@ -413,7 +409,8 @@ class ConditionalProbabilityModel(CountModel):
                                                         self.token_indices, self._freq_dist)
         ngram_probability_model.train()
 
-        self._model = ngram_probability_model.matrix
+        # Convert to csr for linear algebra
+        self._model = ngram_probability_model.matrix.tocsr()
         del ngram_probability_model
 
         token_probability_model = TokenProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
@@ -432,8 +429,9 @@ class ConditionalProbabilityModel(CountModel):
         #                                     |
         #                                     mx indexed by c on 1st dim
         #
-        # According to https://stackoverflow.com/a/19602209/2883198, this is how you do that:
-        self._model /= token_probability_model.vector[:, None]
+        # According to https://stackoverflow.com/a/12238133/2883198, this is how you do that:
+        self._model.data /= token_probability_model.vector.repeat(np.diff(self._model.indptr))
+        self._model.tolil()
 
 
 class ContextProbabilityModel(ScalarCountModel):
@@ -458,9 +456,6 @@ class ContextProbabilityModel(ScalarCountModel):
                          corpus_meta, save_dir, window_radius, token_indices)
         self._freq_dist = freq_dist
 
-    def scalar_for_word(self, word: str):
-        return self._model[self.token_indices.token2id[word]]
-
     def _retrain(self):
         logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
         # Get the ngram model
@@ -470,7 +465,6 @@ class ContextProbabilityModel(ScalarCountModel):
         # The probability is just the token count, divided by the width of the window and the size of the corpus
         # We're summing over targets (first dim) to get the count of the contexts
         self._model = np.sum(ngram_model.matrix, 0)
-        del ngram_model
         # The width of the window is twice the radius
         # We don't do 2r+1 because we only count the context words, not the target word
         self._model /= self.window_radius * 2
@@ -482,7 +476,6 @@ class ProbabilityRatioModel(CountModel):
     A model where vectors consist of the ratio of probabilities.
 
     r(c,t) = p(c|t) / p(c)
-
 
     c: context token
     t: target token
@@ -503,12 +496,13 @@ class ProbabilityRatioModel(CountModel):
         ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
         ngram_model.train()
 
-        self._model = ngram_model.matrix
+        # Convert to csr for linear algebra
+        self._model = ngram_model.matrix.tocsr()
         del ngram_model
 
-        token_probability_model = ContextProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
+        context_probability_model = ContextProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
                                                           self.token_indices, self._freq_dist)
-        token_probability_model.train()
+        context_probability_model.train()
 
         # Here we divide each conditional n-gram probability value by the context probability value.
         # This amounts to dividing each 0th-dim-slice of the matrix by a single value
@@ -522,8 +516,9 @@ class ProbabilityRatioModel(CountModel):
         #                                     |
         #                                     mx indexed by c on 1st dim
         #
-        # According to https://stackoverflow.com/a/19602209/2883198, this is how you do that:
-        self._model /= token_probability_model.vector[:, None]
+        # According to https://stackoverflow.com/a/12238133/2883198, this is how you do that:
+        self._model.data /= context_probability_model.vector.repeat(np.diff(self._model.indptr))
+        self._model.tolil()
 
 
 class PMIModel(CountModel):

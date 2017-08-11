@@ -138,7 +138,7 @@ class LanguageModel(metaclass=ABCMeta):
             elif self is VectorSpaceModel.ModelType.log_ngram:
                 return "log n-gram"
             elif self is VectorSpaceModel.ModelType.ngram_probability:
-                return "n-gramp robability"
+                return "n-gram probability"
             elif self is VectorSpaceModel.ModelType.token_probability:
                 return "Token probability"
             elif self is VectorSpaceModel.ModelType.context_probability:
@@ -146,7 +146,7 @@ class LanguageModel(metaclass=ABCMeta):
             elif self is VectorSpaceModel.ModelType.conditional_probability:
                 return "Conditional probability"
             elif self is VectorSpaceModel.ModelType.probability_ratios:
-                return "Probability ratios"
+                return "Probability ratio"
             elif self is VectorSpaceModel.ModelType.pmi:
                 return "PMI"
             elif self is VectorSpaceModel.ModelType.ppmi:
