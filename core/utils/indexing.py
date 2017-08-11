@@ -20,8 +20,29 @@ import json
 from ..corpus.distribution import FreqDist
 
 
-class TokenIndexDictionary(object):
+class LetterIndexing(object):
+    _alphabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
+                 "u", "v", "w", "x", "y", "z"]
 
+    @staticmethod
+    def letter2int(letter: str) -> int:
+        """
+        Converts roman letters a, b, c, ... into integers 0, 1, 2, ...
+        """
+        i = LetterIndexing._alphabet.index(letter)
+        if i == -1:
+            raise KeyError()
+        return i
+
+    @staticmethod
+    def int2letter(i: int) -> str:
+        """
+        Converts integers 0, 1, 2, ... into roman letters a, b, c, ...
+        """
+        return LetterIndexing._alphabet[i]
+
+
+class TokenIndexDictionary(object):
     def __init__(self, token2id):
         """
         Constructor.
