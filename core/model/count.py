@@ -30,7 +30,7 @@ from ..corpus.distribution import FreqDist
 from ..model.base import VectorSpaceModel, LanguageModel
 from ..utils.constants import Chirality
 from ..utils.indexing import TokenIndexDictionary
-from ..utils.maths import DistanceType, distance
+from ..utils.maths import DistanceType, distance, sparse_max
 
 logger = logging.getLogger(__name__)
 
@@ -580,9 +580,6 @@ class PPMIModel(CountModel):
         pmi_model = PMIModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices, self._freq_dist)
         pmi_model.train()
 
-        # Elementwise max
-        self._model = np.maximum(
-            pmi_model.matrix,
-            # same-shape zero matrix
-            sps.lil_matrix(pmi_model.matrix.shape)
-        )
+        self._model = sparse_max(pmi_model.matrix,
+                                 # same-shape zero matrix
+                                 sps.lil_matrix(pmi_model.matrix.shape))
