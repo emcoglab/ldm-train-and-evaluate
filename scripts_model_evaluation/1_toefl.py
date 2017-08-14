@@ -16,15 +16,14 @@ caiwingfield.net
 """
 
 import logging
+import math
 import sys
 
-import math
-
-from ..core.utils.maths import DistanceType
+from ..core.corpus.distribution import FreqDist
 from ..core.model.count import PPMIModel
 from ..core.model.evaluation import ToeflTest
 from ..core.utils.indexing import TokenIndexDictionary
-from ..core.corpus.distribution import FreqDist
+from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -35,7 +34,7 @@ def main():
     window_radius = 1
 
     # TODO: Should work for all corpora
-    corpus_metadata = Preferences.source_corpus_metas[0]  # BBC
+    corpus_metadata = Preferences.source_corpus_metas[1]  # BNC
 
     # TODO: Should work for vectors from all model types
     model = PPMIModel(corpus_metadata,
@@ -48,7 +47,7 @@ def main():
 
     toefl_test = ToeflTest()
 
-    distance_type = DistanceType.correlation
+    distance_type = DistanceType.cosine
     grades = []
     for toefl_question in toefl_test.question_list:
         prompt = toefl_question.prompt
