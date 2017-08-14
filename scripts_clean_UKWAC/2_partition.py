@@ -20,7 +20,7 @@ import logging
 import os
 import sys
 
-from ..core.corpus.corpus import CorpusMetadata
+from ..preferences.preferences import Preferences
 
 logger = logging.getLogger()
 
@@ -32,12 +32,8 @@ def main():
     lines_per_part = 10_000
 
     corpus_meta = dict(
-        source=CorpusMetadata(
-            name="UKWAC",
-            path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/1 Text only/cleaned_pre.pos.corpus"),
-        target=CorpusMetadata(
-            name="UKWAC",
-            path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/2 Partitioned"))
+        source=Preferences.ukwac_processing_metas["no_urls"],
+        target=Preferences.ukwac_processing_metas["partitioned"])
 
     logger.info(f"Loading {corpus_meta['source'].name} corpus from {corpus_meta['source'].path}")
 

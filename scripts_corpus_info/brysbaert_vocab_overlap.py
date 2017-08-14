@@ -19,18 +19,15 @@ import logging
 import os
 import sys
 
-from ..preferences.preferences import Preferences
-from ..core.corpus.corpus import CorpusMetadata
 from ..core.corpus.distribution import FreqDist
+from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
 
 def main():
 
-    wordlist_meta = CorpusMetadata(
-        name="Brysbaert 1 word",
-        path="/Users/caiwingfield/code/corpus_analysis/scripts_corpus_info/brysbaert1.wordlist")
+    wordlist_meta = Preferences.brysbaert_1w
 
     wordlist_delimiter = "\n"
 

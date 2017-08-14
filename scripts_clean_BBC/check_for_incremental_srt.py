@@ -23,9 +23,11 @@ import os
 
 import srt
 
+from ..preferences.preferences import Preferences
+
 
 def main():
-    raw_subs_dir = "/Users/caiwingfield/corpora/BBC/0 Raw"
+    raw_subs_dir = Preferences.bbc_processing_metas["raw"].path
 
     subtitle_paths = list(glob.iglob(os.path.join(raw_subs_dir, '*.srt')))
 

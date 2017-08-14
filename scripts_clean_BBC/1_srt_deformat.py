@@ -22,6 +22,8 @@ import logging
 
 import srt
 
+from ..preferences.preferences import Preferences
+
 logger = logging.getLogger()
 
 
@@ -29,8 +31,8 @@ def main():
     # Ignore files already processed and overwrite them?
     start_over = False
 
-    raw_subs_dir       = "/Users/caiwingfield/corpora/BBC-mini/0 Raw"
-    processed_subs_dir = "/Users/caiwingfield/corpora/BBC-mini/1 No srt formatting"
+    raw_subs_dir       = Preferences.bbc_processing_metas["raw"].path
+    processed_subs_dir = Preferences.bbc_processing_metas["no_srt"].path
 
     subtitle_paths = list(glob.iglob(os.path.join(raw_subs_dir, '*.srt')))
 

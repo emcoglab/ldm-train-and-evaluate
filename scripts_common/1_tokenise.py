@@ -22,9 +22,9 @@ import sys
 
 import nltk
 
-from ..core.corpus.tokenising import modified_word_tokenize
-from ..core.corpus.corpus import CorpusMetadata
 from ..core.corpus.filtering import filter_punctuation
+from ..core.corpus.tokenising import modified_word_tokenize
+from ..preferences.preferences import Preferences
 
 logger = logging.getLogger()
 
@@ -33,20 +33,14 @@ def main():
 
     corpus_metas = [
         dict(
-            source=CorpusMetadata(
-                name="BBC",  path="/Users/caiwingfield/corpora/BBC/3 Replaced symbols"),
-            target=CorpusMetadata(
-                name="BBC", path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus")),
+            source=Preferences.bbc_processing_metas["replaced_symbols"],
+            target=Preferences.bnc_processing_metas["tokenised"]),
         dict(
-            source=CorpusMetadata(
-                name="BNC", path="/Users/caiwingfield/corpora/BNC/1 Detagged"),
-            target=CorpusMetadata(
-                name="BNC",  path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus")),
+            source=Preferences.bnc_processing_metas["detagged"],
+            target=Preferences.bnc_processing_metas["tokenised"]),
         dict(
-            source=CorpusMetadata(
-                name="UKWAC", path="/Users/caiwingfield/corpora/UKWAC/2 Partitioned"),
-            target=CorpusMetadata(
-                name="UKWAC", path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus"))]
+            source=Preferences.ukwac_processing_metas["partitioned"],
+            target=Preferences.ukwac_processing_metas["tokenised"])]
 
     token_delimiter = "\n"
 

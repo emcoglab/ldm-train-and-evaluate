@@ -21,6 +21,7 @@ import sys
 import string
 import logging
 
+from ..preferences.preferences import Preferences
 from ..core.corpus.corpus import CorpusMetadata
 
 logger = logging.getLogger()
@@ -65,10 +66,8 @@ def main():
     start_over = True
 
     subtitles = dict(
-        source=CorpusMetadata(
-            name="BBC", path="/Users/caiwingfield/corpora/BBC-mini/1 No srt formatting"),
-        target=CorpusMetadata(
-            name="BBC", path="/Users/caiwingfield/corpora/BBC-mini/2 No nonspeech"))
+        source=Preferences.bbc_processing_metas["no_srt"],
+        target=Preferences.bbc_processing_metas["no_nonspeech"])
 
     subs_source_paths = list(glob.iglob(os.path.join(subtitles['source'].path, '*.srt')))
 

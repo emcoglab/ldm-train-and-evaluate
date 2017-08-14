@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 def main():
 
+    # TODO: these paths in Preferences
     corpus_metas = [
         dict(
             source=CorpusMetadata(

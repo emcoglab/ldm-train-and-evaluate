@@ -23,14 +23,16 @@ import logging
 
 from lxml import etree
 
+from ..preferences.preferences import Preferences
+
 logger = logging.getLogger()
 
 
 def main():
-    docs_parent_dir = "/Users/caiwingfield/corpora/BNC/0 XML version/Texts"
-    out_dir         = "/Users/caiwingfield/corpora/BNC/1 Detagged"
+    docs_parent_dir = Preferences.bnc_processing_metas["raw"].path
+    out_dir         = Preferences.bbc_processing_metas["detagged"].path
 
-    xsl_filename = os.path.join(os.path.dirname(__file__), "justTheWords.xsl")
+    xsl_filename = os.path.join(os.path.dirname(__file__), "justTheWords.xsl")  # This file is under source control
     xslt = etree.parse(xsl_filename)
     xslt_transform = etree.XSLT(xslt)
 

@@ -19,7 +19,7 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.corpus.corpus import CorpusMetadata
+from ..preferences.preferences import Preferences
 
 logger = logging.getLogger()
 
@@ -35,12 +35,8 @@ def is_suspected_url_ref(line):
 
 def main():
     corpus_meta = dict(
-        source=CorpusMetadata(
-            name="UKWAC",
-            path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/0 Raw untagged/cleaned_pre.pos.corpus"),
-        target=CorpusMetadata(
-            name="UKWAC",
-            path="/Users/cai/Dox/Academic/Analyses/Corpus analysis/UKWAC/1 Text only/cleaned_pre.pos.corpus"))
+        source=Preferences.ukwac_processing_metas["raw"],
+        target=Preferences.ukwac_processing_metas["no_urls"])
 
     logger.info(f"Removing URL references from {corpus_meta['source'].name} corpus")
     with open(corpus_meta['source'].path, mode="r", encoding="utf-8", errors="ignore") as source_file:

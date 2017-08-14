@@ -3,6 +3,7 @@ import typing
 
 from abc import ABCMeta, abstractmethod
 
+from ...preferences.preferences import Preferences
 from ..utils.indexing import LetterIndexing
 
 
@@ -66,9 +67,6 @@ class ToeflTest(SynonymTest):
         return "TOEFL"
 
     def _load(self) -> typing.List[SynonymQuestion]:
-        # TODO: change these paths!
-        question_path = "/Users/cai/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/TOEFL_BrEng/toefl.qst"
-        answer_path = "/Users/cai/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/TOEFL_BrEng/toefl.ans"
 
         prompt_re = re.compile(r"^"
                                r"(?P<question_number>\d+)"
@@ -90,7 +88,7 @@ class ToeflTest(SynonymTest):
         # Get questions
         n_options = 4
         questions: typing.List[SynonymQuestion] = []
-        with open(question_path, mode="r", encoding="utf-8") as question_file:
+        with open(Preferences.toefl_question_path, mode="r", encoding="utf-8") as question_file:
             # Read groups of lines from file
             while True:
                 prompt_line = question_file.readline().strip()
@@ -116,7 +114,7 @@ class ToeflTest(SynonymTest):
 
         # Get answers
         answers: typing.List[int] = []
-        with open(answer_path, mode="r", encoding="utf-8") as answer_file:
+        with open(Preferences.toefl_answer_path, mode="r", encoding="utf-8") as answer_file:
             for answer_line in answer_file:
                 answer_line = answer_line.strip()
                 # Skip empty lines
@@ -145,7 +143,6 @@ class EslTest(SynonymTest):
         return "ESL"
 
     def _load(self) -> typing.List[SynonymQuestion]:
-        test_path = "/Users/cai/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/ESL_BrEng/esl.txt"
         question_re = re.compile(r"^"
                                  r"(?P<prompt_word>[a-z\-]+)"
                                  r"\s+\|\s+"
@@ -153,7 +150,7 @@ class EslTest(SynonymTest):
                                  r"\s*$")
 
         questions: typing.List[SynonymQuestion] = []
-        with open(test_path, mode="r", encoding="utf-8") as test_file:
+        with open(Preferences.esl_test_path, mode="r", encoding="utf-8") as test_file:
             for line in test_file:
                 line = line.strip()
 
@@ -185,11 +182,10 @@ class McqTest(SynonymTest):
         return "LBM's new MCQ"
 
     def _load(self) -> typing.List[SynonymQuestion]:
-        test_path = "/Users/cai/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/LBM vocab MCQ/newMCQ.txt"
 
         n_options = 4
         questions: typing.List[SynonymQuestion] = []
-        with open(test_path, mode="r", encoding="utf-8") as test_file:
+        with open(Preferences.mcq_test_path, mode="r", encoding="utf-8") as test_file:
             while True:
                 prompt = test_file.readline().strip()
                 # Stop at the last line

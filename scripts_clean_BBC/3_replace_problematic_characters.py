@@ -20,6 +20,7 @@ import os
 import sys
 import logging
 
+from ..preferences.preferences import Preferences
 
 logger = logging.getLogger()
 
@@ -28,8 +29,8 @@ def main():
     # Ignore files already processed and overwrite them?
     start_over = True
 
-    subs_source_dir = "/Users/caiwingfield/corpora/BBC/2 No nonspeech"
-    subs_target_dir = "/Users/caiwingfield/corpora/BBC/3 Replaced symbols"
+    subs_source_dir = Preferences.bbc_processing_metas["no_nonspeech"].path
+    subs_target_dir = Preferences.bbc_processing_metas["replaced_symbols"]
 
     subs_source_paths = list(glob.iglob(os.path.join(subs_source_dir, '*.srt')))
 
