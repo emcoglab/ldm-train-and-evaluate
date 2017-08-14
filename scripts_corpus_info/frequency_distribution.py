@@ -15,17 +15,12 @@ caiwingfield.net
 ---------------------------
 """
 
-import argparse
 import logging
 import os
 import sys
 
-import nltk
-
-from ..core.corpus.corpus import CorpusMetadata, BatchedCorpus
 from ..core.corpus.distribution import FreqDist
-from ..core.corpus.filtering import filter_punctuation
-from ..core.corpus.tokenising import modified_word_tokenize
+from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +103,7 @@ def save_frequency_distribution_info(freq_dist, filename):
         info_file.write(f"Vocabulary size: {len(most_common):,}\n")
 
         # Write low-frequency counts
-        for cutoff_freq in [0, 1, 5, 10, 25, 50, 100]:
+        for cutoff_freq in [0, 1, 5, 10, 50, 100]:
             info_file.write(f"Tokens occurring ≥ {cutoff_freq} times."
                             f"\tCorpus size:"
                             f"\t{sum([count for token, count in most_common if count > cutoff_freq]):,}."
@@ -127,36 +122,22 @@ def save_frequency_distribution_info(freq_dist, filename):
             info_file.write(f"{i}\t{token}\t{count:,}\n")
 
 
-def main(corpus_path, output_dir, tokenised):
-    corpus_name = os.path.basename(corpus_path)
+def main():
 
-    logger.info(f"Loading corpus documents from {corpus_path}")
-    if not tokenised:
-        # Use CorpusReader and tokenise
-        corpus = nltk.corpus.PlaintextCorpusReader(corpus_path, ".+\..+")
+    for corpus_meta in Preferences.source_corpus_metas:
 
-        logger.info(f"Tokenising corpus")
-        corpus = [w.lower() for w in modified_word_tokenize(corpus.raw())]
+        freq_dist = FreqDist.load(corpus_meta.freq_dist_path)
 
-        logger.info(f"Filtering corpus")
-        corpus = filter_punctuation(corpus)
+        info_dir = os.path.dirname(corpus_meta.freq_dist_path)
 
-        freq_dist = FreqDist(corpus)
-
-    else:  # tokenised
-        freq_dist = FreqDist.from_batched_corpus(
-            BatchedCorpus(CorpusMetadata(path=corpus_path, name=""), batch_size=1_000_000))
-
-    logger.info(f"Saving frequency distribution information")
-    save_frequency_distribution_info(
-        freq_dist,
-        os.path.join(output_dir, f"Frequency distribution info {corpus_name}.txt"))
-    save_frequency_distribution_graph(
-        freq_dist,
-        os.path.join(output_dir, f"Frequency distribution graph {corpus_name}.png"),
-        corpus_name=corpus_name,
-        top_n=200)
-    freq_dist.save(os.path.join(output_dir, f"Frequency distribution {corpus_name}.pickle"))
+        save_frequency_distribution_info(
+            freq_dist,
+            os.path.join(info_dir, f"Frequency distribution info {corpus_meta.name}.txt"))
+        save_frequency_distribution_graph(
+            freq_dist,
+            os.path.join(info_dir, f"Frequency distribution graph {corpus_meta.name}.png"),
+            corpus_name=corpus_meta.name,
+            top_n=200)
 
 
 if __name__ == "__main__":
@@ -166,15 +147,6 @@ if __name__ == "__main__":
         level=logging.INFO)
     logger.info("Running %s" % " ".join(sys.argv))
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--tokenised", action="store_true")
-    parser.add_argument("--corpuspath")
-    parser.add_argument("--outdir")
-    args = vars(parser.parse_args())
-
-    main(
-        corpus_path=args["corpuspath"],
-        output_dir=args["outdir"],
-        tokenised=args["tokenised"])
+    main()
 
     logger.info("Done!")
