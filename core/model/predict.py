@@ -55,16 +55,18 @@ class PredictModel(VectorSpaceModel):
         self._model: gensim.models.Word2Vec = None
 
     @property
+    def name(self) -> str:
+        return f"{self.model_type.name} ({self.corpus_meta.name}), r={self.window_radius}, s={self.embedding_size}"
+
+    @property
     def _model_filename(self):
         # Include embedding size
         return f"{self.corpus_meta.name}_r={self.window_radius}_s={self.embedding_size}_{self.model_type.slug}"
 
     def _save(self):
-        logger.info(f"Saving {self.corpus_meta.name} to {self._model_filename}")
         self._model.save(os.path.join(self.save_dir, self._model_filename))
 
     def _load(self):
-        logger.info(f"Loading {self.corpus_meta.name} from {self._model_filename}")
         self._model = gensim.models.Word2Vec.load(os.path.join(self.save_dir, self._model_filename))
 
     @abstractmethod
@@ -119,10 +121,6 @@ class CbowModel(PredictModel):
 
     def _retrain(self):
 
-        logger.info(f"Corpus: {self.corpus_meta.name}, "
-                    f"r={self.window_radius}, "
-                    f"s={self.embedding_size}")
-
         self._model = gensim.models.Word2Vec(
             # This is called "sentences", but they all get concatenated, so it doesn't matter.
             sentences=self._corpus,
@@ -150,10 +148,6 @@ class SkipGramModel(PredictModel):
                          corpus_meta, save_dir, window_radius, embedding_size)
 
     def _retrain(self):
-
-        logger.info(f"Corpus: {self.corpus_meta.name}, "
-                    f"r={self.window_radius}, "
-                    f"s={self.embedding_size}")
 
         self._model = gensim.models.Word2Vec(
             # This is called "sentences", but they all get concatenated, so it doesn't matter.

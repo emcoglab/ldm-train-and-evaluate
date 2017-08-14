@@ -63,11 +63,9 @@ class CountModel(VectorSpaceModel):
         raise NotImplementedError()
 
     def _save(self):
-        logger.info(f"Saving {self.model_type.name} model to {self._model_filename}.")
         sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
 
     def _load(self):
-        logger.info(f"Loading {self.model_type.name} model from {self._model_filename}.")
         self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename)).tolil()
 
     # Overwrite to include .mtx extension
@@ -138,11 +136,15 @@ class ScalarCountModel(LanguageModel, metaclass=ABCMeta):
                  window_radius: int,
                  token_indices: TokenIndexDictionary):
         super().__init__(model_type, corpus_meta, save_dir)
-        self.token_indices = token_indices
         self.window_radius = window_radius
+        self.token_indices = token_indices
 
         # When implementing this class, this must be set by retrain()
         self._model: np.ndarray = None
+
+    @property
+    def name(self) -> str:
+        return f"{self.model_type.name} ({self.corpus_meta.name}), r={self.window_radius}"
 
     @property
     def _model_filename(self):
@@ -157,11 +159,9 @@ class ScalarCountModel(LanguageModel, metaclass=ABCMeta):
         raise NotImplementedError()
 
     def _save(self):
-        logger.info(f"Saving {self.model_type.name} model to {self._model_filename}")
         sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
 
     def _load(self):
-        logger.info(f"Loading {self.model_type.name} model from {self._model_filename}")
         self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
 
     def scalar_for_word(self, word: str):
@@ -190,14 +190,17 @@ class UnsummedNgramCountModel(CountModel):
 
     # Overwrite, to include chirality
     @property
+    def name(self) -> str:
+        return f"{self.model_type.name} ({self.corpus_meta.name}), r={self.window_radius}, {self._chirality.name}"
+
+    # Overwrite, to include chirality
+    @property
     def _model_filename(self):
         return f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.slug}_{self._chirality}.mtx"
 
     def _retrain(self):
 
         vocab_size = len(self.token_indices)
-
-        logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
 
         # Initialise cooccurrence matrices
 
@@ -257,8 +260,6 @@ class NgramCountModel(CountModel):
 
     def _retrain(self):
 
-        logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
-
         vocab_size = len(self.token_indices)
         self._model = sps.lil_matrix((vocab_size, vocab_size))
 
@@ -273,6 +274,9 @@ class NgramCountModel(CountModel):
 
                 # And add it to the current matrix
                 self._model += unsummed_model.matrix
+
+                # Prompt GC
+                del unsummed_model
 
 
 class LogNgramModel(CountModel):
@@ -294,7 +298,6 @@ class LogNgramModel(CountModel):
                          corpus_meta, save_dir, window_radius, token_indices)
 
     def _retrain(self):
-        logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
         # Get the ngram model
         ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
         ngram_model.train()
@@ -330,8 +333,6 @@ class NgramProbabilityModel(CountModel):
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
-
         # Get the ngram model
         ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
         ngram_model.train()
@@ -368,7 +369,6 @@ class TokenProbabilityModel(ScalarCountModel):
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
         # Get the ngram model
         ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
         ngram_model.train()
@@ -404,7 +404,6 @@ class ConditionalProbabilityModel(CountModel):
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
         ngram_probability_model = NgramProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
                                                         self.token_indices, self._freq_dist)
         ngram_probability_model.train()
@@ -457,7 +456,6 @@ class ContextProbabilityModel(ScalarCountModel):
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
         # Get the ngram model
         ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
         ngram_model.train()
@@ -492,7 +490,6 @@ class ProbabilityRatioModel(CountModel):
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
         ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
         ngram_model.train()
 
@@ -542,7 +539,6 @@ class PMIModel(CountModel):
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
         ratios_model = ProbabilityRatioModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices,
                                              self._freq_dist)
         ratios_model.train()
@@ -576,7 +572,6 @@ class PPMIModel(CountModel):
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        logger.info(f"Working on {self.corpus_meta.name} corpus, r={self.window_radius}")
         pmi_model = PMIModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices, self._freq_dist)
         pmi_model.train()
 

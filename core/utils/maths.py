@@ -78,9 +78,13 @@ def _correlation_distance(u: numpy.ndarray, v: numpy.ndarray):
 
 def sparse_max(a, b):
     """
-    Elementwise maximum for same-sized sparse matrices.
+    Element-wise maximum for same-sized sparse matrices.
     Thanks to https://stackoverflow.com/a/19318259/2883198
     """
+
+    # Where are elements of b bigger than corresponding element of a?
     b_is_bigger = a - b
     b_is_bigger.data = numpy.where(b_is_bigger.data < 0, 1, 0)
+
+    # Return elements of a where a was bigger, and elements of b where b was bigger
     return a - a.multiply(b_is_bigger) + b.multiply(b_is_bigger)

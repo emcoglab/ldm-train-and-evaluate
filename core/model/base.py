@@ -181,6 +181,13 @@ class LanguageModel(metaclass=ABCMeta):
         self._root_dir = save_dir
 
     @property
+    def name(self) -> str:
+        """
+        The name of the model, containing all relevant information to disambiguate it from other models.
+        """
+        return f"{self.model_type.name} ({self.corpus_meta.name})"
+
+    @property
     @abstractmethod
     def _model_filename(self) -> str:
         """
@@ -206,11 +213,12 @@ class LanguageModel(metaclass=ABCMeta):
         :param force_retrain: Retrain the model, even if there is a pre-existing saved state.
         """
         if self.could_load and not force_retrain:
+            logger.info(f"Loading {self.name} model from {self._model_filename}")
             self._load()
         else:
-            logger.info(f"Training {self.model_type.name} model.")
+            logger.info(f"Training {self.name}")
             self._retrain()
-            logger.info(f"Saving {self.model_type.name} model to {self._model_filename}.")
+            logger.info(f"Saving {self.name} model to {self._model_filename}")
             self._save()
 
     @abstractmethod
@@ -250,6 +258,10 @@ class VectorSpaceModel(LanguageModel, metaclass=ABCMeta):
 
         # When implementing this class, this must be set by train()
         self._model = None
+
+    @property
+    def name(self) -> str:
+        return f"{self.model_type.name} ({self.corpus_meta.name}), r={self.window_radius}"
 
     @property
     def _model_filename(self):
