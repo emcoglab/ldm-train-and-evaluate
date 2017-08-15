@@ -423,8 +423,8 @@ class ConditionalProbabilityModel(CountModel):
         #
         #                                  p(c,t)         p(t)
         #
-        #                               [ [-, -, -] ,     [ -,      <- entire mx row to be div'd by this vec entry
-        # mx indexed by t on 0th dim ->   [-, -, -] ,  /    -,  <- vec indexed by t on 0th dim
+        #                               [ [-, -, -] ,     [ - ,     <- entire mx row to be div'd by this vec entry
+        # mx indexed by t on 0th dim ->   [-, -, -] ,  /    - , <- vec indexed by t on 0th dim
         #                                 [-, -, -] ]       - ]
         #                                     ^
         #                                     |
@@ -508,8 +508,8 @@ class ProbabilityRatioModel(CountModel):
         #
         #                                  p(c|t)         p(c)
         #
-        #                               [ [-, -, -] ,     [ -,      <- entire mx row to be div'd by this vec entry
-        # mx indexed by t on 0th dim ->   [-, -, -] ,  /    -,  <- vec indexed by c on 0th dim
+        #                               [ [-, -, -] ,     [ - ,     <- entire mx row to be div'd by this vec entry
+        # mx indexed by t on 0th dim ->   [-, -, -] ,  /    - , <- vec indexed by c on 0th dim
         #                                 [-, -, -] ]       - ]
         #                                     ^
         #                                     |

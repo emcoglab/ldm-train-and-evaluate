@@ -2,7 +2,7 @@
 
 cd /Users/caiwingfield/code/
 
-#python -m corpus_analysis.scripts_models.1_raw_cooccurrence_counts
+python -m corpus_analysis.scripts_models.1_raw_cooccurrence_counts
 python -m corpus_analysis.scripts_models.2_summed_ngrams
 python -m corpus_analysis.scripts_models.3_log_ngrams
 python -m corpus_analysis.scripts_models.4_ngram_probability
