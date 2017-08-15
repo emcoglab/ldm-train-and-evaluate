@@ -29,6 +29,20 @@ class DistanceType(Enum):
     cosine = auto()
     correlation = auto()
 
+    @property
+    def name(self) -> str:
+        """
+        A string representation of the distance type.
+        """
+        if self is DistanceType.Euclidean:
+            return "Euclidean"
+        elif self is DistanceType.cosine:
+            return "cosine"
+        elif self is DistanceType.correlation:
+            return "correlation"
+        else:
+            raise ValueError()
+
 
 def distance(u: numpy.ndarray, v: numpy.ndarray, distance_type: DistanceType) -> float:
     """

@@ -1,6 +1,6 @@
 """
 ===========================
-Evaluate using TOEFL test.
+Evaluate using Levy, Bullinaria and McCormick's (2017) "MCQ" test.
 ===========================
 
 Dr. Cai Wingfield
@@ -16,62 +16,62 @@ caiwingfield.net
 """
 
 import logging
-import math
+import os
 import sys
 
-from ..core.utils.logging import log_message, date_format
-from ..core.model.count import PPMIModel
-from ..core.model.evaluation import McqTest
+from ..core.corpus.distribution import FreqDist
+from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
+from ..core.model.evaluation import McqTest, SynonymTester
 from ..core.utils.indexing import TokenIndexDictionary
+from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
-from ..core.corpus.distribution import FreqDist
 
 logger = logging.getLogger(__name__)
 
 
 def main():
-    # TODO: Should work for all Preferences.window_radii
-    window_radius = 1
 
-    # TODO: Should work for all corpora
-    corpus_metadata = Preferences.source_corpus_metas[0]  # BBC
+    test = McqTest()
 
-    # TODO: Should work for vectors from all model types
-    model = PPMIModel(corpus_metadata,
-                      Preferences.model_dir,
-                      window_radius,
-                      TokenIndexDictionary.load(corpus_metadata.index_path),
-                      FreqDist.load(corpus_metadata.freq_dist_path))
+    for corpus_metadata in Preferences.source_corpus_metas:
 
-    model.train()
+        token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
+        freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 
-    mcq_test = McqTest()
+        for window_radius in Preferences.window_radii:
 
-    distance_type = DistanceType.correlation
-    grades = []
-    for mcq_question in mcq_test.question_list:
-        prompt = mcq_question.prompt
-        options = mcq_question.options
+            for distance_type in DistanceType:
 
-        # The current best guess:
-        best_guess_i = -1
-        best_guess_d = math.inf
-        for guess_i, option in enumerate(options):
-            try:
-                guess_d = model.distance_between(prompt, option, distance_type)
-            except KeyError as er:
-                missing_word = er.args[0]
-                logger.warning(f"{missing_word} was not found in the corpus.")
-                # Make sure we don't pick this one
-                guess_d = math.inf
+                # Run through each model
 
-            if guess_d < best_guess_d:
-                best_guess_i, best_guess_d = guess_i, guess_d
+                # Log n-gram
+                model = LogNgramModel(
+                    corpus_metadata, Preferences.model_dir, window_radius, token_index)
+                model.train()
+                SynonymTester(model, test, distance_type).administer_test().save_text_transcript(os.path.join(
+                    model.save_dir, f"toefl_results_{model.name}_r={window_radius}_{distance_type.name}.txt"))
 
-        grades.append(int(mcq_question.answer_is_correct(best_guess_i)))
+                # Conditional probability
+                model = ConditionalProbabilityModel(
+                    corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
+                model.train()
+                SynonymTester(model, test, distance_type).administer_test().save_text_transcript(os.path.join(
+                    model.save_dir, f"toefl_results_{model.name}_r={window_radius}_{distance_type.name}.txt"))
 
-    logger.info(f"Score = {100 * sum(grades) / len(grades)}%")
+                # Probability ratios
+                model = ProbabilityRatioModel(
+                    corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
+                model.train()
+                SynonymTester(model, test, distance_type).administer_test().save_text_transcript(os.path.join(
+                    model.save_dir, f"toefl_results_{model.name}_r={window_radius}_{distance_type.name}.txt"))
+
+                # PPMI
+                model = PPMIModel(
+                    corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
+                model.train()
+                SynonymTester(model, test, distance_type).administer_test().save_text_transcript(os.path.join(
+                    model.save_dir, f"toefl_results_{model.name}_r={window_radius}_{distance_type.name}.txt"))
 
 
 if __name__ == "__main__":

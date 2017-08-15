@@ -1,31 +1,165 @@
+"""
+===========================
+Evaluation of models.
+===========================
+
+Dr. Cai Wingfield
+---------------------------
+Embodied Cognition Lab
+Department of Psychology
+University of Lancaster
+c.wingfield@lancaster.ac.uk
+caiwingfield.net
+---------------------------
+2017
+---------------------------
+"""
+
 import re
 import typing
+import math
+import logging
 
 from abc import ABCMeta, abstractmethod
+from copy import copy
 
+from ..utils.maths import DistanceType
+from ..model.base import VectorSpaceModel
 from ...preferences.preferences import Preferences
 from ..utils.indexing import LetterIndexing
 
+logger = logging.getLogger(__name__)
 
-class SynonymQuestion(object):
+
+class SynonymTester(object):
+    def __init__(self, model: VectorSpaceModel, test: SynonymTest, distance_type: DistanceType):
+        """
+        Tests a model with a test.
+        :param test: A synonym test.
+        :param model: A TRAINED model.
+        :param distance_type:
+        """
+        assert model.is_trained
+
+        self.distance_type = distance_type
+        self.model = model
+        self.test = test
+
+    def administer_test(self) -> TestResults:
+
+        transcript = []
+        for question in self.test.question_list:
+            prompt = question.prompt
+            options = question.options
+
+            # The current best guess
+            best_guess_i = -1
+            best_guess_d = math.inf
+            for option_i, option in enumerate(options):
+                try:
+                    guess_d = self.model.distance_between(prompt, option, self.distance_type)
+                except KeyError as er:
+                    missing_word = er.args[0]
+                    logger.warning(f"{missing_word} was not found in the corpus.")
+                    # Make sure we don't pick this one
+                    guess_d = math.inf
+
+                if guess_d < best_guess_d:
+                    best_guess_i = option_i
+                    best_guess_d = guess_d
+
+            answer = AnsweredQuestion(copy(question), best_guess_i)
+
+            transcript.append(answer)
+
+        return TestResults(transcript)
+
+
+class TestResults(object):
+    """
+    The results of a test
+    """
+
+    def __init__(self, transcript: typing.List[AnsweredQuestion]):
+        self.transcript = transcript
+
+    @property
+    def _marks(self) -> typing.List(bool):
+        """
+        List of correct/incorrect marks
+        :return:
+        """
+        return [answer.is_correct for answer in self.transcript]
+
+    @property
+    def score(self) -> float:
+        """
+        The percentage of correct answers
+        """
+        return 100 * sum([int(m) for m in self._marks]) / len(self.transcript)
+
+    @property
+    def _text_transcript(self) -> typing.List(str):
+        page = []
+        for answer in self.transcript:
+            page.append(f"Q: {answer.question.prompt}?\t{' '.join(answer.question.options)}.\t"
+                        f"A: {answer.word}:\t{'CORRECT' if answer.is_correct else 'INCORRECT'}")
+        return page
+
+    def save_text_transcript(self, save_path: str):
+        """
+        Saves a text transcript of a test.
+        :param save_path: 
+        :return: 
+        """
+        if not save_path.endswith(".txt"):
+            save_path += ".txt"
+        with open(save_path, mode="w", encoding="utf-8") as transcript_file:
+            transcript_file.write(f"Overall score: {self.score}%")
+            transcript_file.write("-----------------------")
+            for line in self._text_transcript:
+                transcript_file.write(line)
+
+
+class SynonymTestQuestion(object):
+    """
+    A synonym test question.
+    """
+
     def __init__(self, prompt: str, options: typing.List[str], correct_i: int):
         self.correct_i = correct_i
         self.options = options
         self.prompt = prompt
 
-    def answer_is_correct(self, guess_i: int) -> bool:
+    def __copy__(self):
+        return SynonymTestQuestion(self.prompt, self.options.copy(), self.correct_i)
+
+
+class AnsweredQuestion(object):
+    """
+    An answered synonym test question.
+    """
+
+    def __init__(self, question: SynonymTestQuestion, answer: int):
+        self.answer = answer
+        self.question = question
+
+    @property
+    def word(self) -> str:
+        return self.question.options[self.answer]
+
+    @property
+    def is_correct(self):
         """
         Check whether an answer to the question is correct.
-        :param guess_i: 0-indexed
-        :return:
         """
-        return guess_i == self.correct_i
+        return self.question.correct_i == self.answer
 
 
 class SynonymTest(object, metaclass=ABCMeta):
     def __init__(self):
         # Backs self.question_list
-        self._question_list: typing.List[SynonymQuestion] = None
+        self._question_list: typing.List[SynonymTestQuestion] = None
 
     @property
     def question_list(self):
@@ -53,7 +187,7 @@ class SynonymTest(object, metaclass=ABCMeta):
         return len(self._question_list)
 
     @abstractmethod
-    def _load(self) -> typing.List[SynonymQuestion]:
+    def _load(self) -> typing.List[SynonymTestQuestion]:
         raise NotImplementedError()
 
 
@@ -66,7 +200,7 @@ class ToeflTest(SynonymTest):
     def name(self):
         return "TOEFL"
 
-    def _load(self) -> typing.List[SynonymQuestion]:
+    def _load(self) -> typing.List[SynonymTestQuestion]:
 
         prompt_re = re.compile(r"^"
                                r"(?P<question_number>\d+)"
@@ -87,7 +221,7 @@ class ToeflTest(SynonymTest):
 
         # Get questions
         n_options = 4
-        questions: typing.List[SynonymQuestion] = []
+        questions: typing.List[SynonymTestQuestion] = []
         with open(Preferences.toefl_question_path, mode="r", encoding="utf-8") as question_file:
             # Read groups of lines from file
             while True:
@@ -107,7 +241,7 @@ class ToeflTest(SynonymTest):
                     option_list.append(option_match.group("option_word"))
 
                 # Using -1 as an "unset" value
-                questions.append(SynonymQuestion(prompt_word, option_list, -1))
+                questions.append(SynonymTestQuestion(prompt_word, option_list, -1))
 
                 # There's a blank line after each question
                 question_file.readline()
@@ -142,14 +276,14 @@ class EslTest(SynonymTest):
     def name(self):
         return "ESL"
 
-    def _load(self) -> typing.List[SynonymQuestion]:
+    def _load(self) -> typing.List[SynonymTestQuestion]:
         question_re = re.compile(r"^"
                                  r"(?P<prompt_word>[a-z\-]+)"
                                  r"\s+\|\s+"
                                  r"(?P<option_list>[a-z\-\s|]+)"
                                  r"\s*$")
 
-        questions: typing.List[SynonymQuestion] = []
+        questions: typing.List[SynonymTestQuestion] = []
         with open(Preferences.esl_test_path, mode="r", encoding="utf-8") as test_file:
             for line in test_file:
                 line = line.strip()
@@ -167,7 +301,7 @@ class EslTest(SynonymTest):
                 options = [option.strip() for option in question_match.group("option_list").split("|")]
 
                 # The first one is always the correct one
-                questions.append(SynonymQuestion(prompt, options, correct_i=0))
+                questions.append(SynonymTestQuestion(prompt, options, correct_i=0))
 
         return questions
 
@@ -181,10 +315,10 @@ class McqTest(SynonymTest):
     def name(self):
         return "LBM's new MCQ"
 
-    def _load(self) -> typing.List[SynonymQuestion]:
+    def _load(self) -> typing.List[SynonymTestQuestion]:
 
         n_options = 4
-        questions: typing.List[SynonymQuestion] = []
+        questions: typing.List[SynonymTestQuestion] = []
         with open(Preferences.mcq_test_path, mode="r", encoding="utf-8") as test_file:
             while True:
                 prompt = test_file.readline().strip()
@@ -197,6 +331,6 @@ class McqTest(SynonymTest):
                     options.append(test_file.readline().strip())
 
                 # The first one is always the correct one
-                questions.append(SynonymQuestion(prompt, options, correct_i=0))
+                questions.append(SynonymTestQuestion(prompt, options, correct_i=0))
 
         return questions

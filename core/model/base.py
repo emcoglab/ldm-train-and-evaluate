@@ -176,6 +176,10 @@ class LanguageModel(metaclass=ABCMeta):
                  save_dir: str):
         self.model_type = model_type
         self.corpus_meta = corpus_meta
+
+        # Is this model trained and ready to go?
+        self.is_trained = False
+
         # We need to remember the root directory for all models, as well as the save directory for this model.
         # This allows us to instantiate and load other models from the correct root.
         self._root_dir = save_dir
@@ -220,6 +224,9 @@ class LanguageModel(metaclass=ABCMeta):
             self._retrain()
             logger.info(f"Saving {self.name} model to {self._model_filename}")
             self._save()
+
+        # TODO: this is a bit dodgy, as it could potentially get set from elsewhere.
+        self.is_trained = True
 
     @abstractmethod
     def _retrain(self):
