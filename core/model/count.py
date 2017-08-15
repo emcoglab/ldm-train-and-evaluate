@@ -216,29 +216,41 @@ class UnsummedNgramCountModel(CountModel):
         # Second coordinate points to context word
         self._model = sps.lil_matrix((vocab_size, vocab_size))
 
+        # We will produce a window which contains EITHER the left or right context, plus the target word (+1)
+        window_size = self.window_radius + 1
+
         # Start scanning the corpus
         window_count = 0
-        for window in WindowedCorpus(self.corpus_meta, self.window_radius):
+        for window in WindowedCorpus(self.corpus_meta, window_size):
 
             # The target token is the one in the middle, whose index is the radius of the window
             target_token = window[self.window_radius]
             target_id = self.token_indices.token2id[target_token]
 
             if self._chirality is Chirality.left:
-                # For the left occurrences, we look in the first position in the window; index 0
-                lr_index = 0
+                # For a left-hand context, the target token is on the far right
+                # And the context token is on the far left
+                target_index  = -1
+                context_index = 0
             elif self._chirality is Chirality.right:
-                # For the right occurrences, we look in the last position in the window; index -1
-                lr_index = -1
+                # For a right-hand context, the target token is on the far left
+                # And the context token is on the far right
+                target_index  = 0
+                context_index = -1
             else:
                 raise ValueError()
 
-            # Count lh occurrences
-            context_token = window[lr_index]
+            target_token = window[target_index]
+            context_token = window[context_index]
+
+            target_id = self.token_indices.token2id[target_token]
             context_id = self.token_indices.token2id[context_token]
+            
             self._model[target_id, context_id] += 1
 
+            # Count cooccurrences
             window_count += 1
+
             if window_count % 1_000_000 == 0:
                 logger.info(f"\t{window_count:,} tokens processed")
 
