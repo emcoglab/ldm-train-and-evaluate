@@ -39,14 +39,15 @@ class StreamedCorpus(object):
 
     def __init__(self, metadata: CorpusMetadata):
         """
-
-        :type metadata: CorpusMetadata
+        :param metadata: Must point to a tokenised corpus.
         :param metadata:
         """
         self.metadata = metadata
 
     def __iter__(self):
         with open(self.metadata.path, mode="r", encoding="utf-8") as corpus_file:
+            # We can do this because the corpus is tokenised,
+            # so there's a single token on each line
             for token in corpus_file:
                 yield token.strip()
 
@@ -57,6 +58,10 @@ class WindowedCorpus(object):
     """
 
     def __init__(self, metadata: CorpusMetadata, window_radius: int):
+        """
+        :param metadata: Must point to a tokenised corpus.
+        :param window_radius:
+        """
         self.metadata = metadata
         self.window_radius = window_radius
 
@@ -80,13 +85,13 @@ class WindowedCorpus(object):
 
                 # Add a new token on the rhs of the window
                 window.append(token)
-
                 # The window is now full
+
                 yield window
 
-                # Pop the lhs token out of the window to await the next one, which will cause the window to have
-                # moved exactly one token over in the corpus
-                window = window[1:]
+                # Pop the lhs token out of the window to await the next one to be added, which
+                # will cause the window to have moved exactly one token over in the corpus
+                del window[0]
 
 
 class BatchedCorpus(object):
@@ -96,12 +101,8 @@ class BatchedCorpus(object):
 
     def __init__(self, metadata: CorpusMetadata, batch_size: int):
         """
-
-        :type batch_size: int
-        :type metadata: CorpusMetadata
-        :param metadata:
-        :param batch_size:
-        Size of batch
+        :param metadata: Must point to a tokenised corpus.
+        :param batch_size: Size of batch
         """
         self.metadata = metadata
         self.batch_size = batch_size

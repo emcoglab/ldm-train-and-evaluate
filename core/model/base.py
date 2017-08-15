@@ -258,6 +258,9 @@ class VectorSpaceModel(LanguageModel, metaclass=ABCMeta):
 
         # When implementing this class, this must be set by train()
         self._model = None
+        # When self._model is a matrix:
+        #  - First coordinate indexes the target word
+        #  - Second coordinate indexes context word
 
     @property
     def name(self) -> str:

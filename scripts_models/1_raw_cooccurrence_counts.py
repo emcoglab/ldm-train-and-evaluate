@@ -19,11 +19,12 @@ import logging
 import sys
 
 from ..core.utils.constants import Chirality
-from ..core.model.count import UnsummedNgramCountModel
 from ..core.utils.indexing import TokenIndexDictionary
+from ..core.utils.logging import log_message, date_format
+from ..core.model.count import UnsummedNgramCountModel
 from ..preferences.preferences import Preferences
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def main():
