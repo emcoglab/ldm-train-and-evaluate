@@ -323,11 +323,13 @@ class SynonymTester(object):
         Where the text transcript would be saved.
         """
         return os.path.join(Preferences.eval_dir,
-                            f"{self.test.name} results for "
-                            f"{self.model.model_type.slug}_"
-                            f"{self.model.corpus_meta.name}_"
-                            f"r={self.model.window_radius}_"
-                            f"{self.distance_type.name}.txt")
+                            f"{self.test.name} - "
+                            f"{self.model.model_type.name} - "
+                            f"r={self.model.window_radius} - "
+                            f"{self.distance_type.name} - "
+                            f"{self.model.corpus_meta.name}"
+                            f".txt"
+                            )
 
     @property
     def _evaluation_name(self) -> str:
@@ -335,10 +337,11 @@ class SynonymTester(object):
         Name for this evaluation.
         """
         return (f"{self.test.name} results for "
-                f"{self.model.model_type.name} "
-                f"{self.model.corpus_meta.name} "
-                f"r={self.model.window_radius} "
-                f"{self.distance_type.name}")
+                f"{self.model.model_type.name}, "
+                f"r={self.model.window_radius}, "
+                f"{self.distance_type.name}, "
+                f"{self.model.corpus_meta.name}"
+                )
 
     def save_text_transcript(self):
         """

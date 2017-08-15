@@ -72,8 +72,8 @@ class Preferences(object):
 
     # The final locations of the processed corpora
     source_corpus_metas = [
-        bbc_processing_metas["tokenised"],
         bnc_processing_metas["tokenised"],
+        bbc_processing_metas["tokenised"],
         # ukwac_processing_metas["tokenised"]
     ]
 
@@ -99,4 +99,4 @@ class Preferences(object):
     mcq_test_path = "/Users/caiwingfield/evaluation/LBM vocab MCQ/newMCQ.txt"
 
     # Model evaluation results
-    eval_dir = "/Users/caiwingfield/evaluation/"
+    eval_dir = "/Users/caiwingfield/evaluation/results/"
