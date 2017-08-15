@@ -16,7 +16,6 @@ caiwingfield.net
 """
 
 import logging
-import os
 import sys
 
 from ..core.corpus.distribution import FreqDist
@@ -49,29 +48,33 @@ def main():
                 model = LogNgramModel(
                     corpus_metadata, Preferences.model_dir, window_radius, token_index)
                 model.train()
-                SynonymTester(model, test, distance_type).administer_test().save_text_transcript(os.path.join(
-                    model.save_dir, f"toefl_results_{model.name}_r={window_radius}_{distance_type.name}.txt"))
+                tester = SynonymTester(model, test, distance_type)
+                tester.administer_test()
+                tester.save_text_transcript()
 
                 # Conditional probability
                 model = ConditionalProbabilityModel(
                     corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
                 model.train()
-                SynonymTester(model, test, distance_type).administer_test().save_text_transcript(os.path.join(
-                    model.save_dir, f"toefl_results_{model.name}_r={window_radius}_{distance_type.name}.txt"))
+                tester = SynonymTester(model, test, distance_type)
+                tester.administer_test()
+                tester.save_text_transcript()
 
                 # Probability ratios
                 model = ProbabilityRatioModel(
                     corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
                 model.train()
-                SynonymTester(model, test, distance_type).administer_test().save_text_transcript(os.path.join(
-                    model.save_dir, f"toefl_results_{model.name}_r={window_radius}_{distance_type.name}.txt"))
+                tester = SynonymTester(model, test, distance_type)
+                tester.administer_test()
+                tester.save_text_transcript()
 
                 # PPMI
                 model = PPMIModel(
                     corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
                 model.train()
-                SynonymTester(model, test, distance_type).administer_test().save_text_transcript(os.path.join(
-                    model.save_dir, f"toefl_results_{model.name}_r={window_radius}_{distance_type.name}.txt"))
+                tester = SynonymTester(model, test, distance_type)
+                tester.administer_test()
+                tester.save_text_transcript()
 
 
 if __name__ == "__main__":

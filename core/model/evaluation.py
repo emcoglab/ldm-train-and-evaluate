@@ -19,6 +19,7 @@ import re
 import typing
 import math
 import logging
+import os
 
 from abc import ABCMeta, abstractmethod
 from copy import copy
@@ -29,96 +30,6 @@ from ...preferences.preferences import Preferences
 from ..utils.indexing import LetterIndexing
 
 logger = logging.getLogger(__name__)
-
-
-class SynonymTester(object):
-    def __init__(self, model: VectorSpaceModel, test: SynonymTest, distance_type: DistanceType):
-        """
-        Tests a model with a test.
-        :param test: A synonym test.
-        :param model: A TRAINED model.
-        :param distance_type:
-        """
-        assert model.is_trained
-
-        self.distance_type = distance_type
-        self.model = model
-        self.test = test
-
-    def administer_test(self) -> TestResults:
-
-        transcript = []
-        for question in self.test.question_list:
-            prompt = question.prompt
-            options = question.options
-
-            # The current best guess
-            best_guess_i = -1
-            best_guess_d = math.inf
-            for option_i, option in enumerate(options):
-                try:
-                    guess_d = self.model.distance_between(prompt, option, self.distance_type)
-                except KeyError as er:
-                    missing_word = er.args[0]
-                    logger.warning(f"{missing_word} was not found in the corpus.")
-                    # Make sure we don't pick this one
-                    guess_d = math.inf
-
-                if guess_d < best_guess_d:
-                    best_guess_i = option_i
-                    best_guess_d = guess_d
-
-            answer = AnsweredQuestion(copy(question), best_guess_i)
-
-            transcript.append(answer)
-
-        return TestResults(transcript)
-
-
-class TestResults(object):
-    """
-    The results of a test
-    """
-
-    def __init__(self, transcript: typing.List[AnsweredQuestion]):
-        self.transcript = transcript
-
-    @property
-    def _marks(self) -> typing.List(bool):
-        """
-        List of correct/incorrect marks
-        :return:
-        """
-        return [answer.is_correct for answer in self.transcript]
-
-    @property
-    def score(self) -> float:
-        """
-        The percentage of correct answers
-        """
-        return 100 * sum([int(m) for m in self._marks]) / len(self.transcript)
-
-    @property
-    def _text_transcript(self) -> typing.List(str):
-        page = []
-        for answer in self.transcript:
-            page.append(f"Q: {answer.question.prompt}?\t{' '.join(answer.question.options)}.\t"
-                        f"A: {answer.word}:\t{'CORRECT' if answer.is_correct else 'INCORRECT'}")
-        return page
-
-    def save_text_transcript(self, save_path: str):
-        """
-        Saves a text transcript of a test.
-        :param save_path: 
-        :return: 
-        """
-        if not save_path.endswith(".txt"):
-            save_path += ".txt"
-        with open(save_path, mode="w", encoding="utf-8") as transcript_file:
-            transcript_file.write(f"Overall score: {self.score}%")
-            transcript_file.write("-----------------------")
-            for line in self._text_transcript:
-                transcript_file.write(line)
 
 
 class SynonymTestQuestion(object):
@@ -154,6 +65,30 @@ class AnsweredQuestion(object):
         Check whether an answer to the question is correct.
         """
         return self.question.correct_i == self.answer
+
+
+class TestResults(object):
+    """
+    The results of a test
+    """
+
+    def __init__(self, transcript: typing.List[AnsweredQuestion]):
+        self.transcript = transcript
+
+    @property
+    def _marks(self) -> typing.List[bool]:
+        """
+        List of correct/incorrect marks
+        :return:
+        """
+        return [answer.is_correct for answer in self.transcript]
+
+    @property
+    def score(self) -> float:
+        """
+        The percentage of correct answers
+        """
+        return 100 * sum([int(m) for m in self._marks]) / len(self.transcript)
 
 
 class SynonymTest(object, metaclass=ABCMeta):
@@ -334,3 +269,98 @@ class McqTest(SynonymTest):
                 questions.append(SynonymTestQuestion(prompt, options, correct_i=0))
 
         return questions
+
+
+class SynonymTester(object):
+    def __init__(self, model: VectorSpaceModel, test: SynonymTest, distance_type: DistanceType):
+        """
+        Tests a model with a test.
+        :param test: A synonym test.
+        :param model: A TRAINED model.
+        :param distance_type:
+        """
+        assert model.is_trained
+
+        self.distance_type = distance_type
+        self.model = model
+        self.test = test
+
+        # Set by administer_test()
+        self.results: TestResults = None
+
+    def administer_test(self):
+
+        transcript = []
+        for question in self.test.question_list:
+            prompt = question.prompt
+            options = question.options
+
+            # The current best guess
+            best_guess_i = -1
+            best_guess_d = math.inf
+            for option_i, option in enumerate(options):
+                try:
+                    guess_d = self.model.distance_between(prompt, option, self.distance_type)
+                except KeyError as er:
+                    missing_word = er.args[0]
+                    logger.warning(f"{missing_word} was not found in the corpus.")
+                    # Make sure we don't pick this one
+                    guess_d = math.inf
+
+                if guess_d < best_guess_d:
+                    best_guess_i = option_i
+                    best_guess_d = guess_d
+
+            answer = AnsweredQuestion(copy(question), best_guess_i)
+
+            transcript.append(answer)
+
+        self.results = TestResults(transcript)
+
+    @property
+    def _text_transcript_path(self) -> str:
+        """
+        Where the text transcript would be saved.
+        """
+        return os.path.join(Preferences.eval_dir,
+                            f"{self.test.name} results for "
+                            f"{self.model.model_type.slug}_"
+                            f"{self.model.corpus_meta.name}_"
+                            f"r={self.model.window_radius}_"
+                            f"{self.distance_type.name}.txt")
+
+    @property
+    def _evaluation_name(self) -> str:
+        """
+        Name for this evaluation.
+        """
+        return (f"{self.test.name} results for "
+                f"{self.model.model_type.name} "
+                f"{self.model.corpus_meta.name} "
+                f"r={self.model.window_radius} "
+                f"{self.distance_type.name}")
+
+    def save_text_transcript(self):
+        """
+        Saves a text transcript of the results of the test.
+        """
+        assert self.results is not None
+
+        with open(self._text_transcript_path, mode="w", encoding="utf-8") as transcript_file:
+            transcript_file.write(f"Transcript for {self._evaluation_name}\n")
+            transcript_file.write("-----------------------\n")
+            transcript_file.write(f"Overall score: {self.results.score}%\n")
+            transcript_file.write("-----------------------\n")
+            for line in self._get_text_transcript():
+                transcript_file.write(line + "\n")
+
+    def _get_text_transcript(self) -> typing.List[str]:
+        """
+        Gets a text version of the results
+        """
+        assert self.results is not None
+        page = []
+        for answer in self.results.transcript:
+            page.append(f"Q: {answer.question.prompt}?\t{' '.join(answer.question.options)}.\t"
+                        f"A: {answer.word}:\t{'CORRECT' if answer.is_correct else 'INCORRECT'}")
+        return page

@@ -74,7 +74,8 @@ class Preferences(object):
     source_corpus_metas = [
         bbc_processing_metas["tokenised"],
         bnc_processing_metas["tokenised"],
-        ukwac_processing_metas["tokenised"]]
+        # ukwac_processing_metas["tokenised"]
+    ]
 
     # Word lists
     brysbaert_1w = CorpusMetadata(
@@ -92,7 +93,10 @@ class Preferences(object):
     model_dir = "/Users/caiwingfield/vectors/"
 
     # Synonym tests
-    toefl_question_path = "/Users/caiwingfield/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/TOEFL_BrEng/toefl.qst"
-    toefl_answer_path = "/Users/caiwingfield/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/TOEFL_BrEng/toefl.ans"
-    esl_test_path = "/Users/caiwingfield/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/ESL_BrEng/esl.txt"
-    mcq_test_path = "/Users/caiwingfield/Box Sync/LANGBOOT Project/Corpus Analysis/Synonym tests/LBM vocab MCQ/newMCQ.txt"
+    toefl_question_path = "/Users/caiwingfield/evaluation/TOEFL/toefl.qst"
+    toefl_answer_path = "/Users/caiwingfield/evaluation/TOEFL/toefl.ans"
+    esl_test_path = "/Users/caiwingfield/evaluation/ESL/esl.txt"
+    mcq_test_path = "/Users/caiwingfield/evaluation/LBM vocab MCQ/newMCQ.txt"
+
+    # Model evaluation results
+    eval_dir = "/Users/caiwingfield/evaluation/"
