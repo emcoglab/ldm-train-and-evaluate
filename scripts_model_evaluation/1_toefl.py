@@ -94,6 +94,19 @@ def main():
                     tester.administer_test()
                     tester.save_text_transcript()
 
+                # For comparison with B&L (2007)
+                model = PPMIModel(
+                    corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
+                for distance_type in DistanceType:
+                    tester = SynonymTester(model, test, distance_type, truncate_vectors_at_length=100_000)
+                    # Skip ones we've done
+                    if tester.saved_transcript_exists:
+                        continue
+                    if not tester.model.is_trained:
+                        tester.model.train()
+                    tester.administer_test()
+                    tester.save_text_transcript()
+
 
 if __name__ == "__main__":
     logging.basicConfig(format=log_message, datefmt=date_format, level=logging.INFO)
