@@ -223,10 +223,6 @@ class UnsummedNgramCountModel(CountModel):
         window_count = 0
         for window in WindowedCorpus(self.corpus_meta, window_size):
 
-            # The target token is the one in the middle, whose index is the radius of the window
-            target_token = window[self.window_radius]
-            target_id = self.token_indices.token2id[target_token]
-
             if self._chirality is Chirality.left:
                 # For a left-hand context, the target token is on the far right
                 # And the context token is on the far left
@@ -443,7 +439,7 @@ class ConditionalProbabilityModel(CountModel):
         #                                     mx indexed by c on 1st dim
         #
         # According to https://stackoverflow.com/a/12238133/2883198, this is how you do that:
-        self._model.data /= token_probability_model.vector.repeat(np.diff(self._model.indptr))
+        self._model.data = self._model.data / token_probability_model.vector.repeat(np.diff(self._model.indptr))
         self._model.tolil()
 
 
@@ -529,7 +525,7 @@ class ProbabilityRatioModel(CountModel):
         #                                     mx indexed by c on 1st dim
         #
         # According to https://stackoverflow.com/a/12238133/2883198, this is how you do that:
-        self._model.data /= context_probability_model.vector.repeat(np.diff(self._model.indptr))
+        self._model.data = self._model.data / context_probability_model.vector.repeat(np.diff(self._model.indptr))
         self._model.tolil()
 
 
