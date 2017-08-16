@@ -515,17 +515,26 @@ class ProbabilityRatioModel(CountModel):
         # Here we divide each conditional n-gram probability value by the context probability value.
         # This amounts to dividing each 0th-dim-slice of the matrix by a single value
         #
-        #                                  p(c|t)         p(c)
+        #                                      mx indexed by c on 1st dim
+        #                                      |
+        #                                      v
+        #                               [ [ -, -, - ] ,
+        # mx indexed by t on 0th dim ->   [ -, -, - ] ,   p(c|t)
+        #                                 [ -, -, - ] ]
+        #                                      /
+        #                                 [ -, -, - ]     p(c)
+        #                                   ^     ^
+        #                                   |     |
+        #                                   |     vec indexed by c on 0th dim
+        #                                   |
+        #                                   entire mx col to be div'd by this vec entry
         #
-        #                               [ [-, -, -] ,     [ - ,     <- entire mx row to be div'd by this vec entry
-        # mx indexed by t on 0th dim ->   [-, -, -] ,  /    - , <- vec indexed by c on 0th dim
-        #                                 [-, -, -] ]       - ]
-        #                                     ^
-        #                                     |
-        #                                     mx indexed by c on 1st dim
-        #
-        # According to https://stackoverflow.com/a/12238133/2883198, this is how you do that:
+        # We follow the same method as for the ConditionalProbabilityModel, but that's for dividing each row by a
+        # corresponding vector element, and we want to divide each column by the corresponding vector element.  We know
+        # that the row method is fast, so we'll transpose, divide, transpose back.
+        self._model = self._model.transpose().tocsr()
         self._model.data = self._model.data / context_probability_model.vector.repeat(np.diff(self._model.indptr))
+        self._model = self._model.transpose().tocsr()
         self._model.tolil()
 
 
