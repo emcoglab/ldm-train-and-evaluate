@@ -66,7 +66,6 @@ class StreamedCorpus(object):
             raise FileNotFoundError(f"{self.metadata.path} does not exist.")
 
 
-
 class WindowedCorpus(object):
     """
     Corpus presented through a sliding window.

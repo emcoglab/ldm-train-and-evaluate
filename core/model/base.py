@@ -327,8 +327,10 @@ class VectorSpaceModel(LanguageModel, metaclass=ABCMeta):
         v_1 = self.vector_for_word(word_1)
         v_2 = self.vector_for_word(word_2)
 
-        if truncate_vectors_at_length is not None and truncate_vectors_at_length < len(v_1):
-            v_1 = v_1[:truncate_vectors_at_length]
-            v_2 = v_2[:truncate_vectors_at_length]
+        # TODO: The vectors that come out of word2vec may not be like this, in which case this won't work.
+        # TODO: Verify!
+        if truncate_vectors_at_length is not None and truncate_vectors_at_length < v_1.shape[1]:
+            v_1 = v_1[:, :truncate_vectors_at_length]
+            v_2 = v_2[:, :truncate_vectors_at_length]
 
         return distance(v_1, v_2, distance_type)

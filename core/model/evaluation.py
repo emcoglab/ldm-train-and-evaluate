@@ -357,7 +357,7 @@ class SynonymTester(object):
         name += f"r={self.model.window_radius}, "
         name += f"{self.distance_type.name}"
         # Only record truncation of vectors if we're doing it
-        name += f"s={self._truncate_at_length}" if self._truncate_at_length is not None else ""
+        name += f"s={self._truncate_at_length:,}" if self._truncate_at_length is not None else ""
         return name
 
     def save_text_transcript(self):
