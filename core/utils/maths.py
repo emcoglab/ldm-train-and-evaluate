@@ -25,9 +25,9 @@ class DistanceType(Enum):
     """
     Representative of a distance type.
     """
-    Euclidean = auto()
-    cosine = auto()
     correlation = auto()
+    cosine = auto()
+    Euclidean = auto()
 
     @property
     def name(self) -> str:

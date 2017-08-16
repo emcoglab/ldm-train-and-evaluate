@@ -52,17 +52,8 @@ def main():
                         continue
                     if not tester.model.is_trained:
                         tester.model.train()
-
-                # Log n-gram
-                model = LogNgramModel(
-                    corpus_metadata, Preferences.model_dir, window_radius, token_index)
-                for distance_type in DistanceType:
-                    tester = SynonymTester(model, test, distance_type)
-                    # Skip ones we've done
-                    if tester.saved_transcript_exists:
-                        continue
-                    if not tester.model.is_trained:
-                        tester.model.train()
+                    tester.administer_test()
+                    tester.save_text_transcript()
 
                 # Conditional probability
                 model = ConditionalProbabilityModel(
@@ -74,6 +65,8 @@ def main():
                         continue
                     if not tester.model.is_trained:
                         tester.model.train()
+                    tester.administer_test()
+                    tester.save_text_transcript()
 
                 # Probability ratios
                 model = ProbabilityRatioModel(
@@ -85,6 +78,8 @@ def main():
                         continue
                     if not tester.model.is_trained:
                         tester.model.train()
+                    tester.administer_test()
+                    tester.save_text_transcript()
 
                 # PPMI
                 model = PPMIModel(
@@ -96,6 +91,8 @@ def main():
                         continue
                     if not tester.model.is_trained:
                         tester.model.train()
+                    tester.administer_test()
+                    tester.save_text_transcript()
 
 
 if __name__ == "__main__":

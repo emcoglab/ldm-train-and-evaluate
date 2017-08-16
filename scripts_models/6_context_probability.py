@@ -40,6 +40,6 @@ def main():
 
 if __name__ == "__main__":
     logging.basicConfig(format=log_message, datefmt=date_format, level=logging.INFO)
-    logger.info("running %s" % " ".join(sys.argv))
+    logger.info("Running %s" % " ".join(sys.argv))
     main()
     logger.info("Done!")

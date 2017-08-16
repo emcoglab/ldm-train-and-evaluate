@@ -281,11 +281,10 @@ class SynonymTester(object):
         """
         Tests a model with a test.
         :param test: A synonym test.
-        :param model: A TRAINED model.
+        :param model: A model which must be TRAINED by the time the test is administered.
         :param distance_type:
         :param truncate_vectors_at_length:
         """
-        assert model.is_trained
 
         self.distance_type = distance_type
         self.model = model
@@ -297,6 +296,8 @@ class SynonymTester(object):
         self._truncate_at_length = truncate_vectors_at_length
 
     def administer_test(self):
+
+        assert self.model.is_trained
 
         transcript = []
         for question in self.test.question_list:
