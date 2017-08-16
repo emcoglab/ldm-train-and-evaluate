@@ -40,43 +40,62 @@ def main():
 
         for window_radius in Preferences.window_radii:
 
-            # Run through each model
+                # Run through each model
 
-            # Log n-gram
-            model = LogNgramModel(
-                corpus_metadata, Preferences.model_dir, window_radius, token_index)
-            model.train()
-            for distance_type in DistanceType:
-                tester = SynonymTester(model, test, distance_type)
-                tester.administer_test()
-                tester.save_text_transcript()
+                # Log n-gram
+                model = LogNgramModel(
+                    corpus_metadata, Preferences.model_dir, window_radius, token_index)
+                for distance_type in DistanceType:
+                    tester = SynonymTester(model, test, distance_type)
+                    # Skip ones we've done
+                    if tester.saved_transcript_exists:
+                        continue
+                    if not tester.model.is_trained:
+                        tester.model.train()
 
-            # Conditional probability
-            model = ConditionalProbabilityModel(
-                corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
-            model.train()
-            for distance_type in DistanceType:
-                tester = SynonymTester(model, test, distance_type)
-                tester.administer_test()
-                tester.save_text_transcript()
+                # Log n-gram
+                model = LogNgramModel(
+                    corpus_metadata, Preferences.model_dir, window_radius, token_index)
+                for distance_type in DistanceType:
+                    tester = SynonymTester(model, test, distance_type)
+                    # Skip ones we've done
+                    if tester.saved_transcript_exists:
+                        continue
+                    if not tester.model.is_trained:
+                        tester.model.train()
 
-            # Probability ratios
-            model = ProbabilityRatioModel(
-                corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
-            model.train()
-            for distance_type in DistanceType:
-                tester = SynonymTester(model, test, distance_type)
-                tester.administer_test()
-                tester.save_text_transcript()
+                # Conditional probability
+                model = ConditionalProbabilityModel(
+                    corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
+                for distance_type in DistanceType:
+                    tester = SynonymTester(model, test, distance_type)
+                    # Skip ones we've done
+                    if tester.saved_transcript_exists:
+                        continue
+                    if not tester.model.is_trained:
+                        tester.model.train()
 
-            # PPMI
-            model = PPMIModel(
-                corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
-            model.train()
-            for distance_type in DistanceType:
-                tester = SynonymTester(model, test, distance_type)
-                tester.administer_test()
-                tester.save_text_transcript()
+                # Probability ratios
+                model = ProbabilityRatioModel(
+                    corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
+                for distance_type in DistanceType:
+                    tester = SynonymTester(model, test, distance_type)
+                    # Skip ones we've done
+                    if tester.saved_transcript_exists:
+                        continue
+                    if not tester.model.is_trained:
+                        tester.model.train()
+
+                # PPMI
+                model = PPMIModel(
+                    corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
+                for distance_type in DistanceType:
+                    tester = SynonymTester(model, test, distance_type)
+                    # Skip ones we've done
+                    if tester.saved_transcript_exists:
+                        continue
+                    if not tester.model.is_trained:
+                        tester.model.train()
 
 
 if __name__ == "__main__":

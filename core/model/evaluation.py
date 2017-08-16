@@ -357,6 +357,13 @@ class SynonymTester(object):
             for line in self._get_text_transcript():
                 transcript_file.write(line + "\n")
 
+    @property
+    def saved_transcript_exists(self):
+        """
+        Does a text transcript already exist?
+        """
+        return os.path.isfile(self._text_transcript_path)
+
     def _get_text_transcript(self) -> typing.List[str]:
         """
         Gets a text version of the results
