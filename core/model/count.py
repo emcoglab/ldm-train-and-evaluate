@@ -504,15 +504,16 @@ class ProbabilityRatioModel(CountModel):
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
-        ngram_model.train()
+        cond_prob_model = ConditionalProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
+                                                      self.token_indices, self._freq_dist)
+        cond_prob_model.train()
 
         # Convert to csr for linear algebra
-        self._model = ngram_model.matrix.tocsr()
-        del ngram_model
+        self._model = cond_prob_model.matrix.tocsr()
+        del cond_prob_model
 
         context_probability_model = ContextProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
-                                                          self.token_indices, self._freq_dist)
+                                                            self.token_indices, self._freq_dist)
         context_probability_model.train()
 
         # Here we divide each conditional n-gram probability value by the context probability value.
