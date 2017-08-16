@@ -20,6 +20,7 @@ import sys
 
 from ..core.corpus.distribution import FreqDist
 from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
+from ..core.model.predict import SkipGramModel
 from ..core.model.evaluation import ToeflTest, SynonymTester
 from ..core.utils.indexing import TokenIndexDictionary
 from ..core.utils.logging import log_message, date_format
@@ -99,6 +100,18 @@ def main():
                     corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
                 for distance_type in DistanceType:
                     tester = SynonymTester(model, test, distance_type, truncate_vectors_at_length=100_000)
+                    # Skip ones we've done
+                    if tester.saved_transcript_exists:
+                        continue
+                    if not tester.model.is_trained:
+                        tester.model.train()
+                    tester.administer_test()
+                    tester.save_text_transcript()
+
+                model = SkipGramModel(
+                    corpus_metadata, Preferences.model_dir, window_radius, Preferences.predict_embedding_sizes[3])
+                for distance_type in DistanceType:
+                    tester = SynonymTester(model, test, distance_type)
                     # Skip ones we've done
                     if tester.saved_transcript_exists:
                         continue

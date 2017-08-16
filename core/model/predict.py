@@ -105,7 +105,7 @@ class PredictModel(VectorSpaceModel):
             return [w for w, d in nearest_neighbours]
 
     def vector_for_word(self, word: str):
-        return self._model.wv.word_vec(word, use_norm=True)
+        return self._model.wv.word_vec(word)
 
 
 class CbowModel(PredictModel):
