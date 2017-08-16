@@ -86,7 +86,7 @@ class WindowedCorpus(object):
         for token in StreamedCorpus(self.metadata):
 
             # Fill up the initial window, such that the next token to be read will produce the first full window
-            if token_count < self.window_width:
+            if token_count < self.window_width - 1:
                 window.append(token)
                 token_count += 1
 
