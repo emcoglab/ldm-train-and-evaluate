@@ -272,12 +272,18 @@ class McqTest(SynonymTest):
 
 
 class SynonymTester(object):
-    def __init__(self, model: VectorSpaceModel, test: SynonymTest, distance_type: DistanceType):
+    def __init__(self,
+                 model: VectorSpaceModel,
+                 test: SynonymTest,
+                 distance_type: DistanceType,
+                 truncate_vectors_at_length: int = None
+                 ):
         """
         Tests a model with a test.
         :param test: A synonym test.
         :param model: A TRAINED model.
         :param distance_type:
+        :param truncate_vectors_at_length:
         """
         assert model.is_trained
 
@@ -287,6 +293,8 @@ class SynonymTester(object):
 
         # Set by administer_test()
         self.results: TestResults = None
+
+        self._truncate_at_length = truncate_vectors_at_length
 
     def administer_test(self):
 
@@ -300,7 +308,10 @@ class SynonymTester(object):
             best_guess_d = math.inf
             for option_i, option in enumerate(options):
                 try:
-                    guess_d = self.model.distance_between(prompt, option, self.distance_type)
+                    guess_d = self.model.distance_between(prompt,
+                                                          option,
+                                                          self.distance_type,
+                                                          self._truncate_at_length)
                 except KeyError as er:
                     missing_word = er.args[0]
                     logger.warning(f"{missing_word} was not found in the corpus.")
@@ -322,26 +333,31 @@ class SynonymTester(object):
         """
         Where the text transcript would be saved.
         """
-        return os.path.join(Preferences.eval_dir,
-                            f"{self.test.name} - "
-                            f"{self.model.model_type.name} - "
-                            f"r={self.model.window_radius} - "
-                            f"{self.distance_type.name} - "
-                            f"{self.model.corpus_meta.name}"
-                            f".txt"
-                            )
+        filename = ""
+        filename += f"{self.test.name}"
+        filename += f" - {self.model.corpus_meta.name}"
+        filename += f" - {self.model.model_type.name}"
+        filename += f" - r={self.model.window_radius}"
+        filename += f" - {self.distance_type.name}"
+        # Only record truncation of vectors if we're doing it
+        filename += f" - s={self._truncate_at_length}" if self._truncate_at_length is not None else ""
+        filename += f".txt"
+        return os.path.join(Preferences.eval_dir, filename)
 
     @property
     def _evaluation_name(self) -> str:
         """
         Name for this evaluation.
         """
-        return (f"{self.test.name} results for "
-                f"{self.model.model_type.name}, "
-                f"r={self.model.window_radius}, "
-                f"{self.distance_type.name}, "
-                f"{self.model.corpus_meta.name}"
-                )
+        name = ""
+        name += f"{self.test.name} results for "
+        name += f"{self.model.corpus_meta.name}, "
+        name += f"{self.model.model_type.name}, "
+        name += f"r={self.model.window_radius}, "
+        name += f"{self.distance_type.name}"
+        # Only record truncation of vectors if we're doing it
+        name += f"s={self._truncate_at_length}" if self._truncate_at_length is not None else ""
+        return name
 
     def save_text_transcript(self):
         """

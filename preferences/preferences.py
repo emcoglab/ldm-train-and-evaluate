@@ -24,6 +24,18 @@ class Preferences(object):
     """
 
     # Paths for intermediate processing steps
+    bnc_processing_metas = dict(
+        raw=CorpusMetadata(
+            name="BNC",
+            path="/Users/caiwingfield/corpora/BNC/0 XML version/Texts"),
+        detagged=CorpusMetadata(
+            name="BNC",
+            path="/Users/caiwingfield/corpora/BNC/1 Detagged"),
+        tokenised=CorpusMetadata(
+            name="BNC",
+            path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus",
+            freq_dist_path="/Users/caiwingfield/corpora/BNC/2.1 info/frequency_distribution_BNC",
+            index_path="/Users/caiwingfield/vectors/indexes/BNC.index"))
     bbc_processing_metas = dict(
         raw=CorpusMetadata(
             name="BBC",
@@ -42,18 +54,6 @@ class Preferences(object):
             path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus",
             freq_dist_path="/Users/caiwingfield/corpora/BBC/4.1 info/frequency_distribution_BBC",
             index_path="/Users/caiwingfield/vectors/indexes/BBC.index"))
-    bnc_processing_metas = dict(
-        raw=CorpusMetadata(
-            name="BNC",
-            path="/Users/caiwingfield/corpora/BNC/0 XML version/Texts"),
-        detagged=CorpusMetadata(
-            name="BNC",
-            path="/Users/caiwingfield/corpora/BNC/1 Detagged"),
-        tokenised=CorpusMetadata(
-            name="BNC",
-            path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus",
-            freq_dist_path="/Users/caiwingfield/corpora/BNC/2.1 info/frequency_distribution_BNC",
-            index_path="/Users/caiwingfield/vectors/indexes/BNC.index"))
     ukwac_processing_metas = dict(
         raw=CorpusMetadata(
             name="UKWAC",

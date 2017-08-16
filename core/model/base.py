@@ -315,12 +315,20 @@ class VectorSpaceModel(LanguageModel, metaclass=ABCMeta):
     def _save(self):
         raise NotImplementedError()
 
-    def distance_between(self, word_1, word_2, distance_type: DistanceType):
+    def distance_between(self, word_1, word_2, distance_type: DistanceType, truncate_vectors_at_length: int = None):
         """
         Returns the distance between the two specified words
         :param word_1:
         :param word_2:
         :param distance_type:
+        :param truncate_vectors_at_length:
         :return:
         """
-        return distance(self.vector_for_word(word_1), self.vector_for_word(word_2), distance_type)
+        v_1 = self.vector_for_word(word_1)
+        v_2 = self.vector_for_word(word_2)
+
+        if truncate_vectors_at_length is not None and truncate_vectors_at_length < len(v_1):
+            v_1 = v_1[:truncate_vectors_at_length]
+            v_2 = v_2[:truncate_vectors_at_length]
+
+        return distance(v_1, v_2, distance_type)
