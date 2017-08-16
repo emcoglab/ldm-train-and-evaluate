@@ -226,12 +226,12 @@ class UnsummedNgramCountModel(CountModel):
             if self._chirality is Chirality.left:
                 # For a left-hand context, the target token is on the far right
                 # And the context token is on the far left
-                target_index  = -1
+                target_index = -1
                 context_index = 0
             elif self._chirality is Chirality.right:
                 # For a right-hand context, the target token is on the far left
                 # And the context token is on the far right
-                target_index  = 0
+                target_index = 0
                 context_index = -1
             else:
                 raise ValueError()
@@ -241,7 +241,10 @@ class UnsummedNgramCountModel(CountModel):
 
             target_id = self.token_indices.token2id[target_token]
             context_id = self.token_indices.token2id[context_token]
-            
+
+            # TODO: Are the left- and right-context matrices transposes of one another?  For the edge-most elements of
+            # TODO: every window, one is either the target or the context, and the other is the other.  If so, we can
+            # TODO: speed up this whole shebang
             self._model[target_id, context_id] += 1
 
             # Count cooccurrences

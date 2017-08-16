@@ -69,12 +69,19 @@ class Preferences(object):
             path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
             freq_dist_path="/Users/caiwingfield/corpora/UKWAC/3.1 info/frequency_distribution_UKWAC",
             index_path="/Users/caiwingfield/vectors/indexes/UKWAC.index"))
+    toy_processing_metas = dict(
+        tokenised=CorpusMetadata(
+            name="Toy",
+            path="/Users/caiwingfield/corpora/toy-corpus/toy.corpus",
+            freq_dist_path="/Users/caiwingfield/corpora/toy-corpus/frequency_distribution_toy",
+            index_path="/Users/caiwingfield/corpora/toy-corpus/toy.index"))
 
     # The final locations of the processed corpora
     source_corpus_metas = [
         bnc_processing_metas["tokenised"],
         bbc_processing_metas["tokenised"],
-        # ukwac_processing_metas["tokenised"]
+        # ukwac_processing_metas["tokenised"],
+        toy_processing_metas["tokenised"]
     ]
 
     # Word lists
