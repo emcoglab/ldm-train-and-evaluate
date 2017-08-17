@@ -306,19 +306,22 @@ class ReportCard(object):
                      answer_paper: AnswerPaper):
             self._answer_paper = answer_paper
             self._distance_type = distance_type
-            self._model = model
+            self._model_type_name = model.model_type.name
+            self._window_radius = model.window_radius
+            self._corpus_name = model.corpus_meta.name
+            self._embedding_size = model.embedding_size if isinstance(model, PredictModel) else None
             self._test = test
 
         @property
         def fields(self) -> typing.List[str]:
             return [
                 self._test.name,
-                self._model.model_type.name,
+                self._model_type_name,
                 # Only PredictModels have an embedding size
-                f"{self._model.embedding_size}" if isinstance(self._model, PredictModel) else "",
-                f"{self._model.window_radius}",
+                f"{self._embedding_size}" if self._embedding_size is not None else "",
+                f"{self._window_radius}",
                 self._distance_type.name,
-                self._model.corpus_meta.name,
+                self._corpus_name,
                 f"{self._answer_paper.score}%"
             ]
 
