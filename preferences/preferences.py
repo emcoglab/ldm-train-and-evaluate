@@ -81,7 +81,7 @@ class Preferences(object):
         bnc_processing_metas["tokenised"],
         bbc_processing_metas["tokenised"],
         # ukwac_processing_metas["tokenised"],
-        toy_processing_metas["tokenised"]
+        # toy_processing_metas["tokenised"]
     ]
 
     # Word lists
@@ -100,10 +100,10 @@ class Preferences(object):
     model_dir = "/Users/caiwingfield/vectors/"
 
     # Synonym tests
-    toefl_question_path = "/Users/caiwingfield/evaluation/TOEFL/toefl.qst"
-    toefl_answer_path = "/Users/caiwingfield/evaluation/TOEFL/toefl.ans"
-    esl_test_path = "/Users/caiwingfield/evaluation/ESL/esl.txt"
-    mcq_test_path = "/Users/caiwingfield/evaluation/LBM vocab MCQ/newMCQ.txt"
+    toefl_question_path = "/Users/caiwingfield/evaluation/tests/TOEFL/toefl.qst"
+    toefl_answer_path   = "/Users/caiwingfield/evaluation/tests/TOEFL/toefl.ans"
+    esl_test_path       = "/Users/caiwingfield/evaluation/tests/ESL/esl.txt"
+    mcq_test_path       = "/Users/caiwingfield/evaluation/tests/LBM vocab MCQ/newMCQ.txt"
 
     # Model evaluation results
     eval_dir = "/Users/caiwingfield/evaluation/results/"

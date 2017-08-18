@@ -72,10 +72,14 @@ class AnsweredQuestion(object):
         return self.question.correct_i == self.answer_i
 
     def __str__(self):
+        if self.is_correct:
+            mark = "CORRECT"
+        else:
+            mark = f"INCORRECT ({self.question.correct_answer_word})"
         return (f"Question: {self.question.prompt}?\t"
                 f"Options: {' '.join(self.question.options)}.\t"
                 f"Answer: {self.answer_word}.\t"
-                f"Mark: {'INCORRECT ('+self.question.correct_answer_word+')') if not self.is_correct else 'CORRECT'}")
+                f"Mark: {mark}")
 
 
 class AnswerPaper(object):
@@ -481,6 +485,9 @@ class SynonymTester(object):
         """
         for distance_type in DistanceType:
             for test in self.test_battery:
-                if os.path.isfile(self._text_transcript_path(test, distance_type, model)):
+                # If one file doesn't exist
+                if not os.path.isfile(self._text_transcript_path(test, distance_type, model,
+                                                                 truncate_vectors_at_length)):
+                    # The not all of them do
                     return False
         return True
