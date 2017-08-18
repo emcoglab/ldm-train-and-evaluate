@@ -307,10 +307,12 @@ class ReportCard(object):
                      test: SynonymTest,
                      model: VectorSpaceModel,
                      distance_type: DistanceType,
-                     answer_paper: AnswerPaper):
+                     answer_paper: AnswerPaper,
+                     # ugh
+                     append_to_model_name: str = ""):
             self._answer_paper = answer_paper
             self._distance_type = distance_type
-            self._model_type_name = model.model_type.name
+            self._model_type_name = model.model_type.name + append_to_model_name
             self._window_radius = model.window_radius
             self._corpus_name = model.corpus_meta.name
             self._embedding_size = model.embedding_size if isinstance(model, PredictModel) else None
@@ -410,18 +412,17 @@ class SynonymTester(object):
     Administers a synonym test against a model.
     """
 
-    def __init__(self,
-                 test_battery: typing.List[SynonymTest],
-                 truncate_vectors_at_length: int = None
-                 ):
+    def __init__(self, test_battery: typing.List[SynonymTest]):
         self.test_battery = test_battery
 
-        self._truncate_at_length = truncate_vectors_at_length
-
-    def administer_tests(self, model: VectorSpaceModel) -> ReportCard:
+    def administer_tests(self,
+                         model: VectorSpaceModel,
+                         truncate_vectors_at_length: int = None
+                         ) -> ReportCard:
         """
         Administers a battery of tests against a model
         :param model: Must be trained.
+        :param truncate_vectors_at_length:
         :return:
         """
 
@@ -442,10 +443,8 @@ class SynonymTester(object):
                     best_guess_d = math.inf
                     for option_i, option in enumerate(options):
                         try:
-                            guess_d = model.distance_between(prompt,
-                                                             option,
-                                                             distance_type,
-                                                             self._truncate_at_length)
+                            guess_d = model.distance_between(prompt, option, distance_type,
+                                                             truncate_vectors_at_length)
                         except KeyError as er:
                             logger.warning(f"{er.args[0]} was not found in the corpus.")
                             # Make sure we don't pick this one
@@ -460,13 +459,18 @@ class SynonymTester(object):
                 answer_paper = AnswerPaper(answers)
 
                 # Save the transcripts for this test
-                answer_paper.save_text_transcript(self._text_transcript_path(test, distance_type, model))
+                answer_paper.save_text_transcript(self._text_transcript_path(test, distance_type, model,
+                                                                             truncate_vectors_at_length))
 
-                report_card.add_entry(ReportCard.Entry(test, model, distance_type, answer_paper))
+                append_to_model_name = "" if truncate_vectors_at_length is None else f" ({truncate_vectors_at_length})"
+                report_card.add_entry(ReportCard.Entry(test, model, distance_type, answer_paper,
+                                                       append_to_model_name=append_to_model_name))
 
         return report_card
 
-    def _text_transcript_path(self, test: SynonymTest, distance_type: DistanceType, model: VectorSpaceModel) -> str:
+    @staticmethod
+    def _text_transcript_path(test: SynonymTest, distance_type: DistanceType, model: VectorSpaceModel,
+                              truncate_vectors_at_length: int) -> str:
         """
         Where the text transcript would be saved for a particular test.
         """
@@ -475,11 +479,11 @@ class SynonymTester(object):
         filename += f" - {model.name}"
         filename += f" - {distance_type.name}"
         # Only record truncation of vectors if we're doing it
-        filename += f" - s={self._truncate_at_length}" if self._truncate_at_length is not None else ""
+        filename += f" - s={truncate_vectors_at_length}" if truncate_vectors_at_length is not None else ""
         filename += f".txt"
         return os.path.join(Preferences.eval_dir, "transcripts", filename)
 
-    def all_transcripts_exist_for(self, model: VectorSpaceModel) -> bool:
+    def all_transcripts_exist_for(self, model: VectorSpaceModel, truncate_vectors_at_length: int = None) -> bool:
         """
         If every test transcript file exists for this model.
         """
