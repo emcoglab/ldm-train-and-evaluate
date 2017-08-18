@@ -1,6 +1,7 @@
 # README #
 
 Scripts for:
+
 - Cleaning and tokenising text corpora.
 - Computing summary information about text corpora.
 - Building semantic vector space models from text corpora.
