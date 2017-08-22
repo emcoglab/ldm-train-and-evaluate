@@ -6,6 +6,7 @@ Scripts for:
 - Computing summary information about text corpora.
 - Building semantic vector space models from text corpora.
 - Querying semantic vector space models using various distance measures.
+- Evaluating semantic vector space models using a number of standard benchmarking tests.
 
 
 ## Structure
@@ -20,7 +21,7 @@ Ancillary computations in `core`.
 
 To run a script, you'll need to go above this project directory, and run using the `-m` flag.  For example:
 ```commandline
-python -m corpus_analysis.scripts_models.0_word_indexing
+python -m corpus_analysis.scripts_model_evaluation.1_synonym_tests
 ```
 This is because of weird behaviour of Python which I don't understand.
 
