@@ -155,7 +155,7 @@ class WordsimRelatedness(SimilarityJudgementTest):
                               r"(?P<relatedness>[0-9.]+)"  # The average relatedness judgement.  In range [1, 10].
                               r"\s*$")
 
-        with open(Preferences.wordsim_similarity_path, mode="r", encoding="utf-8") as wordsim_file:
+        with open(Preferences.wordsim_relatedness_path, mode="r", encoding="utf-8") as wordsim_file:
             # Skip header line
             wordsim_file.readline()
             judgements = []
