@@ -80,8 +80,7 @@ class Preferences(object):
     source_corpus_metas = [
         bnc_processing_metas["tokenised"],
         bbc_processing_metas["tokenised"],
-        ukwac_processing_metas["tokenised"],
-        # toy_processing_metas["tokenised"]
+        ukwac_processing_metas["tokenised"]
     ]
 
     # Word lists
@@ -104,6 +103,14 @@ class Preferences(object):
     toefl_answer_path   = "/Users/caiwingfield/evaluation/tests/TOEFL/toefl.ans"
     esl_test_path       = "/Users/caiwingfield/evaluation/tests/ESL/esl.txt"
     mcq_test_path       = "/Users/caiwingfield/evaluation/tests/LBM vocab MCQ/newMCQ.txt"
+
+    # Word similarity judgement tests
+    simlex_path              = ("/Users/caiwingfield/Box Sync/LANGBOOT Project/Corpus Analysis/"
+                                "Word similarity judgements/SimLex-999/SimLex-999.txt")
+    wordsim_similarity_path  = ("/Users/caiwingfield/Box Sync/LANGBOOT Project/Corpus Analysis/"
+                                "Word similarity judgements/WordSim353/wordsim_similarity_goldstandard.txt")
+    wordsim_relatedness_path = ("/Users/caiwingfield/Box Sync/LANGBOOT Project/Corpus Analysis/"
+                                "Word similarity judgements/WordSim353/wordsim_relatedness_goldstandard.txt")
 
     # Model evaluation results
     eval_dir = "/Users/caiwingfield/evaluation/results/"

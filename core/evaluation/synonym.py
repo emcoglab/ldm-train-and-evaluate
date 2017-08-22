@@ -136,13 +136,6 @@ class SynonymTest(object, metaclass=ABCMeta):
         """
         raise NotImplementedError()
 
-    @property
-    def n_questions(self) -> int:
-        """
-        The number of questions in the test.
-        """
-        return len(self._question_list)
-
     @abstractmethod
     def _load(self) -> typing.List[SynonymTestQuestion]:
         raise NotImplementedError()
@@ -154,7 +147,7 @@ class ToeflTest(SynonymTest):
     """
 
     @property
-    def name(self):
+    def name(self) -> str:
         return "TOEFL"
 
     def _load(self) -> typing.List[SynonymTestQuestion]:
