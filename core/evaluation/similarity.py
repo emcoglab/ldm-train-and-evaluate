@@ -1,12 +1,13 @@
 import re
-import typing
 
 from abc import ABCMeta, abstractmethod
+from typing import List
 
 import numpy
 
-from ..utils.maths import DistanceType
 from ..model.base import VectorSpaceModel
+from ..model.predict import PredictModel
+from ..utils.maths import DistanceType
 from ...preferences.preferences import Preferences
 
 
@@ -27,7 +28,7 @@ class SimilarityJudgementTest(metaclass=ABCMeta):
     """
     def __init__(self):
         # Backs self.judgement_list
-        self._judgement_list: typing.List[SimilarityJudgement] = None
+        self._judgement_list: List[SimilarityJudgement] = None
 
     @property
     def judgement_list(self):
@@ -48,11 +49,11 @@ class SimilarityJudgementTest(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def _load(self) -> typing.List[SimilarityJudgement]:
+    def _load(self) -> List[SimilarityJudgement]:
         raise NotImplementedError()
 
 
-class Simlex(SimilarityJudgementTest):
+class SimlexSimilarity(SimilarityJudgementTest):
     """
     Simlex-999 judgements.
     """
@@ -61,7 +62,7 @@ class Simlex(SimilarityJudgementTest):
     def name(self) -> str:
         return "Simlex-999"
 
-    def _load(self) -> typing.List[SimilarityJudgement]:
+    def _load(self) -> List[SimilarityJudgement]:
 
         entry_re = re.compile(r"^"
                               r"(?P<word_1>[a-z]+)"  # The first concept in the pair.
@@ -88,6 +89,7 @@ class Simlex(SimilarityJudgementTest):
         with open(Preferences.simlex_path, mode="r", encoding="utf-8") as simlex_file:
             # Skip header line
             simlex_file.readline()
+
             judgements = []
             for line in simlex_file:
                 entry_match = re.match(entry_re, line)
@@ -173,7 +175,7 @@ class SimilarityTester(object):
     Administers a synonym test against a model.
     """
 
-    def __init__(self, test_battery: typing.List[SimilarityJudgementTest]):
+    def __init__(self, test_battery: List[SimilarityJudgementTest]):
         self.test_battery = test_battery
 
     def administer_tests(self,
@@ -188,7 +190,7 @@ class SimilarityTester(object):
 
         for distance_type in DistanceType:
             for test in self.test_battery:
-                model_judgements: typing.List[SimilarityJudgement] = []
+                model_judgements: List[SimilarityJudgement] = []
                 for human_judgement in test.judgement_list:
                     model_judgements.append(SimilarityJudgement(
                         human_judgement.word_1,

@@ -99,18 +99,15 @@ class Preferences(object):
     model_dir = "/Users/caiwingfield/vectors/"
 
     # Synonym tests
-    toefl_question_path = "/Users/caiwingfield/evaluation/tests/TOEFL/toefl.qst"
-    toefl_answer_path   = "/Users/caiwingfield/evaluation/tests/TOEFL/toefl.ans"
-    esl_test_path       = "/Users/caiwingfield/evaluation/tests/ESL/esl.txt"
-    mcq_test_path       = "/Users/caiwingfield/evaluation/tests/LBM vocab MCQ/newMCQ.txt"
+    toefl_question_path      = "/Users/caiwingfield/evaluation/tests/TOEFL/toefl.qst"
+    toefl_answer_path        = "/Users/caiwingfield/evaluation/tests/TOEFL/toefl.ans"
+    esl_test_path            = "/Users/caiwingfield/evaluation/tests/ESL/esl.txt"
+    mcq_test_path            = "/Users/caiwingfield/evaluation/tests/LBM vocab MCQ/newMCQ.txt"
 
     # Word similarity judgement tests
-    simlex_path              = ("/Users/caiwingfield/Box Sync/LANGBOOT Project/Corpus Analysis/"
-                                "Word similarity judgements/SimLex-999/SimLex-999.txt")
-    wordsim_similarity_path  = ("/Users/caiwingfield/Box Sync/LANGBOOT Project/Corpus Analysis/"
-                                "Word similarity judgements/WordSim353/wordsim_similarity_goldstandard.txt")
-    wordsim_relatedness_path = ("/Users/caiwingfield/Box Sync/LANGBOOT Project/Corpus Analysis/"
-                                "Word similarity judgements/WordSim353/wordsim_relatedness_goldstandard.txt")
+    simlex_path              = "/Users/caiwingfield/evaluation/tests/SimLex-999/SimLex-999.txt"
+    wordsim_similarity_path  = "/Users/caiwingfield/evaluation/tests/WordSim353/wordsim_similarity_goldstandard.txt"
+    wordsim_relatedness_path = "/Users/caiwingfield/evaluation/tests/WordSim353/wordsim_relatedness_goldstandard.txt"
 
     # Model evaluation results
     eval_dir = "/Users/caiwingfield/evaluation/results/"

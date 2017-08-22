@@ -16,13 +16,13 @@ caiwingfield.net
 """
 
 import re
-import typing
 import math
 import logging
 import os
 
 from abc import ABCMeta, abstractmethod
 from copy import copy
+from typing import List
 
 from ..model.base import VectorSpaceModel
 from ..model.predict import PredictModel
@@ -38,7 +38,7 @@ class SynonymTestQuestion(object):
     A synonym test question.
     """
 
-    def __init__(self, prompt: str, options: typing.List[str], correct_i: int):
+    def __init__(self, prompt: str, options: List[str], correct_i: int):
         self.correct_i = correct_i
         self.options = options
         self.prompt = prompt
@@ -87,7 +87,7 @@ class AnswerPaper(object):
     The list of answered questions.
     """
 
-    def __init__(self, answers: typing.List[AnsweredQuestion]):
+    def __init__(self, answers: List[AnsweredQuestion]):
         self.answers = answers
 
     @property
@@ -116,7 +116,7 @@ class AnswerPaper(object):
 class SynonymTest(object, metaclass=ABCMeta):
     def __init__(self):
         # Backs self.question_list
-        self._question_list: typing.List[SynonymTestQuestion] = None
+        self._question_list: List[SynonymTestQuestion] = None
 
     @property
     def question_list(self):
@@ -137,7 +137,7 @@ class SynonymTest(object, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def _load(self) -> typing.List[SynonymTestQuestion]:
+    def _load(self) -> List[SynonymTestQuestion]:
         raise NotImplementedError()
 
 
@@ -150,7 +150,7 @@ class ToeflTest(SynonymTest):
     def name(self) -> str:
         return "TOEFL"
 
-    def _load(self) -> typing.List[SynonymTestQuestion]:
+    def _load(self) -> List[SynonymTestQuestion]:
 
         prompt_re = re.compile(r"^"
                                r"(?P<question_number>\d+)"
@@ -171,7 +171,7 @@ class ToeflTest(SynonymTest):
 
         # Get questions
         n_options = 4
-        questions: typing.List[SynonymTestQuestion] = []
+        questions: List[SynonymTestQuestion] = []
         with open(Preferences.toefl_question_path, mode="r", encoding="utf-8") as question_file:
             # Read groups of lines from file
             while True:
@@ -197,7 +197,7 @@ class ToeflTest(SynonymTest):
                 question_file.readline()
 
         # Get answers
-        answers: typing.List[int] = []
+        answers: List[int] = []
         with open(Preferences.toefl_answer_path, mode="r", encoding="utf-8") as answer_file:
             for answer_line in answer_file:
                 answer_line = answer_line.strip()
@@ -226,14 +226,14 @@ class EslTest(SynonymTest):
     def name(self):
         return "ESL"
 
-    def _load(self) -> typing.List[SynonymTestQuestion]:
+    def _load(self) -> List[SynonymTestQuestion]:
         question_re = re.compile(r"^"
                                  r"(?P<prompt_word>[a-z\-]+)"
                                  r"\s+\|\s+"
                                  r"(?P<option_list>[a-z\-\s|]+)"
                                  r"\s*$")
 
-        questions: typing.List[SynonymTestQuestion] = []
+        questions: List[SynonymTestQuestion] = []
         with open(Preferences.esl_test_path, mode="r", encoding="utf-8") as test_file:
             for line in test_file:
                 line = line.strip()
@@ -265,10 +265,10 @@ class McqTest(SynonymTest):
     def name(self):
         return "LBM's new MCQ"
 
-    def _load(self) -> typing.List[SynonymTestQuestion]:
+    def _load(self) -> List[SynonymTestQuestion]:
 
         n_options = 4
-        questions: typing.List[SynonymTestQuestion] = []
+        questions: List[SynonymTestQuestion] = []
         with open(Preferences.mcq_test_path, mode="r", encoding="utf-8") as test_file:
             while True:
                 prompt = test_file.readline().strip()
@@ -309,12 +309,12 @@ class ReportCard(object):
             self._window_radius = model.window_radius
             self._corpus_name = model.corpus_meta.name
             self._embedding_size = model.embedding_size if isinstance(model, PredictModel) else None
-            self._test = test
+            self._test_name = test.name
 
         @property
-        def fields(self) -> typing.List[str]:
+        def fields(self) -> List[str]:
             return [
-                self._test.name,
+                self._test_name,
                 self._model_type_name,
                 # Only PredictModels have an embedding size
                 f"{self._embedding_size}" if self._embedding_size is not None else "",
@@ -337,7 +337,7 @@ class ReportCard(object):
 
     def __init__(self):
         # Backing for self.entries property
-        self._entries: typing.List[ReportCard.Entry] = []
+        self._entries: List[ReportCard.Entry] = []
 
     def __iadd__(self, other: 'ReportCard'):
         for entry in other.entries:
@@ -352,7 +352,7 @@ class ReportCard(object):
         return new
 
     @property
-    def entries(self) -> typing.List[Entry]:
+    def entries(self) -> List[Entry]:
         """
         The entries on this report card.
         """
@@ -405,7 +405,7 @@ class SynonymTester(object):
     Administers a synonym test against a model.
     """
 
-    def __init__(self, test_battery: typing.List[SynonymTest]):
+    def __init__(self, test_battery: List[SynonymTest]):
         self.test_battery = test_battery
 
     def administer_tests(self,

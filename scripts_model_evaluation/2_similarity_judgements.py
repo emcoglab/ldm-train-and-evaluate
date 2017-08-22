@@ -19,6 +19,8 @@ import logging
 import os
 import sys
 
+from typing import List
+
 from ..core.corpus.distribution import FreqDist
 from ..core.evaluation.similarity import Simlex, WordsimSimilarity, WordsimRelatedness, SimilarityTester
 from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
