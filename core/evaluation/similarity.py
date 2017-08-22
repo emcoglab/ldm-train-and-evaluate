@@ -1,3 +1,20 @@
+"""
+===========================
+Testing against human similarity judgements.
+===========================
+
+Dr. Cai Wingfield
+---------------------------
+Embodied Cognition Lab
+Department of Psychology
+University of Lancaster
+c.wingfield@lancaster.ac.uk
+caiwingfield.net
+---------------------------
+2017
+---------------------------
+"""
+
 import re
 
 from abc import ABCMeta, abstractmethod
@@ -151,7 +168,7 @@ class WordsimRelatedness(SimilarityJudgementTest):
                               r"\s+"
                               r"(?P<word_2>[a-z]+)"  # The second concept in the pair.
                               r"\s+"
-                              # TODO: is it really in this range?
+                              # TODO: is it really in this range? Does it matter?
                               r"(?P<relatedness>[0-9.]+)"  # The average relatedness judgement.  In range [1, 10].
                               r"\s*$")
 
@@ -225,19 +242,18 @@ class SimilarityTester(object):
             for test in self.test_battery:
                 model_judgements: List[SimilarityJudgement] = []
                 for human_judgement in test.judgement_list:
+                    distance = model.distance_between(
+                            human_judgement.word_1,
+                            human_judgement.word_2,
+                            distance_type)
                     model_judgements.append(SimilarityJudgement(
                         human_judgement.word_1,
                         human_judgement.word_2,
-                        model.distance_between(
-                            human_judgement.word_1,
-                            human_judgement.word_2,
-                            distance_type
-                        )))
+                        distance))
 
                 correlation = numpy.corrcoef(
                     [j.similarity for j in test.judgement_list],
-                    [j.similarity for j in model_judgements]
-                )[0][1]
+                    [j.similarity for j in model_judgements])[0][1]
 
                 results.append(SimilarityTestResult(model, test, distance_type, correlation))
 
