@@ -170,6 +170,37 @@ class WordsimRelatedness(SimilarityJudgementTest):
         return judgements
 
 
+class SimilarityTestResult(object):
+    """
+    Result of a similarity test.
+    """
+    def __init__(self,
+                 model: VectorSpaceModel,
+                 test: SimilarityJudgementTest,
+                 distance_type: DistanceType,
+                 correlation: float):
+        self._test_name = test.name
+        self._model_type_name = model.model_type.name
+        self._window_radius = model.window_radius
+        self._corpus_name = model.corpus_meta.name
+        self._distance_type = distance_type
+        self._embedding_size = model.embedding_size if isinstance(model, PredictModel) else None
+        self._correlation = correlation
+
+    @property
+    def fields(self) -> List[str]:
+        return [
+            self._test_name,
+            self._model_type_name,
+            # Only PredictModels have an embedding size
+            f"{self._embedding_size}" if self._embedding_size is not None else "",
+            f"{self._window_radius}",
+            self._distance_type.name,
+            self._corpus_name,
+            f"{self._correlation}"
+        ]
+
+
 class SimilarityTester(object):
     """
     Administers a synonym test against a model.
@@ -179,7 +210,7 @@ class SimilarityTester(object):
         self.test_battery = test_battery
 
     def administer_tests(self,
-                         model: VectorSpaceModel):
+                         model: VectorSpaceModel) -> List[SimilarityTestResult]:
         """
         Administers a battery of tests against a model
         :param model: Must be trained.
@@ -187,6 +218,8 @@ class SimilarityTester(object):
         """
 
         assert model.is_trained
+
+        results: List[SimilarityTestResult] = []
 
         for distance_type in DistanceType:
             for test in self.test_battery:
@@ -204,6 +237,8 @@ class SimilarityTester(object):
                 correlation = numpy.corrcoef(
                     [j.similarity for j in test.judgement_list],
                     [j.similarity for j in model_judgements]
-                )
+                )[0][1]
 
+                results.append(SimilarityTestResult(model, test, distance_type, correlation))
 
+        return results

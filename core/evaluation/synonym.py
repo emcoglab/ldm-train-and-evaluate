@@ -474,7 +474,8 @@ class SynonymTester(object):
         # Only record truncation of vectors if we're doing it
         filename += f" - s={truncate_vectors_at_length}" if truncate_vectors_at_length is not None else ""
         filename += f".txt"
-        return os.path.join(Preferences.eval_dir, "transcripts", filename)
+        # TODO: this path shouldn't really be defined here
+        return os.path.join(Preferences.eval_dir, "synonyms", "transcripts", filename)
 
     def all_transcripts_exist_for(self, model: VectorSpaceModel, truncate_vectors_at_length: int = None) -> bool:
         """

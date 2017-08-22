@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    report_card_dir = os.path.join(Preferences.eval_dir, "report cards")
+    report_card_dir = os.path.join(Preferences.eval_dir, "synonyms", "report cards")
     csv_name_pattern = "{model_name}.csv"
 
     test_battery = [ToeflTest(), EslTest(), McqTest()]
