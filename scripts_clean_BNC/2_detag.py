@@ -30,28 +30,46 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    docs_parent_dir = Preferences.bnc_processing_metas["raw"].path
-    out_dir         = Preferences.bbc_processing_metas["detagged"].path
+
+    corpora = [
+        dict(
+            docs_parent_dir=Preferences.bnc_processing_metas["raw"].path,
+            out_dir=Preferences.bnc_processing_metas["detagged"].path
+        ),
+        dict(
+            docs_parent_dir=Preferences.bnc_text_processing_metas["raw"].path,
+            out_dir=Preferences.bnc_text_processing_metas["detagged"].path
+        ),
+        dict(
+            docs_parent_dir=Preferences.bnc_speech_processing_metas["raw"].path,
+            out_dir=Preferences.bnc_speech_processing_metas["detagged"].path
+        )
+    ]
 
     xsl_filename = os.path.join(os.path.dirname(__file__), "justTheWords.xsl")  # This file is under source control
     xslt = etree.parse(xsl_filename)
     xslt_transform = etree.XSLT(xslt)
 
-    logger.info("Detagging and sorting corpus documents")
+    for corpus in corpora:
 
-    for i, xml_doc_path in enumerate(glob.glob(os.path.join(docs_parent_dir, "**/*.xml"), recursive=True)):
+        logger.info("Removing XML tags from corpus documents")
 
-        xml_doc = etree.parse(xml_doc_path)
+        docs_parent_dir = corpus["docs_parent_dir"]
+        out_dir = corpus["out_dir"]
 
-        new_doc = xslt_transform(xml_doc)
+        for i, xml_doc_path in enumerate(glob.glob(os.path.join(docs_parent_dir, "**/*.xml"), recursive=True)):
 
-        txt_doc_path = os.path.join(out_dir, os.path.splitext(os.path.basename(xml_doc_path))[0] + ".txt")
+            xml_doc = etree.parse(xml_doc_path)
 
-        with open(txt_doc_path, mode="w", encoding="utf-8") as target_file:
-            target_file.write(str(new_doc))
+            new_doc = xslt_transform(xml_doc)
 
-        if i % 100 == 0:
-            logger.info(f"\t{i} files")
+            txt_doc_path = os.path.join(out_dir, os.path.splitext(os.path.basename(xml_doc_path))[0] + ".txt")
+
+            with open(txt_doc_path, mode="w", encoding="utf-8") as target_file:
+                target_file.write(str(new_doc))
+
+            if i % 100 == 0 and i > 0:
+                logger.info(f"\t{i} files")
 
 
 if __name__ == '__main__':

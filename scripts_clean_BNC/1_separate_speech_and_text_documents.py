@@ -25,15 +25,16 @@ from shutil import copyfile
 
 from lxml import etree
 
+from ..preferences.preferences import Preferences
 from ..core.utils.logging import log_message, date_format
 
 logger = logging.getLogger(__name__)
 
 
 def main():
-    docs_parent_dir = "/Users/caiwingfield/corpora/BNC/0 XML version/Texts"
-    out_text_dir    = "/Users/caiwingfield/corpora/BNC-text/0 XML version"
-    out_speech_dir  = "/Users/caiwingfield/corpora/BNC-speech/0 XML version"
+    docs_parent_dir = Preferences.bnc_processing_metas["raw"].path
+    out_text_dir    = Preferences.bnc_text_processing_metas["raw"].path
+    out_speech_dir  = Preferences.bnc_speech_processing_metas["raw"].path
 
     logger.info("Detagging and sorting corpus documents")
 
@@ -72,8 +73,7 @@ def main():
             # This error logically cannot be raised, it's just here to help PyCharm's static analysis.
             raise ImportError()
 
-        target_filename = os.path.splitext(os.path.basename(source_doc_path))[0] + ".txt"
-        target_doc_path = os.path.join(destination_dir, target_filename)
+        target_doc_path = os.path.join(destination_dir, os.path.basename(source_doc_path))
 
         copyfile(source_doc_path, target_doc_path)
 

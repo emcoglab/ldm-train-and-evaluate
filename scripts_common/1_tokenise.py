@@ -35,10 +35,16 @@ def main():
     corpus_metas = [
         dict(
             source=Preferences.bbc_processing_metas["replaced_symbols"],
-            target=Preferences.bnc_processing_metas["tokenised"]),
+            target=Preferences.bbc_processing_metas["tokenised"]),
         dict(
             source=Preferences.bnc_processing_metas["detagged"],
             target=Preferences.bnc_processing_metas["tokenised"]),
+        dict(
+            source=Preferences.bnc_text_processing_metas["detagged"],
+            target=Preferences.bnc_text_processing_metas["tokenised"]),
+        dict(
+            source=Preferences.bnc_speech_processing_metas["detagged"],
+            target=Preferences.bnc_speech_processing_metas["tokenised"]),
         dict(
             source=Preferences.ukwac_processing_metas["partitioned"],
             target=Preferences.ukwac_processing_metas["tokenised"])]

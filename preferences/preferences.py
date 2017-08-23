@@ -36,6 +36,30 @@ class Preferences(object):
             path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus",
             freq_dist_path="/Users/caiwingfield/corpora/BNC/2.1 info/frequency_distribution_BNC",
             index_path="/Users/caiwingfield/vectors/indexes/BNC.index"))
+    bnc_text_processing_metas = dict(
+        raw=CorpusMetadata(
+            name="BNC-text",
+            path="/Users/caiwingfield/corpora/BNC-text/0 XML version"),
+        detagged=CorpusMetadata(
+            name="BNC-text",
+            path="/Users/caiwingfield/corpora/BNC-text/1 Detagged"),
+        tokenised=CorpusMetadata(
+            name="BNC-text",
+            path="/Users/caiwingfield/corpora/BNC-text/2 Tokenised/BNC-text.corpus",
+            freq_dist_path="/Users/caiwingfield/corpora/BNC-text/2.1 info/frequency_distribution_BNC_text",
+            index_path="/Users/caiwingfield/vectors/indexes/BNC-text.index"))
+    bnc_speech_processing_metas = dict(
+        raw=CorpusMetadata(
+            name="BNC-speech",
+            path="/Users/caiwingfield/corpora/BNC-speech/0 XML version"),
+        detagged=CorpusMetadata(
+            name="BNC-speech",
+            path="/Users/caiwingfield/corpora/BNC-speech/1 Detagged"),
+        tokenised=CorpusMetadata(
+            name="BNC-speech",
+            path="/Users/caiwingfield/corpora/BNC-speech/2 Tokenised/BNC-speech.corpus",
+            freq_dist_path="/Users/caiwingfield/corpora/BNC-speech/2.1 info/frequency_distribution_BNC_speech",
+            index_path="/Users/caiwingfield/vectors/indexes/BNC-speech.index"))
     bbc_processing_metas = dict(
         raw=CorpusMetadata(
             name="BBC",
@@ -79,6 +103,7 @@ class Preferences(object):
     # The final locations of the processed corpora
     source_corpus_metas = [
         bnc_processing_metas["tokenised"],
+        bnc_text_processing_metas["tokenised"],
         bbc_processing_metas["tokenised"],
         ukwac_processing_metas["tokenised"]
     ]
