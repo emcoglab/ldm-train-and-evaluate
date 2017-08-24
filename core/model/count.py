@@ -22,6 +22,7 @@ from abc import abstractmethod, ABCMeta
 from operator import itemgetter
 
 import numpy as np
+import scipy.io as sio
 import scipy.sparse as sps
 
 from ..corpus.corpus import CorpusMetadata, WindowedCorpus
@@ -54,19 +55,19 @@ class CountModel(VectorSpaceModel):
 
     @property
     def _model_ext(self) -> str:
-        return ".npz"
+        return ".mtx"
 
     @abstractmethod
     def _retrain(self):
         raise NotImplementedError()
 
     def _save(self):
-        # Use scipy.sparse.coo_matrix when saving as it is memory efficient.
-        sps.save_npz(os.path.join(self.save_dir, self._model_filename_with_ext), self._model.tocoo())
+        # Use mmwrite here rather than scipy.sparse.savez, in case data is larger than 4GB (which it often is).
+        sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
 
     def _load(self):
         # Use scipy.sparse.csr_matrix for trained models
-        self._model = sps.load_npz(os.path.join(self.save_dir, self._model_filename_with_ext)).tocsr()
+        self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename)).tocsr()
 
     def vector_for_id(self, word_id: int):
         """
@@ -148,7 +149,7 @@ class ScalarCountModel(LanguageModel, metaclass=ABCMeta):
 
     @property
     def _model_ext(self):
-        return ".npz"
+        return ".mtx"
 
     @property
     def vector(self) -> np.ndarray:
@@ -159,10 +160,10 @@ class ScalarCountModel(LanguageModel, metaclass=ABCMeta):
         raise NotImplementedError()
 
     def _save(self):
-        np.savez(os.path.join(self.save_dir, self._model_filename_with_ext), self._model)
+        sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
 
     def _load(self):
-        self._model = np.load(os.path.join(self.save_dir, self._model_filename_with_ext))[self._model_filename]
+        self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
 
     def scalar_for_word(self, word: str):
         """
