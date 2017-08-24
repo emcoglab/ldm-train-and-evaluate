@@ -195,9 +195,24 @@ class LanguageModel(metaclass=ABCMeta):
     @abstractmethod
     def _model_filename(self) -> str:
         """
-        The file name of the model.
+        The file name of the model, without file extension.
         """
         raise NotImplementedError()
+
+    @property
+    @abstractmethod
+    def _model_ext(self) -> str:
+        """
+        The file extension of the model file.
+        """
+        raise NotImplementedError()
+
+    @property
+    def _model_filename_with_ext(self) -> str:
+        """
+        The filename of the model, with extension
+        """
+        return self._model_filename + self._model_ext
 
     @property
     def save_dir(self) -> str:
@@ -208,7 +223,7 @@ class LanguageModel(metaclass=ABCMeta):
         """
         Whether or not a previously saved model exists on the drive.
         """
-        return os.path.isfile(os.path.join(self.save_dir, self._model_filename))
+        return os.path.isfile(os.path.join(self.save_dir, self._model_filename_with_ext))
 
     def train(self, force_retrain: bool = False):
         """

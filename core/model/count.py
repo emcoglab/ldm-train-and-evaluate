@@ -22,7 +22,6 @@ from abc import abstractmethod, ABCMeta
 from operator import itemgetter
 
 import numpy as np
-import scipy.io as sio
 import scipy.sparse as sps
 
 from ..corpus.corpus import CorpusMetadata, WindowedCorpus
@@ -50,28 +49,24 @@ class CountModel(VectorSpaceModel):
         self.token_indices = token_indices
 
     @property
-    def _model_filename(self):
-        # We're using Matrix Market format files
-        return super()._model_filename + ".mtx"
+    def matrix(self) -> sps.csr_matrix:
+        return self._model
 
     @property
-    def matrix(self):
-        return self._model
+    def _model_ext(self) -> str:
+        return ".npz"
 
     @abstractmethod
     def _retrain(self):
         raise NotImplementedError()
 
     def _save(self):
-        sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
+        # Use scipy.sparse.coo_matrix when saving as it is memory efficient.
+        sps.save_npz(os.path.join(self.save_dir, self._model_filename_with_ext), self._model.tocoo())
 
     def _load(self):
-        self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename)).tolil()
-
-    # Overwrite to include .mtx extension
-    @property
-    def _previously_saved(self) -> bool:
-        return os.path.isfile(os.path.join(self.save_dir, self._model_filename + ".mtx"))
+        # Use scipy.sparse.csr_matrix for trained models
+        self._model = sps.load_npz(os.path.join(self.save_dir, self._model_filename_with_ext)).tocsr()
 
     def vector_for_id(self, word_id: int):
         """
@@ -149,10 +144,14 @@ class ScalarCountModel(LanguageModel, metaclass=ABCMeta):
     # TODO: Rename this to put the type at the start!
     @property
     def _model_filename(self):
-        return f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.name}.mtx"
+        return f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.name}"
 
     @property
-    def vector(self):
+    def _model_ext(self):
+        return ".npz"
+
+    @property
+    def vector(self) -> np.ndarray:
         return self._model
 
     @abstractmethod
@@ -160,10 +159,10 @@ class ScalarCountModel(LanguageModel, metaclass=ABCMeta):
         raise NotImplementedError()
 
     def _save(self):
-        sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
+        np.savez(os.path.join(self.save_dir, self._model_filename_with_ext), self._model)
 
     def _load(self):
-        self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
+        self._model = np.load(os.path.join(self.save_dir, self._model_filename_with_ext))[self._model_filename]
 
     def scalar_for_word(self, word: str):
         """
@@ -198,7 +197,7 @@ class UnsummedNgramCountModel(CountModel):
     # Overwrite, to include chirality
     @property
     def _model_filename(self):
-        return f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.slug}_{self._chirality}.mtx"
+        return f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.slug}_{self._chirality}"
 
     def _retrain(self):
 
@@ -214,6 +213,7 @@ class UnsummedNgramCountModel(CountModel):
 
         # First coordinate points to target word
         # Second coordinate points to context word
+        # Use scipy.sparse.lil_matrix for direct indexed access
         self._model = sps.lil_matrix((vocab_size, vocab_size))
 
         # We will produce a window which contains EITHER the left or right context, plus the target word (+1)
@@ -253,6 +253,9 @@ class UnsummedNgramCountModel(CountModel):
             if window_count % 1_000_000 == 0:
                 logger.info(f"\t{window_count:,} tokens processed")
 
+        # Using csr for trained models
+        self._model = self._model.tocsr()
+
 
 class NgramCountModel(CountModel):
     """
@@ -274,7 +277,9 @@ class NgramCountModel(CountModel):
     def _retrain(self):
 
         vocab_size = len(self.token_indices)
-        self._model = sps.lil_matrix((vocab_size, vocab_size))
+
+        # Start with an empty sparse matrix
+        self._model = sps.csr_matrix((vocab_size, vocab_size))
 
         # We load the unsummed cooccurrence matrices in in sequence, and accumulate them to save the summed
         for radius in range(1, self.window_radius + 1):
@@ -317,10 +322,8 @@ class LogNgramModel(CountModel):
 
         # Apply log to entries in the ngram matrix
         # Need to convert to csr first so that the log10 function will work
-        self._model = ngram_model.matrix.tocsr()
         del ngram_model
         self._model.data = np.log10(self._model.data)
-        self._model = self._model.tolil()
 
 
 class NgramProbabilityModel(CountModel):
@@ -422,7 +425,7 @@ class ConditionalProbabilityModel(CountModel):
         ngram_probability_model.train()
 
         # Convert to csr for linear algebra
-        self._model = ngram_probability_model.matrix.tocsr()
+        self._model = ngram_probability_model.matrix
         del ngram_probability_model
 
         token_probability_model = TokenProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
@@ -443,7 +446,6 @@ class ConditionalProbabilityModel(CountModel):
         #
         # According to https://stackoverflow.com/a/12238133/2883198, this is how you do that:
         self._model.data = self._model.data / token_probability_model.vector.repeat(np.diff(self._model.indptr))
-        self._model.tolil()
 
 
 class ContextProbabilityModel(ScalarCountModel):
@@ -508,7 +510,7 @@ class ProbabilityRatioModel(CountModel):
         cond_prob_model.train()
 
         # Convert to csr for linear algebra
-        self._model = cond_prob_model.matrix.tocsr()
+        self._model = cond_prob_model.matrix
         del cond_prob_model
 
         context_probability_model = ContextProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
@@ -538,7 +540,6 @@ class ProbabilityRatioModel(CountModel):
         self._model = self._model.transpose().tocsr()
         self._model.data = self._model.data / context_probability_model.vector.repeat(np.diff(self._model.indptr))
         self._model = self._model.transpose().tocsr()
-        self._model.tolil()
 
 
 class PMIModel(CountModel):
@@ -567,11 +568,9 @@ class PMIModel(CountModel):
         ratios_model.train()
 
         # Apply log to entries in the ngram matrix
-        # Need to convert to csr first so that the log2 function will work
-        self._model = ratios_model.matrix.tocsr()
+        self._model = ratios_model.matrix
         del ratios_model
         self._model.data = np.log2(self._model.data)
-        self._model = self._model.tolil()
 
 
 class PPMIModel(CountModel):
@@ -600,4 +599,4 @@ class PPMIModel(CountModel):
 
         self._model = sparse_max(pmi_model.matrix,
                                  # same-shape zero matrix
-                                 sps.lil_matrix(pmi_model.matrix.shape))
+                                 sps.csr_matrix(pmi_model.matrix.shape))
