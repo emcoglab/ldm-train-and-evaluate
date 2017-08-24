@@ -216,11 +216,11 @@ class LanguageModel(metaclass=ABCMeta):
         Will load existing model instead if possible.
         :param force_retrain: Retrain the model, even if there is a pre-existing saved state.
         """
-        if self.could_load and not force_retrain:
+        if self.is_trained and not force_retrain:
+            logger.info(f"{self.name} is already trained")
+        elif self.could_load and not force_retrain:
             logger.info(f"Loading {self.name} model from {self._model_filename}")
             self._load()
-        elif self.is_trained and not force_retrain:
-            logger.info(f"{self.name} is already trained")
         else:
             logger.info(f"Training {self.name}")
             self._retrain()

@@ -54,20 +54,21 @@ def main():
         if wtext is not None:
             # Written-for-speech documents are classified as "ALLTYP4"
             if catref is not None and "ALLTYP4" in catref.get("targets").split():
-                this_doc_type = DocType.text_for_speech
+                document_type = DocumentType.text_for_speech
             else:
-                this_doc_type = DocType.text
+                document_type = DocumentType.text
         elif stext is not None:
-            this_doc_type = DocType.speech
+            document_type = DocumentType.speech
         else:
             raise ImportError(f"No type found for {source_doc_path}")
 
         # Set the appropriate destination for this document
-        if this_doc_type == DocType.speech:
+        if document_type == DocumentType.speech:
             destination_dir = out_speech_dir
-        elif this_doc_type == DocType.text:
+        elif document_type == DocumentType.text:
             destination_dir = out_text_dir
-        elif this_doc_type == DocType.text_for_speech:
+        elif document_type == DocumentType.text_for_speech:
+            # Text for speech is still text
             destination_dir = out_text_dir
         else:
             # This error logically cannot be raised, it's just here to help PyCharm's static analysis.
@@ -82,7 +83,7 @@ def main():
             logger.info(f"\t{doc_i} files")
 
 
-class DocType(Enum):
+class DocumentType(Enum):
     """
     The type of a document within the corpus
     """
