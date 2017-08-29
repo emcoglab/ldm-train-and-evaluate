@@ -45,7 +45,6 @@ def save_results(results: List[SimilarityTestResult]):
 
 
 def main():
-
     test_battery = [SimlexSimilarity(), WordsimSimilarity(), WordsimRelatedness()]
 
     # TODO: this should skip, not overwrite, existing test results
@@ -89,7 +88,6 @@ def main():
             # PREDICT MODELS
 
             for embedding_size in Preferences.predict_embedding_sizes:
-
                 # Skip-gram
                 model = SkipGramModel(corpus_metadata, Preferences.model_dir, window_radius, embedding_size)
                 model.train()

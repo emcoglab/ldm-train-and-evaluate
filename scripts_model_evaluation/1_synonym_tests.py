@@ -86,14 +86,15 @@ def main():
                                      append_existing=True)
 
             # PPMI (TRUNCATED, for replication of B&L 2007)
-            model = PPMIModel(corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
-            if not tester.all_transcripts_exist_for(model, truncate_vectors_at_length=10_000):
+            truncate_length = 10_000
+            file_suffix = " (10k)"
+            if not tester.all_transcripts_exist_for(model, truncate_vectors_at_length=truncate_length):
                 model.train()
-                report_card = tester.administer_tests(model, truncate_vectors_at_length=10_000)
-                report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(model_name=model.name
-                                                                                           + " (100k)")))
-                report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(model_name="0_MASTER")),
-                                     append_existing=True)
+                report_card = tester.administer_tests(model, truncate_vectors_at_length=truncate_length)
+                report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(
+                    model_name=model.name + file_suffix)))
+                report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(
+                    model_name="0_MASTER")), append_existing=True)
 
             # PREDICT MODELS
 
