@@ -64,6 +64,11 @@ class PredictModel(VectorSpaceModel):
         # Include embedding size
         return f"{self.corpus_meta.name}_r={self.window_radius}_s={self.embedding_size}_{self.model_type.slug}"
 
+    @property
+    def _model_ext(self) -> str:
+        # Word2Vec models don't have an extension
+        return ""
+
     def _save(self):
         self._model.save(os.path.join(self.save_dir, self._model_filename))
 
