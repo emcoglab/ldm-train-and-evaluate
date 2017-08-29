@@ -16,6 +16,7 @@ caiwingfield.net
 """
 
 import re
+import logging
 
 from abc import ABCMeta, abstractmethod
 from typing import List
@@ -26,6 +27,9 @@ from ..model.base import VectorSpaceModel
 from ..model.predict import PredictModel
 from ..utils.maths import DistanceType
 from ...preferences.preferences import Preferences
+
+
+logger = logging.getLogger(__name__)
 
 
 class SimilarityJudgement(object):
@@ -275,19 +279,28 @@ class SimilarityTester(object):
 
         for distance_type in DistanceType:
             for test in self.test_battery:
+                human_judgements: List[SimilarityJudgement] = []
                 model_judgements: List[SimilarityJudgement] = []
                 for human_judgement in test.judgement_list:
-                    distance = model.distance_between(
-                        human_judgement.word_1,
-                        human_judgement.word_2,
-                        distance_type)
+                    try:
+                        distance = model.distance_between(
+                            human_judgement.word_1,
+                            human_judgement.word_2,
+                            distance_type)
+                    except KeyError as key_error:
+                        # If we can't find one of the words in the corpus, just ignore it.
+                        logger.warning(f"{model.corpus_meta.name} corpus doesn't contain {key_error.args[0]}")
+                        continue
+
+                    # If both words were found in the model, add them to the test list
+                    human_judgements.append(human_judgement)
                     model_judgements.append(SimilarityJudgement(
                         human_judgement.word_1,
                         human_judgement.word_2,
                         distance))
 
                 correlation = numpy.corrcoef(
-                    [j.similarity for j in test.judgement_list],
+                    [j.similarity for j in human_judgements],
                     [j.similarity for j in model_judgements])[0][1]
 
                 results.append(SimilarityTestResult(model, test, distance_type, correlation))

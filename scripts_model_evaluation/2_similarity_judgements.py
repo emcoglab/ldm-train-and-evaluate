@@ -22,8 +22,8 @@ import sys
 from typing import List
 
 from ..core.corpus.distribution import FreqDist
-from ..core.evaluation.similarity import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, SimilarityTester, \
-    SimilarityTestResult, MenSimilarity
+from ..core.evaluation.similarity import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
+    SimilarityTester, SimilarityTestResult
 from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..core.utils.indexing import TokenIndexDictionary
