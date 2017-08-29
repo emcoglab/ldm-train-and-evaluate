@@ -543,41 +543,11 @@ class ProbabilityRatioModel(CountModel):
         self._model = self._model.transpose().tocsr()
 
 
-class PMIModel(CountModel):
-    """
-    A model where the vectors consist of the pointwise mutual information between the context and the target.
-
-    PMI(c,t) = log_2 r(c,t)
-
-    c: context token
-    t: target token
-    """
-
-    def __init__(self,
-                 corpus_meta: CorpusMetadata,
-                 save_dir: str,
-                 window_radius: int,
-                 token_indices: TokenIndexDictionary,
-                 freq_dist: FreqDist):
-        super().__init__(LanguageModel.ModelType.pmi,
-                         corpus_meta, save_dir, window_radius, token_indices)
-        self._freq_dist = freq_dist
-
-    def _retrain(self):
-        ratios_model = ProbabilityRatioModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices,
-                                             self._freq_dist)
-        ratios_model.train()
-
-        # Apply log to entries in the ngram matrix
-        self._model = ratios_model.matrix
-        del ratios_model
-        self._model.data = np.log2(self._model.data)
-
-
 class PPMIModel(CountModel):
     """
     A model where the vectors consist of the positive pointwise mutual information between the context and the target.
 
+    PMI(c,t) = log_2 r(c,t)
     PMI^+(c,t) = max(0,PMI(c,t))
 
     c: context token
@@ -595,9 +565,16 @@ class PPMIModel(CountModel):
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        pmi_model = PMIModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices, self._freq_dist)
-        pmi_model.train()
+        ratios_model = ProbabilityRatioModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices,
+                                             self._freq_dist)
+        ratios_model.train()
 
-        self._model = sparse_max(pmi_model.matrix,
+        # Apply log to entries in the ngram matrix
+        self._model = ratios_model.matrix
+        del ratios_model
+        self._model.data = np.log2(self._model.data)
+
+        # Non-negative values only
+        self._model = sparse_max(self._model,
                                  # same-shape zero matrix
-                                 sps.csr_matrix(pmi_model.matrix.shape))
+                                 sps.csr_matrix(self._model.shape))
