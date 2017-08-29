@@ -63,6 +63,8 @@ class CountModel(VectorSpaceModel):
 
     def _save(self):
         # Use mmwrite here rather than scipy.sparse.savez, in case data is larger than 4GB (which it often is).
+        #     https://stackoverflow.com/questions/31468117/python-3-can-pickle-handle-byte-objects-larger-than-4gb
+        #     https://github.com/numpy/numpy/issues/3858
         sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
 
     def _load(self):
@@ -547,8 +549,9 @@ class PPMIModel(CountModel):
     """
     A model where the vectors consist of the positive pointwise mutual information between the context and the target.
 
-    PMI(c,t) = log_2 r(c,t)
-    PMI^+(c,t) = max(0,PMI(c,t))
+    PMI^+(c,t) = max(0, PMI(c,t))
+
+    where: PMI(c,t) = log_2 r(c,t)
 
     c: context token
     t: target token

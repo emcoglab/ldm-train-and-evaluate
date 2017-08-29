@@ -48,6 +48,7 @@ def main():
 
     test_battery = [SimlexSimilarity(), WordsimSimilarity(), WordsimRelatedness()]
 
+    # TODO: this should skip, not overwrite, existing test results
     for corpus_metadata in Preferences.source_corpus_metas:
 
         token_index = TokenIndexDictionary.load(corpus_metadata.index_path)

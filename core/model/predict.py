@@ -49,7 +49,7 @@ class PredictModel(VectorSpaceModel):
         self._sub_sample = 1e-5
 
         # Parallel workers
-        self._workers = 4
+        self._workers = 8
 
         self._corpus = BatchedCorpus(corpus_meta, batch_size=1_000)
         self._model: gensim.models.Word2Vec = None
