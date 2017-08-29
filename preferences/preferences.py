@@ -133,6 +133,7 @@ class Preferences(object):
     simlex_path              = "/Users/caiwingfield/evaluation/tests/SimLex-999/SimLex-999.txt"
     wordsim_similarity_path  = "/Users/caiwingfield/evaluation/tests/WordSim353/wordsim_similarity_goldstandard.txt"
     wordsim_relatedness_path = "/Users/caiwingfield/evaluation/tests/WordSim353/wordsim_relatedness_goldstandard.txt"
+    men_path                 = "/Users/caiwingfield/evaluation/tests/MEN/MEN_dataset_natural_form_full"
 
     # Model evaluation results
     eval_dir = "/Users/caiwingfield/evaluation/results/"

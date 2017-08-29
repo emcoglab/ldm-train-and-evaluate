@@ -23,7 +23,7 @@ from typing import List
 
 from ..core.corpus.distribution import FreqDist
 from ..core.evaluation.similarity import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, SimilarityTester, \
-    SimilarityTestResult
+    SimilarityTestResult, MenSimilarity
 from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..core.utils.indexing import TokenIndexDictionary
@@ -45,7 +45,12 @@ def save_results(results: List[SimilarityTestResult]):
 
 
 def main():
-    test_battery = [SimlexSimilarity(), WordsimSimilarity(), WordsimRelatedness()]
+    test_battery = [
+        SimlexSimilarity(),
+        WordsimSimilarity(),
+        WordsimRelatedness(),
+        MenSimilarity()
+    ]
 
     # TODO: this should skip, not overwrite, existing test results
     for corpus_metadata in Preferences.source_corpus_metas:

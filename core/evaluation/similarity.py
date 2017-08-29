@@ -43,6 +43,7 @@ class SimilarityJudgementTest(metaclass=ABCMeta):
     """
     A test against human similarity judgements of word pairs.
     """
+
     def __init__(self):
         # Backs self.judgement_list
         self._judgement_list: List[SimilarityJudgement] = None
@@ -119,6 +120,39 @@ class SimlexSimilarity(SimilarityJudgementTest):
         return judgements
 
 
+class MenSimilarity(SimilarityJudgementTest):
+    """
+    MEN similarity judgements.
+    From: Bruni, E., Tran, NK., Baroni, M. "Multimodal Distributional Semantics". J. AI Research. 49:1--47 (2014).
+    """
+
+    @property
+    def name(self) -> str:
+        return "MEN"
+
+    def _load(self) -> List[SimilarityJudgement]:
+
+        entry_re = re.compile(r"^"
+                              r"(?P<word_1>[a-z]+)"  # The first concept in the pair.
+                              r"\s"
+                              r"(?P<word_2>[a-z]+)"  # The second concept in the pair.
+                              r"\s"
+                              r"(?P<association>[0-9.]+)"  # Strength of association.
+                              r"\s*$")
+
+        with open(Preferences.men_path, mode="r", encoding="utf-8") as men_file:
+            judgements = []
+            for line in men_file:
+                entry_match = re.match(entry_re, line)
+                if entry_match:
+                    judgements.append(SimilarityJudgement(
+                        entry_match.group("word_1"),
+                        entry_match.group("word_2"),
+                        float(entry_match.group("association"))))
+
+        return judgements
+
+
 class WordsimSimilarity(SimilarityJudgementTest):
     """
     WordSim-353 similarity judgements.
@@ -191,6 +225,7 @@ class SimilarityTestResult(object):
     """
     Result of a similarity test.
     """
+
     def __init__(self,
                  model: VectorSpaceModel,
                  test: SimilarityJudgementTest,
@@ -243,9 +278,9 @@ class SimilarityTester(object):
                 model_judgements: List[SimilarityJudgement] = []
                 for human_judgement in test.judgement_list:
                     distance = model.distance_between(
-                            human_judgement.word_1,
-                            human_judgement.word_2,
-                            distance_type)
+                        human_judgement.word_1,
+                        human_judgement.word_2,
+                        distance_type)
                     model_judgements.append(SimilarityJudgement(
                         human_judgement.word_1,
                         human_judgement.word_2,
