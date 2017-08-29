@@ -20,6 +20,7 @@ import os
 from abc import ABCMeta, abstractmethod
 from enum import Enum, auto
 
+from ...preferences.preferences import Preferences
 from ..corpus.corpus import CorpusMetadata
 from ..utils.maths import DistanceType, distance
 
@@ -170,19 +171,22 @@ class LanguageModel(metaclass=ABCMeta):
             """
             return [t for t in VectorSpaceModel.ModelType if t.metatype is VectorSpaceModel.MetaType.count]
 
-    def __init__(self,
-                 model_type: ModelType,
-                 corpus_meta: CorpusMetadata,
-                 save_dir: str):
+    def __init__(self, model_type: ModelType, corpus_meta: CorpusMetadata):
+
         self.model_type = model_type
         self.corpus_meta = corpus_meta
 
         # Is this model trained and ready to go?
         self.is_trained = False
 
+    @property
+    def _root_dir(self) -> str:
+        """
+        The root directory for all models.
+        """
         # We need to remember the root directory for all models, as well as the save directory for this model.
         # This allows us to instantiate and load other models from the correct root.
-        self._root_dir = save_dir
+        return Preferences.model_dir
 
     @property
     def name(self) -> str:
@@ -275,9 +279,8 @@ class VectorSpaceModel(LanguageModel, metaclass=ABCMeta):
     def __init__(self,
                  model_type: LanguageModel.ModelType,
                  corpus_meta: CorpusMetadata,
-                 save_dir: str,
                  window_radius: int):
-        super().__init__(model_type, corpus_meta, save_dir)
+        super().__init__(model_type, corpus_meta)
         self.window_radius = window_radius
 
         # When implementing this class, this must be set by train()

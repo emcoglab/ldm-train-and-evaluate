@@ -289,7 +289,7 @@ class SimilarityTester(object):
                             distance_type)
                     except KeyError as key_error:
                         # If we can't find one of the words in the corpus, just ignore it.
-                        logger.warning(f"{model.corpus_meta.name} corpus doesn't contain {key_error.args[0]}")
+                        logger.warning(f'{model.corpus_meta.name} corpus doesn\'t contain "{key_error.args[0]}"')
                         continue
 
                     # If both words were found in the model, add them to the test list

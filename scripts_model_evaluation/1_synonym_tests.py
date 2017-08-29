@@ -48,7 +48,7 @@ def main():
             # COUNT MODELS
 
             # Log n-gram
-            model = LogNgramModel(corpus_metadata, Preferences.model_dir, window_radius, token_index)
+            model = LogNgramModel(corpus_metadata, window_radius, token_index)
             if not tester.all_transcripts_exist_for(model):
                 model.train()
                 report_card = tester.administer_tests(model)
@@ -57,8 +57,7 @@ def main():
                                      append_existing=True)
 
             # Conditional probability
-            model = ConditionalProbabilityModel(corpus_metadata, Preferences.model_dir, window_radius, token_index,
-                                                freq_dist)
+            model = ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist)
             if not tester.all_transcripts_exist_for(model):
                 model.train()
                 report_card = tester.administer_tests(model)
@@ -67,8 +66,7 @@ def main():
                                      append_existing=True)
 
             # Probability ratios
-            model = ProbabilityRatioModel(corpus_metadata, Preferences.model_dir, window_radius, token_index,
-                                          freq_dist)
+            model = ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist)
             if not tester.all_transcripts_exist_for(model):
                 model.train()
                 report_card = tester.administer_tests(model)
@@ -77,7 +75,7 @@ def main():
                                      append_existing=True)
 
             # PPMI
-            model = PPMIModel(corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
+            model = PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
             if not tester.all_transcripts_exist_for(model):
                 model.train()
                 report_card = tester.administer_tests(model)
@@ -101,7 +99,7 @@ def main():
             for embedding_size in Preferences.predict_embedding_sizes:
 
                 # Skip-gram
-                model = SkipGramModel(corpus_metadata, Preferences.model_dir, window_radius, embedding_size)
+                model = SkipGramModel(corpus_metadata, window_radius, embedding_size)
                 if not tester.all_transcripts_exist_for(model):
                     model.train()
                     report_card = tester.administer_tests(model)
@@ -110,7 +108,7 @@ def main():
                                          append_existing=True)
 
                 # CBOW
-                model = CbowModel(corpus_metadata, Preferences.model_dir, window_radius, embedding_size)
+                model = CbowModel(corpus_metadata, window_radius, embedding_size)
                 if not tester.all_transcripts_exist_for(model):
                     model.train()
                     report_card = tester.administer_tests(model)

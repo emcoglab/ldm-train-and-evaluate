@@ -36,10 +36,9 @@ class PredictModel(VectorSpaceModel):
     def __init__(self,
                  model_type: LanguageModel.ModelType,
                  corpus_meta: CorpusMetadata,
-                 save_dir: str,
                  window_radius: int,
                  embedding_size: int):
-        super().__init__(model_type, corpus_meta, save_dir, window_radius)
+        super().__init__(model_type, corpus_meta, window_radius)
         self.embedding_size = embedding_size
 
         # Recommended value from Mandera et al. (2017).
@@ -119,11 +118,10 @@ class CbowModel(PredictModel):
     """
     def __init__(self,
                  corpus_meta: CorpusMetadata,
-                 save_dir: str,
                  window_radius: int,
                  embedding_size: int):
         super().__init__(VectorSpaceModel.ModelType.cbow,
-                         corpus_meta, save_dir, window_radius, embedding_size)
+                         corpus_meta, window_radius, embedding_size)
 
     def _retrain(self):
 
@@ -147,11 +145,10 @@ class SkipGramModel(PredictModel):
     """
     def __init__(self,
                  corpus_meta: CorpusMetadata,
-                 save_dir: str,
                  window_radius: int,
                  embedding_size: int):
         super().__init__(VectorSpaceModel.ModelType.skip_gram,
-                         corpus_meta, save_dir, window_radius, embedding_size)
+                         corpus_meta, window_radius, embedding_size)
 
     def _retrain(self):
 

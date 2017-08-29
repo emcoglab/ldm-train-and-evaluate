@@ -43,10 +43,9 @@ class CountModel(VectorSpaceModel):
     def __init__(self,
                  model_type: LanguageModel.ModelType,
                  corpus_meta: CorpusMetadata,
-                 save_dir: str,
                  window_radius: int,
                  token_indices: TokenIndexDictionary):
-        super().__init__(model_type, corpus_meta, save_dir, window_radius)
+        super().__init__(model_type, corpus_meta, window_radius)
         self.token_indices = token_indices
 
     @property
@@ -130,10 +129,9 @@ class ScalarCountModel(LanguageModel, metaclass=ABCMeta):
     def __init__(self,
                  model_type: LanguageModel.ModelType,
                  corpus_meta: CorpusMetadata,
-                 save_dir: str,
                  window_radius: int,
                  token_indices: TokenIndexDictionary):
-        super().__init__(model_type, corpus_meta, save_dir)
+        super().__init__(model_type, corpus_meta)
         self.window_radius = window_radius
         self.token_indices = token_indices
 
@@ -183,12 +181,11 @@ class UnsummedNgramCountModel(CountModel):
 
     def __init__(self,
                  corpus_meta: CorpusMetadata,
-                 save_dir: str,
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  chirality: Chirality):
         super().__init__(LanguageModel.ModelType.ngram_unsummed,
-                         corpus_meta, save_dir, window_radius, token_indices)
+                         corpus_meta, window_radius, token_indices)
         self._chirality = chirality
 
     # Overwrite, to include chirality
@@ -272,10 +269,9 @@ class NgramCountModel(CountModel):
 
     def __init__(self,
                  corpus_meta: CorpusMetadata,
-                 save_dir: str,
                  window_radius: int,
                  token_indices: TokenIndexDictionary):
-        super().__init__(VectorSpaceModel.ModelType.ngram, corpus_meta, save_dir, window_radius, token_indices)
+        super().__init__(VectorSpaceModel.ModelType.ngram, corpus_meta, window_radius, token_indices)
 
     def _retrain(self):
 
@@ -289,7 +285,7 @@ class NgramCountModel(CountModel):
             # Accumulate both left and right occurrences
             for chirality in Chirality:
                 # Get each unsummed model
-                unsummed_model = UnsummedNgramCountModel(self.corpus_meta, self._root_dir, radius, self.token_indices,
+                unsummed_model = UnsummedNgramCountModel(self.corpus_meta, radius, self.token_indices,
                                                          chirality)
                 unsummed_model.train()
 
@@ -312,15 +308,14 @@ class LogNgramModel(CountModel):
 
     def __init__(self,
                  corpus_meta: CorpusMetadata,
-                 save_dir: str,
                  window_radius: int,
                  token_indices: TokenIndexDictionary):
         super().__init__(VectorSpaceModel.ModelType.log_ngram,
-                         corpus_meta, save_dir, window_radius, token_indices)
+                         corpus_meta, window_radius, token_indices)
 
     def _retrain(self):
         # Get the ngram model
-        ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
+        ngram_model = NgramCountModel(self.corpus_meta, self.window_radius, self.token_indices)
         ngram_model.train()
 
         # Apply log to entries in the ngram matrix
@@ -343,17 +338,16 @@ class NgramProbabilityModel(CountModel):
 
     def __init__(self,
                  corpus_meta: CorpusMetadata,
-                 save_dir: str,
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
         super().__init__(VectorSpaceModel.ModelType.ngram_probability,
-                         corpus_meta, save_dir, window_radius, token_indices)
+                         corpus_meta, window_radius, token_indices)
         self._freq_dist = freq_dist
 
     def _retrain(self):
         # Get the ngram model
-        ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
+        ngram_model = NgramCountModel(self.corpus_meta, self.window_radius, self.token_indices)
         ngram_model.train()
 
         # The probability is just the ngram count, divided by the width of the window and the size of the corpus
@@ -379,17 +373,16 @@ class TokenProbabilityModel(ScalarCountModel):
 
     def __init__(self,
                  corpus_meta: CorpusMetadata,
-                 save_dir: str,
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
         super().__init__(VectorSpaceModel.ModelType.token_probability,
-                         corpus_meta, save_dir, window_radius, token_indices)
+                         corpus_meta, window_radius, token_indices)
         self._freq_dist = freq_dist
 
     def _retrain(self):
         # Get the ngram model
-        ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
+        ngram_model = NgramCountModel(self.corpus_meta, self.window_radius, self.token_indices)
         ngram_model.train()
 
         # The probability is just the token count, divided by the width of the window and the size of the corpus
@@ -414,16 +407,15 @@ class ConditionalProbabilityModel(CountModel):
 
     def __init__(self,
                  corpus_meta: CorpusMetadata,
-                 save_dir: str,
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
         super().__init__(VectorSpaceModel.ModelType.conditional_probability,
-                         corpus_meta, save_dir, window_radius, token_indices)
+                         corpus_meta, window_radius, token_indices)
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        ngram_probability_model = NgramProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
+        ngram_probability_model = NgramProbabilityModel(self.corpus_meta, self.window_radius,
                                                         self.token_indices, self._freq_dist)
         ngram_probability_model.train()
 
@@ -431,7 +423,7 @@ class ConditionalProbabilityModel(CountModel):
         self._model = ngram_probability_model.matrix
         del ngram_probability_model
 
-        token_probability_model = TokenProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
+        token_probability_model = TokenProbabilityModel(self.corpus_meta, self.window_radius,
                                                         self.token_indices, self._freq_dist)
         token_probability_model.train()
 
@@ -465,17 +457,16 @@ class ContextProbabilityModel(ScalarCountModel):
 
     def __init__(self,
                  corpus_meta: CorpusMetadata,
-                 save_dir: str,
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
         super().__init__(VectorSpaceModel.ModelType.context_probability,
-                         corpus_meta, save_dir, window_radius, token_indices)
+                         corpus_meta, window_radius, token_indices)
         self._freq_dist = freq_dist
 
     def _retrain(self):
         # Get the ngram model
-        ngram_model = NgramCountModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices)
+        ngram_model = NgramCountModel(self.corpus_meta, self.window_radius, self.token_indices)
         ngram_model.train()
 
         # The probability is just the token count, divided by the width of the window and the size of the corpus
@@ -499,16 +490,15 @@ class ProbabilityRatioModel(CountModel):
 
     def __init__(self,
                  corpus_meta: CorpusMetadata,
-                 save_dir: str,
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
         super().__init__(LanguageModel.ModelType.probability_ratios,
-                         corpus_meta, save_dir, window_radius, token_indices)
+                         corpus_meta, window_radius, token_indices)
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        cond_prob_model = ConditionalProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
+        cond_prob_model = ConditionalProbabilityModel(self.corpus_meta, self.window_radius,
                                                       self.token_indices, self._freq_dist)
         cond_prob_model.train()
 
@@ -516,7 +506,7 @@ class ProbabilityRatioModel(CountModel):
         self._model = cond_prob_model.matrix
         del cond_prob_model
 
-        context_probability_model = ContextProbabilityModel(self.corpus_meta, self._root_dir, self.window_radius,
+        context_probability_model = ContextProbabilityModel(self.corpus_meta, self.window_radius,
                                                             self.token_indices, self._freq_dist)
         context_probability_model.train()
 
@@ -559,16 +549,15 @@ class PPMIModel(CountModel):
 
     def __init__(self,
                  corpus_meta: CorpusMetadata,
-                 save_dir: str,
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
         super().__init__(LanguageModel.ModelType.ppmi,
-                         corpus_meta, save_dir, window_radius, token_indices)
+                         corpus_meta, window_radius, token_indices)
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        ratios_model = ProbabilityRatioModel(self.corpus_meta, self._root_dir, self.window_radius, self.token_indices,
+        ratios_model = ProbabilityRatioModel(self.corpus_meta, self.window_radius, self.token_indices,
                                              self._freq_dist)
         ratios_model.train()
 

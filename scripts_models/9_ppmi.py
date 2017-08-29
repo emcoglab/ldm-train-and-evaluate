@@ -33,7 +33,7 @@ def main():
         token_indices = TokenIndexDictionary.load(meta.index_path)
         freq_dist = FreqDist.load(meta.freq_dist_path)
         for radius in Preferences.window_radii:
-            model = PPMIModel(meta, Preferences.model_dir, radius, token_indices, freq_dist)
+            model = PPMIModel(meta, radius, token_indices, freq_dist)
             if not model.could_load:
                 model.train()
 

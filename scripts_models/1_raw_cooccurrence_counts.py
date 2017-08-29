@@ -32,7 +32,7 @@ def main():
         token_indices = TokenIndexDictionary.load(meta.index_path)
         for radius in range(1, max(Preferences.window_radii) + 1):
             for chirality in Chirality:
-                model = UnsummedNgramCountModel(meta, Preferences.model_dir, radius, token_indices, chirality)
+                model = UnsummedNgramCountModel(meta, radius, token_indices, chirality)
                 if not model.could_load:
                     model.train()
 

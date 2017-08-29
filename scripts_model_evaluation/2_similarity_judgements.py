@@ -65,27 +65,25 @@ def main():
             # COUNT MODELS
 
             # Log n-gram
-            model = LogNgramModel(corpus_metadata, Preferences.model_dir, window_radius, token_index)
+            model = LogNgramModel(corpus_metadata, window_radius, token_index)
             model.train()
             results = tester.administer_tests(model)
             save_results(results)
 
             # Conditional probability
-            model = ConditionalProbabilityModel(corpus_metadata, Preferences.model_dir, window_radius, token_index,
-                                                freq_dist)
+            model = ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist)
             model.train()
             results = tester.administer_tests(model)
             save_results(results)
 
             # Probability ratios
-            model = ProbabilityRatioModel(corpus_metadata, Preferences.model_dir, window_radius, token_index,
-                                          freq_dist)
+            model = ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist)
             model.train()
             results = tester.administer_tests(model)
             save_results(results)
 
             # PPMI
-            model = PPMIModel(corpus_metadata, Preferences.model_dir, window_radius, token_index, freq_dist)
+            model = PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
             model.train()
             results = tester.administer_tests(model)
             save_results(results)
@@ -94,13 +92,13 @@ def main():
 
             for embedding_size in Preferences.predict_embedding_sizes:
                 # Skip-gram
-                model = SkipGramModel(corpus_metadata, Preferences.model_dir, window_radius, embedding_size)
+                model = SkipGramModel(corpus_metadata, window_radius, embedding_size)
                 model.train()
                 results = tester.administer_tests(model)
                 save_results(results)
 
                 # CBOW
-                model = CbowModel(corpus_metadata, Preferences.model_dir, window_radius, embedding_size)
+                model = CbowModel(corpus_metadata, window_radius, embedding_size)
                 model.train()
                 results = tester.administer_tests(model)
                 save_results(results)

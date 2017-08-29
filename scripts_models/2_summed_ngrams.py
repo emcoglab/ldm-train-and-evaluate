@@ -30,7 +30,7 @@ def main():
     for meta in Preferences.source_corpus_metas:
         token_indices = TokenIndexDictionary.load(meta.index_path)
         for radius in Preferences.window_radii:
-            model = NgramCountModel(meta, Preferences.model_dir, radius, token_indices)
+            model = NgramCountModel(meta, radius, token_indices)
             if not model.could_load:
                 model.train()
 
