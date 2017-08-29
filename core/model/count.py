@@ -27,7 +27,7 @@ import scipy.sparse as sps
 
 from ..corpus.corpus import CorpusMetadata, WindowedCorpus
 from ..corpus.distribution import FreqDist
-from ..model.base import VectorSpaceModel, LanguageModel
+from ..model.base import VectorSemanticModel, DistributionalSemanticModel, ScalarSemanticModel
 from ..utils.constants import Chirality
 from ..utils.indexing import TokenIndexDictionary
 from ..utils.maths import DistanceType, distance, sparse_max
@@ -35,13 +35,13 @@ from ..utils.maths import DistanceType, distance, sparse_max
 logger = logging.getLogger(__name__)
 
 
-class CountModel(VectorSpaceModel):
+class CountVectorModel(VectorSemanticModel):
     """
     A model where vectors are computed by counting contexts.
     """
 
     def __init__(self,
-                 model_type: LanguageModel.ModelType,
+                 model_type: DistributionalSemanticModel.ModelType,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
                  token_indices: TokenIndexDictionary):
@@ -121,31 +121,18 @@ class CountModel(VectorSpaceModel):
         return [self.token_indices.id2token(i) for i, dist in nearest_neighbours]
 
 
-class ScalarCountModel(LanguageModel, metaclass=ABCMeta):
+class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
     """
-    A language model where each word is associated with a scalar value.
+    A context-counting language model where each word is associated with a scalar value.
     """
 
     def __init__(self,
-                 model_type: LanguageModel.ModelType,
+                 model_type: DistributionalSemanticModel.ModelType,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
                  token_indices: TokenIndexDictionary):
-        super().__init__(model_type, corpus_meta)
-        self.window_radius = window_radius
+        super().__init__(model_type, corpus_meta, window_radius)
         self.token_indices = token_indices
-
-        # When implementing this class, this must be set by retrain()
-        self._model: np.ndarray = None
-
-    @property
-    def name(self) -> str:
-        return f"{self.model_type.name} ({self.corpus_meta.name}), r={self.window_radius}"
-
-    # TODO: Rename this to put the type at the start!
-    @property
-    def _model_filename(self):
-        return f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.name}"
 
     @property
     def _model_ext(self):
@@ -155,10 +142,6 @@ class ScalarCountModel(LanguageModel, metaclass=ABCMeta):
     def vector(self) -> np.ndarray:
         return self._model
 
-    @abstractmethod
-    def _retrain(self):
-        raise NotImplementedError()
-
     def _save(self):
         sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
 
@@ -166,15 +149,10 @@ class ScalarCountModel(LanguageModel, metaclass=ABCMeta):
         self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
 
     def scalar_for_word(self, word: str):
-        """
-        Returns the scalar value for a word.
-        :param word:
-        :return:
-        """
         return self._model[self.token_indices.token2id[word]]
 
 
-class UnsummedNgramCountModel(CountModel):
+class UnsummedNgramCountModel(CountVectorModel):
     """
     A model where vectors consist of context counts at a fixed distance either on the left or right of a window.
     """
@@ -184,7 +162,7 @@ class UnsummedNgramCountModel(CountModel):
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  chirality: Chirality):
-        super().__init__(LanguageModel.ModelType.ngram_unsummed,
+        super().__init__(DistributionalSemanticModel.ModelType.ngram_unsummed,
                          corpus_meta, window_radius, token_indices)
         self._chirality = chirality
 
@@ -257,7 +235,7 @@ class UnsummedNgramCountModel(CountModel):
         self._model = self._model.tocsr()
 
 
-class NgramCountModel(CountModel):
+class NgramCountModel(CountVectorModel):
     """
     A model where vectors consist of the counts of context words within a window.
 
@@ -271,7 +249,7 @@ class NgramCountModel(CountModel):
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
                  token_indices: TokenIndexDictionary):
-        super().__init__(VectorSpaceModel.ModelType.ngram, corpus_meta, window_radius, token_indices)
+        super().__init__(VectorSemanticModel.ModelType.ngram, corpus_meta, window_radius, token_indices)
 
     def _retrain(self):
 
@@ -296,7 +274,7 @@ class NgramCountModel(CountModel):
                 del unsummed_model
 
 
-class LogNgramModel(CountModel):
+class LogNgramModel(CountVectorModel):
     """
     A model where vectors consist of the log of context counts within a window.
 
@@ -310,7 +288,7 @@ class LogNgramModel(CountModel):
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
                  token_indices: TokenIndexDictionary):
-        super().__init__(VectorSpaceModel.ModelType.log_ngram,
+        super().__init__(VectorSemanticModel.ModelType.log_ngram,
                          corpus_meta, window_radius, token_indices)
 
     def _retrain(self):
@@ -324,7 +302,7 @@ class LogNgramModel(CountModel):
         self._model.data = np.log10(self._model.data)
 
 
-class NgramProbabilityModel(CountModel):
+class NgramProbabilityModel(CountVectorModel):
     """
     A model where vectors consist of the probability that a given context is found within a window around the target.
 
@@ -341,7 +319,7 @@ class NgramProbabilityModel(CountModel):
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
-        super().__init__(VectorSpaceModel.ModelType.ngram_probability,
+        super().__init__(VectorSemanticModel.ModelType.ngram_probability,
                          corpus_meta, window_radius, token_indices)
         self._freq_dist = freq_dist
 
@@ -359,7 +337,7 @@ class NgramProbabilityModel(CountModel):
         self._model /= self._freq_dist.N()
 
 
-class TokenProbabilityModel(ScalarCountModel):
+class TokenProbabilityModel(CountScalarModel):
     """
     A model where ~vectors~ consist of the probability that any token is the target.
 
@@ -376,7 +354,7 @@ class TokenProbabilityModel(ScalarCountModel):
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
-        super().__init__(VectorSpaceModel.ModelType.token_probability,
+        super().__init__(VectorSemanticModel.ModelType.token_probability,
                          corpus_meta, window_radius, token_indices)
         self._freq_dist = freq_dist
 
@@ -395,7 +373,7 @@ class TokenProbabilityModel(ScalarCountModel):
         self._model /= self._freq_dist.N()
 
 
-class ConditionalProbabilityModel(CountModel):
+class ConditionalProbabilityModel(CountVectorModel):
     """
     A model where vectors consist of n-gram counts normalised by token probabilities.
 
@@ -410,7 +388,7 @@ class ConditionalProbabilityModel(CountModel):
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
-        super().__init__(VectorSpaceModel.ModelType.conditional_probability,
+        super().__init__(VectorSemanticModel.ModelType.conditional_probability,
                          corpus_meta, window_radius, token_indices)
         self._freq_dist = freq_dist
 
@@ -443,7 +421,7 @@ class ConditionalProbabilityModel(CountModel):
         self._model.data = self._model.data / token_probability_model.vector.repeat(np.diff(self._model.indptr))
 
 
-class ContextProbabilityModel(ScalarCountModel):
+class ContextProbabilityModel(CountScalarModel):
     """
     A model where ~vectors~ consist of the probability that any token is the target.
 
@@ -460,7 +438,7 @@ class ContextProbabilityModel(ScalarCountModel):
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
-        super().__init__(VectorSpaceModel.ModelType.context_probability,
+        super().__init__(VectorSemanticModel.ModelType.context_probability,
                          corpus_meta, window_radius, token_indices)
         self._freq_dist = freq_dist
 
@@ -478,7 +456,7 @@ class ContextProbabilityModel(ScalarCountModel):
         self._model /= self._freq_dist.N()
 
 
-class ProbabilityRatioModel(CountModel):
+class ProbabilityRatioModel(CountVectorModel):
     """
     A model where vectors consist of the ratio of probabilities.
 
@@ -493,7 +471,7 @@ class ProbabilityRatioModel(CountModel):
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
-        super().__init__(LanguageModel.ModelType.probability_ratios,
+        super().__init__(DistributionalSemanticModel.ModelType.probability_ratios,
                          corpus_meta, window_radius, token_indices)
         self._freq_dist = freq_dist
 
@@ -535,7 +513,7 @@ class ProbabilityRatioModel(CountModel):
         self._model = self._model.transpose().tocsr()
 
 
-class PPMIModel(CountModel):
+class PPMIModel(CountVectorModel):
     """
     A model where the vectors consist of the positive pointwise mutual information between the context and the target.
 
@@ -552,7 +530,7 @@ class PPMIModel(CountModel):
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
-        super().__init__(LanguageModel.ModelType.ppmi,
+        super().__init__(DistributionalSemanticModel.ModelType.ppmi,
                          corpus_meta, window_radius, token_indices)
         self._freq_dist = freq_dist
 

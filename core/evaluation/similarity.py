@@ -23,8 +23,8 @@ from typing import List
 
 import numpy
 
-from ..model.base import VectorSpaceModel
-from ..model.predict import PredictModel
+from ..model.base import VectorSemanticModel
+from ..model.predict import PredictVectorModel
 from ..utils.maths import DistanceType
 from ...preferences.preferences import Preferences
 
@@ -231,7 +231,7 @@ class SimilarityTestResult(object):
     """
 
     def __init__(self,
-                 model: VectorSpaceModel,
+                 model: VectorSemanticModel,
                  test: SimilarityJudgementTest,
                  distance_type: DistanceType,
                  correlation: float):
@@ -240,7 +240,7 @@ class SimilarityTestResult(object):
         self._window_radius = model.window_radius
         self._corpus_name = model.corpus_meta.name
         self._distance_type = distance_type
-        self._embedding_size = model.embedding_size if isinstance(model, PredictModel) else None
+        self._embedding_size = model.embedding_size if isinstance(model, PredictVectorModel) else None
         self._correlation = correlation
 
     @property
@@ -266,7 +266,7 @@ class SimilarityTester(object):
         self.test_battery = test_battery
 
     def administer_tests(self,
-                         model: VectorSpaceModel) -> List[SimilarityTestResult]:
+                         model: VectorSemanticModel) -> List[SimilarityTestResult]:
         """
         Administers a battery of tests against a model
         :param model: Must be trained.

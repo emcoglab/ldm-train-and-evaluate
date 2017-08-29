@@ -17,17 +17,20 @@ caiwingfield.net
 
 import logging
 import os
+
 from abc import ABCMeta, abstractmethod
 from enum import Enum, auto
 
-from ...preferences.preferences import Preferences
+import numpy
+
 from ..corpus.corpus import CorpusMetadata
 from ..utils.maths import DistanceType, distance
+from ...preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
 
-class LanguageModel(metaclass=ABCMeta):
+class DistributionalSemanticModel(metaclass=ABCMeta):
     """
     A model of the language.
     """
@@ -62,30 +65,30 @@ class LanguageModel(metaclass=ABCMeta):
             The metatype of this type.
             :return:
             """
-            if self is VectorSpaceModel.ModelType.cbow:
-                return VectorSpaceModel.MetaType.predict
-            elif self is VectorSpaceModel.ModelType.skip_gram:
-                return VectorSpaceModel.MetaType.predict
-            elif self is VectorSpaceModel.ModelType.ngram_unsummed:
-                return VectorSpaceModel.MetaType.count
-            elif self is VectorSpaceModel.ModelType.ngram:
-                return VectorSpaceModel.MetaType.count
-            elif self is VectorSpaceModel.ModelType.log_ngram:
-                return VectorSpaceModel.MetaType.count
-            elif self is VectorSpaceModel.ModelType.ngram_probability:
-                return VectorSpaceModel.MetaType.count
-            elif self is VectorSpaceModel.ModelType.token_probability:
-                return VectorSpaceModel.MetaType.count
-            elif self is VectorSpaceModel.ModelType.context_probability:
-                return VectorSpaceModel.MetaType.count
-            elif self is VectorSpaceModel.ModelType.conditional_probability:
-                return VectorSpaceModel.MetaType.count
-            elif self is VectorSpaceModel.ModelType.probability_ratios:
-                return VectorSpaceModel.MetaType.count
-            elif self is VectorSpaceModel.ModelType.pmi:
-                return VectorSpaceModel.MetaType.count
-            elif self is VectorSpaceModel.ModelType.ppmi:
-                return VectorSpaceModel.MetaType.count
+            if self is VectorSemanticModel.ModelType.cbow:
+                return VectorSemanticModel.MetaType.predict
+            elif self is VectorSemanticModel.ModelType.skip_gram:
+                return VectorSemanticModel.MetaType.predict
+            elif self is VectorSemanticModel.ModelType.ngram_unsummed:
+                return VectorSemanticModel.MetaType.count
+            elif self is VectorSemanticModel.ModelType.ngram:
+                return VectorSemanticModel.MetaType.count
+            elif self is VectorSemanticModel.ModelType.log_ngram:
+                return VectorSemanticModel.MetaType.count
+            elif self is VectorSemanticModel.ModelType.ngram_probability:
+                return VectorSemanticModel.MetaType.count
+            elif self is VectorSemanticModel.ModelType.token_probability:
+                return VectorSemanticModel.MetaType.count
+            elif self is VectorSemanticModel.ModelType.context_probability:
+                return VectorSemanticModel.MetaType.count
+            elif self is VectorSemanticModel.ModelType.conditional_probability:
+                return VectorSemanticModel.MetaType.count
+            elif self is VectorSemanticModel.ModelType.probability_ratios:
+                return VectorSemanticModel.MetaType.count
+            elif self is VectorSemanticModel.ModelType.pmi:
+                return VectorSemanticModel.MetaType.count
+            elif self is VectorSemanticModel.ModelType.ppmi:
+                return VectorSemanticModel.MetaType.count
             else:
                 raise ValueError()
 
@@ -95,29 +98,29 @@ class LanguageModel(metaclass=ABCMeta):
             A path-safe representation of the model type
             :return:
             """
-            if self is VectorSpaceModel.ModelType.cbow:
+            if self is VectorSemanticModel.ModelType.cbow:
                 return "cbow"
-            elif self is VectorSpaceModel.ModelType.skip_gram:
+            elif self is VectorSemanticModel.ModelType.skip_gram:
                 return "skipgram"
-            elif self is VectorSpaceModel.ModelType.ngram_unsummed:
+            elif self is VectorSemanticModel.ModelType.ngram_unsummed:
                 return "ngram_unsummed"
-            elif self is VectorSpaceModel.ModelType.ngram:
+            elif self is VectorSemanticModel.ModelType.ngram:
                 return "ngram"
-            elif self is VectorSpaceModel.ModelType.log_ngram:
+            elif self is VectorSemanticModel.ModelType.log_ngram:
                 return "log_ngram"
-            elif self is VectorSpaceModel.ModelType.ngram_probability:
+            elif self is VectorSemanticModel.ModelType.ngram_probability:
                 return "ngram_probability"
-            elif self is VectorSpaceModel.ModelType.token_probability:
+            elif self is VectorSemanticModel.ModelType.token_probability:
                 return "token_probability"
-            elif self is VectorSpaceModel.ModelType.context_probability:
+            elif self is VectorSemanticModel.ModelType.context_probability:
                 return "context_probability"
-            elif self is VectorSpaceModel.ModelType.conditional_probability:
+            elif self is VectorSemanticModel.ModelType.conditional_probability:
                 return "conditional_probability"
-            elif self is VectorSpaceModel.ModelType.probability_ratios:
+            elif self is VectorSemanticModel.ModelType.probability_ratios:
                 return "probability_ratios"
-            elif self is VectorSpaceModel.ModelType.pmi:
+            elif self is VectorSemanticModel.ModelType.pmi:
                 return "pmi"
-            elif self is VectorSpaceModel.ModelType.ppmi:
+            elif self is VectorSemanticModel.ModelType.ppmi:
                 return "ppmi"
             else:
                 raise ValueError()
@@ -128,29 +131,29 @@ class LanguageModel(metaclass=ABCMeta):
             THe name of the model type
             :return:
             """
-            if self is VectorSpaceModel.ModelType.cbow:
+            if self is VectorSemanticModel.ModelType.cbow:
                 return "CBOW"
-            elif self is VectorSpaceModel.ModelType.skip_gram:
+            elif self is VectorSemanticModel.ModelType.skip_gram:
                 return "Skip-gram"
-            elif self is VectorSpaceModel.ModelType.ngram_unsummed:
+            elif self is VectorSemanticModel.ModelType.ngram_unsummed:
                 return "n-gram (unsummed)"
-            elif self is VectorSpaceModel.ModelType.ngram:
+            elif self is VectorSemanticModel.ModelType.ngram:
                 return "n-gram (summed)"
-            elif self is VectorSpaceModel.ModelType.log_ngram:
+            elif self is VectorSemanticModel.ModelType.log_ngram:
                 return "log n-gram"
-            elif self is VectorSpaceModel.ModelType.ngram_probability:
+            elif self is VectorSemanticModel.ModelType.ngram_probability:
                 return "n-gram probability"
-            elif self is VectorSpaceModel.ModelType.token_probability:
+            elif self is VectorSemanticModel.ModelType.token_probability:
                 return "Token probability"
-            elif self is VectorSpaceModel.ModelType.context_probability:
+            elif self is VectorSemanticModel.ModelType.context_probability:
                 return "Context probability"
-            elif self is VectorSpaceModel.ModelType.conditional_probability:
+            elif self is VectorSemanticModel.ModelType.conditional_probability:
                 return "Conditional probability"
-            elif self is VectorSpaceModel.ModelType.probability_ratios:
+            elif self is VectorSemanticModel.ModelType.probability_ratios:
                 return "Probability ratio"
-            elif self is VectorSpaceModel.ModelType.pmi:
+            elif self is VectorSemanticModel.ModelType.pmi:
                 return "PMI"
-            elif self is VectorSpaceModel.ModelType.ppmi:
+            elif self is VectorSemanticModel.ModelType.ppmi:
                 return "PPMI"
             else:
                 raise ValueError()
@@ -161,7 +164,7 @@ class LanguageModel(metaclass=ABCMeta):
             Lists the predict types
             :return:
             """
-            return [t for t in VectorSpaceModel.ModelType if t.metatype is VectorSpaceModel.MetaType.predict]
+            return [t for t in VectorSemanticModel.ModelType if t.metatype is VectorSemanticModel.MetaType.predict]
 
         @classmethod
         def count_types(cls):
@@ -169,7 +172,7 @@ class LanguageModel(metaclass=ABCMeta):
             Lists the count types
             :return:
             """
-            return [t for t in VectorSpaceModel.ModelType if t.metatype is VectorSpaceModel.MetaType.count]
+            return [t for t in VectorSemanticModel.ModelType if t.metatype is VectorSemanticModel.MetaType.count]
 
     def __init__(self, model_type: ModelType, corpus_meta: CorpusMetadata):
 
@@ -271,13 +274,13 @@ class LanguageModel(metaclass=ABCMeta):
         raise NotImplementedError()
 
 
-class VectorSpaceModel(LanguageModel, metaclass=ABCMeta):
+class VectorSemanticModel(DistributionalSemanticModel, metaclass=ABCMeta):
     """
     A language model where each word is associated with a point in a vector space.
     """
 
     def __init__(self,
-                 model_type: LanguageModel.ModelType,
+                 model_type: DistributionalSemanticModel.ModelType,
                  corpus_meta: CorpusMetadata,
                  window_radius: int):
         super().__init__(model_type, corpus_meta)
@@ -302,8 +305,6 @@ class VectorSpaceModel(LanguageModel, metaclass=ABCMeta):
     def vector_for_word(self, word: str):
         """
         Returns the vector representation of a word.
-        :param word:
-        :return:
         """
         raise NotImplementedError()
 
@@ -322,18 +323,6 @@ class VectorSpaceModel(LanguageModel, metaclass=ABCMeta):
         :return:
         """
         return self.nearest_neighbours(word, distance_type, 1)[0]
-
-    @abstractmethod
-    def _retrain(self):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def _load(self):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def _save(self):
-        raise NotImplementedError()
 
     def distance_between(self, word_1, word_2, distance_type: DistanceType, truncate_vectors_at_length: int = None):
         """
@@ -354,3 +343,35 @@ class VectorSpaceModel(LanguageModel, metaclass=ABCMeta):
             v_2 = v_2[:, :truncate_vectors_at_length]
 
         return distance(v_1, v_2, distance_type)
+
+
+class ScalarSemanticModel(DistributionalSemanticModel, metaclass=ABCMeta):
+    """
+    A language model where each word is associated with a scalar value.
+    """
+
+    def __init__(self,
+                 model_type: DistributionalSemanticModel.ModelType,
+                 corpus_meta: CorpusMetadata,
+                 window_radius: int):
+        super().__init__(model_type, corpus_meta)
+        self.window_radius = window_radius
+
+        # When implementing this class, this must be set by retrain()
+        self._model: numpy.ndarray = None
+
+    @property
+    def name(self) -> str:
+        return f"{self.model_type.name} ({self.corpus_meta.name}), r={self.window_radius}"
+
+    # TODO: Rename this to put the type at the start!
+    @property
+    def _model_filename(self):
+        return f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.name}"
+
+    @abstractmethod
+    def scalar_for_word(self, word: str):
+        """
+        Returns the scalar value for a word.
+        """
+        raise NotImplementedError()

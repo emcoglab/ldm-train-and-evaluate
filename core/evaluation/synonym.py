@@ -24,8 +24,8 @@ from abc import ABCMeta, abstractmethod
 from copy import copy
 from typing import List
 
-from ..model.base import VectorSpaceModel
-from ..model.predict import PredictModel
+from ..model.base import VectorSemanticModel
+from ..model.predict import PredictVectorModel
 from ..utils.indexing import LetterIndexing
 from ..utils.maths import DistanceType
 from ...preferences.preferences import Preferences
@@ -298,7 +298,7 @@ class ReportCard(object):
 
         def __init__(self,
                      test: SynonymTest,
-                     model: VectorSpaceModel,
+                     model: VectorSemanticModel,
                      distance_type: DistanceType,
                      answer_paper: AnswerPaper,
                      # ugh
@@ -308,7 +308,7 @@ class ReportCard(object):
             self._model_type_name = model.model_type.name + append_to_model_name
             self._window_radius = model.window_radius
             self._corpus_name = model.corpus_meta.name
-            self._embedding_size = model.embedding_size if isinstance(model, PredictModel) else None
+            self._embedding_size = model.embedding_size if isinstance(model, PredictVectorModel) else None
             self._test_name = test.name
 
         @property
@@ -409,7 +409,7 @@ class SynonymTester(object):
         self.test_battery = test_battery
 
     def administer_tests(self,
-                         model: VectorSpaceModel,
+                         model: VectorSemanticModel,
                          truncate_vectors_at_length: int = None
                          ) -> ReportCard:
         """
@@ -462,7 +462,7 @@ class SynonymTester(object):
         return report_card
 
     @staticmethod
-    def _text_transcript_path(test: SynonymTest, distance_type: DistanceType, model: VectorSpaceModel,
+    def _text_transcript_path(test: SynonymTest, distance_type: DistanceType, model: VectorSemanticModel,
                               truncate_vectors_at_length: int) -> str:
         """
         Where the text transcript would be saved for a particular test.
@@ -477,7 +477,7 @@ class SynonymTester(object):
         # TODO: this path shouldn't really be defined here
         return os.path.join(Preferences.eval_dir, "synonyms", "transcripts", filename)
 
-    def all_transcripts_exist_for(self, model: VectorSpaceModel, truncate_vectors_at_length: int = None) -> bool:
+    def all_transcripts_exist_for(self, model: VectorSemanticModel, truncate_vectors_at_length: int = None) -> bool:
         """
         If every test transcript file exists for this model.
         """

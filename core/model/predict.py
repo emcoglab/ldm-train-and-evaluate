@@ -24,17 +24,17 @@ import gensim
 
 from ..utils.maths import distance, DistanceType
 from ..corpus.corpus import CorpusMetadata, BatchedCorpus
-from ..model.base import VectorSpaceModel, LanguageModel
+from ..model.base import VectorSemanticModel, DistributionalSemanticModel
 
 logger = logging.getLogger(__name__)
 
 
-class PredictModel(VectorSpaceModel):
+class PredictVectorModel(VectorSemanticModel):
     """
     A vector space model where words are predicted rather than counted.
     """
     def __init__(self,
-                 model_type: LanguageModel.ModelType,
+                 model_type: DistributionalSemanticModel.ModelType,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
                  embedding_size: int):
@@ -112,7 +112,7 @@ class PredictModel(VectorSpaceModel):
         return self._model.wv.word_vec(word)
 
 
-class CbowModel(PredictModel):
+class CbowModel(PredictVectorModel):
     """
     A vector space model trained using CBOW.
     """
@@ -120,7 +120,7 @@ class CbowModel(PredictModel):
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
                  embedding_size: int):
-        super().__init__(VectorSpaceModel.ModelType.cbow,
+        super().__init__(VectorSemanticModel.ModelType.cbow,
                          corpus_meta, window_radius, embedding_size)
 
     def _retrain(self):
@@ -139,7 +139,7 @@ class CbowModel(PredictModel):
             workers=self._workers)
 
 
-class SkipGramModel(PredictModel):
+class SkipGramModel(PredictVectorModel):
     """
     A vector space model trained using Skip-gram.
     """
@@ -147,7 +147,7 @@ class SkipGramModel(PredictModel):
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
                  embedding_size: int):
-        super().__init__(VectorSpaceModel.ModelType.skip_gram,
+        super().__init__(VectorSemanticModel.ModelType.skip_gram,
                          corpus_meta, window_radius, embedding_size)
 
     def _retrain(self):
