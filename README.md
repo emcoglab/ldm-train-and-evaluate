@@ -32,11 +32,9 @@ To reproduce each stage of the analysis, each script directory contains a script
 run all necessary scripts in order.
 
 Run it like:
-
 ```commandline
 sh 0_crit_path.sh
-``` 
-
+```
 from above the project directory.  There is also a `0_crit_path.sh` in the root of the project, which should run each 
 other `0_crit_path.sh` script in order, reproducing the whole project from scratch.  (This will take a long time and a 
 lot of memory!)
@@ -50,10 +48,15 @@ As well as things which come as standard with `conda`, this project uses the fol
 
 - `numpy`
 - `scipy`
+- `pandas`
 - `lxml`
+- `xlrd`
 - `srt`
 - `nltk`
 - `gensim`
 - `json`
 
-Any which don't come with `conda` can be installed with `pip`.
+Any which don't come with `conda` can be installed with `pip` like:
+```commandline
+pip install -U [package name]
+```
