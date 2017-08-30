@@ -18,10 +18,9 @@ caiwingfield.net
 import logging
 import sys
 
-import pandas as pd
-import numpy as np
-import xlrd
+import pandas
 
+from ..core.evaluation.priming import SppNaming
 from ..core.utils.logging import log_message, date_format
 
 
@@ -29,9 +28,9 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    xls = pd.ExcelFile("/Users/caiwingfield/evaluation/tests/Semantic priming project/all naming subjects.xlsx")
-    df = xls.parse('Sheet1')
-    df.where()
+    data = SppNaming.dataframe()
+
+    group = data.where(data["target.ACC"] == 1).groupby(["target", "prime"])
 
     return
 

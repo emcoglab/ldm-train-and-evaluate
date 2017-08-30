@@ -263,8 +263,7 @@ class NgramCountModel(CountVectorModel):
             # Accumulate both left and right occurrences
             for chirality in Chirality:
                 # Get each unsummed model
-                unsummed_model = UnsummedNgramCountModel(self.corpus_meta, radius, self.token_indices,
-                                                         chirality)
+                unsummed_model = UnsummedNgramCountModel(self.corpus_meta, radius, self.token_indices, chirality)
                 unsummed_model.train()
 
                 # And add it to the current matrix
@@ -388,13 +387,13 @@ class ConditionalProbabilityModel(CountVectorModel):
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
-        super().__init__(VectorSemanticModel.ModelType.conditional_probability,
-                         corpus_meta, window_radius, token_indices)
+        super().__init__(VectorSemanticModel.ModelType.conditional_probability, corpus_meta, window_radius,
+                         token_indices)
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        ngram_probability_model = NgramProbabilityModel(self.corpus_meta, self.window_radius,
-                                                        self.token_indices, self._freq_dist)
+        ngram_probability_model = NgramProbabilityModel(self.corpus_meta, self.window_radius, self.token_indices,
+                                                        self._freq_dist)
         ngram_probability_model.train()
 
         # Convert to csr for linear algebra
@@ -471,8 +470,8 @@ class ProbabilityRatioModel(CountVectorModel):
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
-        super().__init__(DistributionalSemanticModel.ModelType.probability_ratios,
-                         corpus_meta, window_radius, token_indices)
+        super().__init__(DistributionalSemanticModel.ModelType.probability_ratios, corpus_meta, window_radius,
+                         token_indices)
         self._freq_dist = freq_dist
 
     def _retrain(self):
@@ -530,8 +529,7 @@ class PPMIModel(CountVectorModel):
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
-        super().__init__(DistributionalSemanticModel.ModelType.ppmi,
-                         corpus_meta, window_radius, token_indices)
+        super().__init__(DistributionalSemanticModel.ModelType.ppmi, corpus_meta, window_radius, token_indices)
         self._freq_dist = freq_dist
 
     def _retrain(self):
