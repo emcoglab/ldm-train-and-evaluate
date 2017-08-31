@@ -119,13 +119,14 @@ class SynonymTest(object, metaclass=ABCMeta):
         self._question_list: List[SynonymTestQuestion] = None
 
     @property
-    def question_list(self):
+    def question_list(self) -> List[SynonymTestQuestion]:
         """
         The list of questions.
         """
         # Lazy load
         if self._question_list is None:
             self._question_list = self._load()
+        assert self._question_list is not None
         return self._question_list
 
     @property

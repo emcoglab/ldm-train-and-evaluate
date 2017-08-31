@@ -60,6 +60,7 @@ class SimilarityJudgementTest(metaclass=ABCMeta):
         # Lazy load
         if self._judgement_list is None:
             self._judgement_list = self._load()
+        assert self._judgement_list is not None
         return self._judgement_list
 
     @property

@@ -50,6 +50,7 @@ As well as things which come as standard with `conda`, this project uses the fol
 - `scipy`
 - `pandas`
 - `lxml`
+- `xlrd`
 - `srt`
 - `nltk`
 - `gensim`
