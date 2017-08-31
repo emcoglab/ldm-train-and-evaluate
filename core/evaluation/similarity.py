@@ -53,7 +53,7 @@ class SimilarityJudgementTest(metaclass=ABCMeta):
         self._judgement_list: List[SimilarityJudgement] = None
 
     @property
-    def judgement_list(self):
+    def judgement_list(self) -> List[SimilarityJudgement]:
         """
         The list of judgements.
         """

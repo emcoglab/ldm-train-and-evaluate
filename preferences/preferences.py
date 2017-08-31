@@ -135,5 +135,8 @@ class Preferences(object):
     wordsim_relatedness_path = "/Users/caiwingfield/evaluation/tests/WordSim353/wordsim_relatedness_goldstandard.txt"
     men_path                 = "/Users/caiwingfield/evaluation/tests/MEN/MEN_dataset_natural_form_full"
 
+    # Priming data
+    spp_naming_path          = "/Users/caiwingfield/evaluation/tests/Semantic priming project/all naming subjects.xlsx"
+
     # Model evaluation results
     eval_dir = "/Users/caiwingfield/evaluation/results/"

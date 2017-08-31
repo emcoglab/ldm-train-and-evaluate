@@ -18,8 +18,6 @@ caiwingfield.net
 import logging
 import sys
 
-import pandas
-
 from ..core.evaluation.priming import SppNaming
 from ..core.utils.logging import log_message, date_format
 
@@ -28,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    data = SppNaming.dataframe()
+    data = SppNaming.data
 
     group = data.where(data["target.ACC"] == 1).groupby(["target", "prime"])
 

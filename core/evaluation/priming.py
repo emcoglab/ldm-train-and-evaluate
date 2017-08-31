@@ -14,21 +14,40 @@ caiwingfield.net
 2017
 ---------------------------
 """
+
 import logging
 
 import pandas
+
+from ...preferences.preferences import Preferences
+
 
 logger = logging.getLogger(__name__)
 
 
 class SppNaming(object):
+    """
+    Naming data from Semantic Priming Project.
+    """
+    def __init__(self):
 
-    @staticmethod
-    def dataframe():
-        data = pandas.ExcelFile("/Users/caiwingfield/evaluation/tests/Semantic priming project/"
-                                "all naming subjects.xlsx").parse('Sheet1')
+        # Backing for self.data
+        self._data: pandas.DataFrame = None
 
-        # Only keep useful headings
+    @property
+    def data(self) -> pandas.DataFrame:
+        if self._data is None:
+            logger.info("Loading data from source")
+            self._data = self._load_from_source()
+        return self._data
+
+    def _load_from_source(self):
+        """
+        Load data from excel file, dealing with errors in source material.
+        """
+        data = pandas.ExcelFile(Preferences.spp_naming_path).parse('Sheet1')
+
+        # Only keep headings which will be useful to us
         data = data[["Subject", "Session", "Trial", "prime", "primecond", "target", "target.RT", "target.ACC"]]
 
         # Remove empty rows
@@ -56,3 +75,12 @@ class SppNaming(object):
         assert (n_primes <= 1661)
 
         return data
+
+
+class PrimingRegressionTester(object):
+    """
+    Tests model predictions against a battery of tests, by including model distances as a
+    regressor.
+    """
+    # TODO
+    pass
