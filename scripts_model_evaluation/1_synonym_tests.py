@@ -34,7 +34,11 @@ def main():
     report_card_dir = os.path.join(Preferences.eval_dir, "synonyms", "report cards")
     csv_name_pattern = "{model_name}.csv"
 
-    test_battery = [ToeflTest(), EslTest(), McqTest()]
+    test_battery = [
+        ToeflTest(),
+        EslTest(),
+        McqTest()
+    ]
 
     for corpus_metadata in Preferences.source_corpus_metas:
 

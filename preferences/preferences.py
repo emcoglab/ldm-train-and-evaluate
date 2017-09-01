@@ -142,4 +142,4 @@ class Preferences(object):
     spp_items_path           = "/Users/cai/Box Sync/Semantic priming project/items_spreadsheet_items_only.pickle"
 
     # Model evaluation results
-    eval_dir = "/Users/caiwingfield/evaluation/results/"
+    eval_dir                 = "/Users/caiwingfield/evaluation/results/"

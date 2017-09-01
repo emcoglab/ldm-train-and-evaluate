@@ -61,7 +61,7 @@ class AnsweredQuestion(object):
         self.question = question
 
     @property
-    def answer_word(self) -> str:
+    def correct_answer_word(self) -> str:
         return self.question.options[self.answer_i]
 
     @property
@@ -78,7 +78,7 @@ class AnsweredQuestion(object):
             mark = f"INCORRECT ({self.question.correct_answer_word})"
         return (f"Question: {self.question.prompt}?\t"
                 f"Options: {' '.join(self.question.options)}.\t"
-                f"Answer: {self.answer_word}.\t"
+                f"Answer: {self.correct_answer_word}.\t"
                 f"Mark: {mark}")
 
 
@@ -407,6 +407,7 @@ class SynonymTester(object):
     """
 
     def __init__(self, test_battery: List[SynonymTest]):
+        # TODO: This should really be a static class
         self.test_battery = test_battery
 
     def administer_tests(self,
@@ -429,26 +430,10 @@ class SynonymTester(object):
             for test in self.test_battery:
                 answers = []
                 for question in test.question_list:
-                    prompt = question.prompt
-                    options = question.options
 
-                    # The current best guess
-                    best_guess_i = -1
-                    best_guess_d = math.inf
-                    for option_i, option in enumerate(options):
-                        try:
-                            guess_d = model.distance_between(prompt, option, distance_type,
-                                                             truncate_vectors_at_length)
-                        except KeyError as er:
-                            logger.warning(f"{er.args[0]} was not found in the corpus.")
-                            # Make sure we don't pick this one
-                            guess_d = math.inf
+                    answer = self.attempt_question(question, model, distance_type, truncate_vectors_at_length)
 
-                        if guess_d < best_guess_d:
-                            best_guess_i = option_i
-                            best_guess_d = guess_d
-
-                    answers.append(AnsweredQuestion(copy(question), best_guess_i))
+                    answers.append(answer)
 
                 answer_paper = AnswerPaper(answers)
 
@@ -461,6 +446,36 @@ class SynonymTester(object):
                                                        append_to_model_name=append_to_model_name))
 
         return report_card
+
+    @staticmethod
+    def attempt_question(question: SynonymTestQuestion, model: VectorSemanticModel, distance_type: DistanceType,
+                         truncate_vectors_at_length: int = None) -> AnsweredQuestion:
+        """
+        Attempt a question.
+        :param question:
+        :param model:
+        :param distance_type:
+        :param truncate_vectors_at_length:
+        :return: answer
+        """
+        # The current best guess
+        best_guess_i = -1
+        best_guess_d = math.inf
+
+        for option_i, option in enumerate(question.options):
+            try:
+                guess_d = model.distance_between(question.prompt, option, distance_type,
+                                                 truncate_vectors_at_length)
+            except KeyError as er:
+                logger.warning(f"{er.args[0]} was not found in the corpus.")
+                # Make sure we don't pick this one
+                guess_d = math.inf
+
+            if guess_d < best_guess_d:
+                best_guess_i = option_i
+                best_guess_d = guess_d
+
+        return AnsweredQuestion(copy(question), best_guess_i)
 
     @staticmethod
     def _text_transcript_path(test: SynonymTest, distance_type: DistanceType, model: VectorSemanticModel,
