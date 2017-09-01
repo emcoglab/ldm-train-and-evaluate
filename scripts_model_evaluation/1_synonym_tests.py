@@ -45,44 +45,42 @@ def main():
         token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
         freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 
-        tester = SynonymTester(test_battery)
-
         for window_radius in Preferences.window_radii:
 
             # COUNT MODELS
 
             # Log n-gram
             model = LogNgramModel(corpus_metadata, window_radius, token_index)
-            if not tester.all_transcripts_exist_for(model):
+            if not SynonymTester.all_transcripts_exist_for(model, test_battery):
                 model.train()
-                report_card = tester.administer_tests(model)
+                report_card = SynonymTester.administer_tests(model, test_battery)
                 report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(model_name=model.name)))
                 report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(model_name="0_MASTER")),
                                      append_existing=True)
 
             # Conditional probability
             model = ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist)
-            if not tester.all_transcripts_exist_for(model):
+            if not SynonymTester.all_transcripts_exist_for(model, test_battery):
                 model.train()
-                report_card = tester.administer_tests(model)
+                report_card = SynonymTester.administer_tests(model, test_battery)
                 report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(model_name=model.name)))
                 report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(model_name="0_MASTER")),
                                      append_existing=True)
 
             # Probability ratios
             model = ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist)
-            if not tester.all_transcripts_exist_for(model):
+            if not SynonymTester.all_transcripts_exist_for(model, test_battery):
                 model.train()
-                report_card = tester.administer_tests(model)
+                report_card = SynonymTester.administer_tests(model, test_battery)
                 report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(model_name=model.name)))
                 report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(model_name="0_MASTER")),
                                      append_existing=True)
 
             # PPMI
             model = PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
-            if not tester.all_transcripts_exist_for(model):
+            if not SynonymTester.all_transcripts_exist_for(model, test_battery):
                 model.train()
-                report_card = tester.administer_tests(model)
+                report_card = SynonymTester.administer_tests(model, test_battery)
                 report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(model_name=model.name)))
                 report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(model_name="0_MASTER")),
                                      append_existing=True)
@@ -90,9 +88,11 @@ def main():
             # PPMI (TRUNCATED, for replication of B&L 2007)
             truncate_length = 10_000
             file_suffix = " (10k)"
-            if not tester.all_transcripts_exist_for(model, truncate_vectors_at_length=truncate_length):
+            if not SynonymTester.all_transcripts_exist_for(model, test_battery,
+                                                           truncate_vectors_at_length=truncate_length):
                 model.train()
-                report_card = tester.administer_tests(model, truncate_vectors_at_length=truncate_length)
+                report_card = SynonymTester.administer_tests(model, test_battery,
+                                                             truncate_vectors_at_length=truncate_length)
                 report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(
                     model_name=model.name + file_suffix)))
                 report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(
@@ -104,18 +104,18 @@ def main():
 
                 # Skip-gram
                 model = SkipGramModel(corpus_metadata, window_radius, embedding_size)
-                if not tester.all_transcripts_exist_for(model):
+                if not SynonymTester.all_transcripts_exist_for(model, test_battery):
                     model.train()
-                    report_card = tester.administer_tests(model)
+                    report_card = SynonymTester.administer_tests(model, test_battery)
                     report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(model_name=model.name)))
                     report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(model_name="0_MASTER")),
                                          append_existing=True)
 
                 # CBOW
                 model = CbowModel(corpus_metadata, window_radius, embedding_size)
-                if not tester.all_transcripts_exist_for(model):
+                if not SynonymTester.all_transcripts_exist_for(model, test_battery):
                     model.train()
-                    report_card = tester.administer_tests(model)
+                    report_card = SynonymTester.administer_tests(model, test_battery)
                     report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(model_name=model.name)))
                     report_card.save_csv(os.path.join(report_card_dir, csv_name_pattern.format(model_name="0_MASTER")),
                                          append_existing=True)

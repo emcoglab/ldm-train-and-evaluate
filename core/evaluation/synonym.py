@@ -401,21 +401,20 @@ class ReportCard(object):
                 csv_file.write(separator.join(entry.fields) + "\n")
 
 
+# Static class
 class SynonymTester(object):
     """
     Administers a synonym test against a model.
     """
 
-    def __init__(self, test_battery: List[SynonymTest]):
-        # TODO: This should really be a static class
-        self.test_battery = test_battery
-
-    def administer_tests(self,
-                         model: VectorSemanticModel,
+    @staticmethod
+    def administer_tests(model: VectorSemanticModel,
+                         test_battery: List[SynonymTest],
                          truncate_vectors_at_length: int = None
                          ) -> ReportCard:
         """
         Administers a battery of tests against a model
+        :param test_battery:
         :param model: Must be trained.
         :param truncate_vectors_at_length:
         :return:
@@ -427,19 +426,18 @@ class SynonymTester(object):
 
         for distance_type in DistanceType:
 
-            for test in self.test_battery:
+            for test in test_battery:
                 answers = []
                 for question in test.question_list:
-
-                    answer = self.attempt_question(question, model, distance_type, truncate_vectors_at_length)
+                    answer = SynonymTester.attempt_question(question, model, distance_type, truncate_vectors_at_length)
 
                     answers.append(answer)
 
                 answer_paper = AnswerPaper(answers)
 
                 # Save the transcripts for this test
-                answer_paper.save_text_transcript(self._text_transcript_path(test, distance_type, model,
-                                                                             truncate_vectors_at_length))
+                answer_paper.save_text_transcript(SynonymTester._text_transcript_path(test, distance_type, model,
+                                                                                      truncate_vectors_at_length))
 
                 append_to_model_name = "" if truncate_vectors_at_length is None else f" ({truncate_vectors_at_length})"
                 report_card.add_entry(ReportCard.Entry(test, model, distance_type, answer_paper,
@@ -493,15 +491,18 @@ class SynonymTester(object):
         # TODO: this path shouldn't really be defined here
         return os.path.join(Preferences.eval_dir, "synonyms", "transcripts", filename)
 
-    def all_transcripts_exist_for(self, model: VectorSemanticModel, truncate_vectors_at_length: int = None) -> bool:
+    @staticmethod
+    def all_transcripts_exist_for(model: VectorSemanticModel,
+                                  test_battery: List[SynonymTest],
+                                  truncate_vectors_at_length: int = None) -> bool:
         """
         If every test transcript file exists for this model.
         """
         for distance_type in DistanceType:
-            for test in self.test_battery:
+            for test in test_battery:
                 # If one file doesn't exist
-                if not os.path.isfile(self._text_transcript_path(test, distance_type, model,
-                                                                 truncate_vectors_at_length)):
+                if not os.path.isfile(SynonymTester._text_transcript_path(test, distance_type, model,
+                                                                          truncate_vectors_at_length)):
                     # The not all of them do
                     return False
         return True
