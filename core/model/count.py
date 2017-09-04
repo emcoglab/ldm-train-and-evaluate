@@ -61,6 +61,9 @@ class CountVectorModel(VectorSemanticModel):
         raise NotImplementedError()
 
     def _save(self):
+        # Only save a model if we got one.
+        assert self.is_trained
+
         # Use mmwrite here rather than scipy.sparse.savez, in case data is larger than 4GB (which it often is).
         #     https://stackoverflow.com/questions/31468117/python-3-can-pickle-handle-byte-objects-larger-than-4gb
         #     https://github.com/numpy/numpy/issues/3858
@@ -69,6 +72,9 @@ class CountVectorModel(VectorSemanticModel):
     def _load(self):
         # Use scipy.sparse.csr_matrix for trained models
         self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename_with_ext)).tocsr()
+
+        # Make sure nothing's gone wrong
+        assert self.is_trained
 
     def vector_for_id(self, word_id: int):
         """
@@ -143,10 +149,12 @@ class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
         return self._model
 
     def _save(self):
+        assert self.is_trained
         sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
 
     def _load(self):
         self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename))
+        assert self.is_trained
 
     def scalar_for_word(self, word: str):
         return self._model[self.token_indices.token2id[word]]

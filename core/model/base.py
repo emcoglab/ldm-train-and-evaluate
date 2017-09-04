@@ -179,8 +179,13 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
         self.model_type = model_type
         self.corpus_meta = corpus_meta
 
-        # Is this model trained and ready to go?
-        self.is_trained = False
+    @property
+    @abstractmethod
+    def is_trained(self) -> bool:
+        """
+        True if the model the model data is present and ready to be queried.
+        """
+        raise NotImplementedError()
 
     @property
     def _root_dir(self) -> str:
@@ -241,16 +246,13 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
         if self.is_trained and not force_retrain:
             logger.info(f"{self.name} is already trained")
         elif self.could_load and not force_retrain:
-            logger.info(f"Loading {self.name} model from {self._model_filename}")
+            logger.info(f"Loading {self.name} model from {self._model_filename_with_ext}")
             self._load()
         else:
             logger.info(f"Training {self.name}")
             self._retrain()
-            logger.info(f"Saving {self.name} model to {self._model_filename}")
+            logger.info(f"Saving {self.name} model to {self._model_filename_with_ext}")
             self._save()
-
-        # TODO: this is a bit dodgy, as it could potentially get set from elsewhere.
-        self.is_trained = True
 
     @abstractmethod
     def _retrain(self):
@@ -291,6 +293,10 @@ class VectorSemanticModel(DistributionalSemanticModel, metaclass=ABCMeta):
         # When self._model is a matrix:
         #  - First coordinate indexes the target word
         #  - Second coordinate indexes context word
+
+    @property
+    def is_trained(self) -> bool:
+        return self._model is not None
 
     @property
     def name(self) -> str:
@@ -359,6 +365,10 @@ class ScalarSemanticModel(DistributionalSemanticModel, metaclass=ABCMeta):
 
         # When implementing this class, this must be set by retrain()
         self._model: numpy.ndarray = None
+
+    @property
+    def is_trained(self) -> bool:
+        return self._model is not None
 
     @property
     def name(self) -> str:

@@ -69,10 +69,12 @@ class PredictVectorModel(VectorSemanticModel):
         return ""
 
     def _save(self):
+        assert self.is_trained
         self._model.save(os.path.join(self.save_dir, self._model_filename))
 
     def _load(self):
         self._model = gensim.models.Word2Vec.load(os.path.join(self.save_dir, self._model_filename))
+        assert self.is_trained
 
     @abstractmethod
     def _retrain(self):
