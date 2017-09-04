@@ -304,9 +304,9 @@ class LogNgramModel(CountVectorModel):
         ngram_model = NgramCountModel(self.corpus_meta, self.window_radius, self.token_indices)
         ngram_model.train()
 
-        # Apply log to entries in the ngram matrix
-        # Need to convert to csr first so that the log10 function will work
+        self._model = ngram_model.matrix
         del ngram_model
+        # Apply log to entries in the ngram matrix
         self._model.data = np.log10(self._model.data + 1)
 
 
