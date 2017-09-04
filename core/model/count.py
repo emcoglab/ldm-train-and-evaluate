@@ -64,11 +64,11 @@ class CountVectorModel(VectorSemanticModel):
         # Use mmwrite here rather than scipy.sparse.savez, in case data is larger than 4GB (which it often is).
         #     https://stackoverflow.com/questions/31468117/python-3-can-pickle-handle-byte-objects-larger-than-4gb
         #     https://github.com/numpy/numpy/issues/3858
-        sio.mmwrite(os.path.join(self.save_dir, self._model_filename), self._model)
+        sio.mmwrite(os.path.join(self.save_dir, self._model_filename_with_ext), self._model)
 
     def _load(self):
         # Use scipy.sparse.csr_matrix for trained models
-        self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename)).tocsr()
+        self._model = sio.mmread(os.path.join(self.save_dir, self._model_filename_with_ext)).tocsr()
 
     def vector_for_id(self, word_id: int):
         """
@@ -276,8 +276,9 @@ class NgramCountModel(CountVectorModel):
 class LogNgramModel(CountVectorModel):
     """
     A model where vectors consist of the log of context counts within a window.
+    Uses the log (n+1) method to account for 0-and-1-frequency co-occurrences.
 
-    log n(c,t)
+    log [ n(c,t) + 1 ]
 
     c: context token
     t: target token
@@ -298,7 +299,7 @@ class LogNgramModel(CountVectorModel):
         # Apply log to entries in the ngram matrix
         # Need to convert to csr first so that the log10 function will work
         del ngram_model
-        self._model.data = np.log10(self._model.data)
+        self._model.data = np.log10(self._model.data + 1)
 
 
 class NgramProbabilityModel(CountVectorModel):

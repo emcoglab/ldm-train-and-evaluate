@@ -365,6 +365,8 @@ class ReportCard(object):
         """
         self._entries.append(entry)
 
+    # TODO: Better to save the csvs without a header row, and also make sure that a " header.csv" file is created.
+    # TODO: That way all files can be catted together to produce a valid csv.
     def save_csv(self,
                  csv_filename: str,
                  separator: str = ",",
