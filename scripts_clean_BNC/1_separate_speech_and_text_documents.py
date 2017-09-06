@@ -51,24 +51,34 @@ def main():
         catref = xml_root.find(".//catRef")
 
         # Figure out what kind of document this is
-        if wtext is not None:
-            # Written-for-speech documents are classified as "ALLTYP4"
-            if catref is not None and "ALLTYP4" in catref.get("targets").split():
-                document_type = DocumentType.text_for_speech
+        # Document classifications from http://www.natcorp.ox.ac.uk/docs/catRef.xml
+        if catref is not None:
+            if "ALLTYP1" in catref.get("targets").split():
+                document_type = BncDocumentType.alltyp1_spoken_demographically_sampled
+            elif "ALLTYP2" in catref.get("targets").split():
+                document_type = BncDocumentType.alltyp2_spoken_context_governed
+            elif "ALLTYP3" in catref.get("targets").split():
+                document_type = BncDocumentType.alltyp3_written_books_and_periodicals
+            elif "ALLTYP4" in catref.get("targets").split():
+                document_type = BncDocumentType.alltyp4_written_to_be_spoken
+            elif "ALLTYP5" in catref.get("targets").split():
+                document_type = BncDocumentType.alltyp5_written_miscellaneous
             else:
-                document_type = DocumentType.text
-        elif stext is not None:
-            document_type = DocumentType.speech
+                raise ImportError(f"No type found for {source_doc_path}")
         else:
             raise ImportError(f"No type found for {source_doc_path}")
 
         # Set the appropriate destination for this document
-        if document_type == DocumentType.speech:
+        if document_type == BncDocumentType.alltyp1_spoken_demographically_sampled:
             destination_dir = out_speech_dir
-        elif document_type == DocumentType.text:
+        elif document_type == BncDocumentType.alltyp2_spoken_context_governed:
+            destination_dir = out_speech_dir
+        elif document_type == BncDocumentType.alltyp3_written_books_and_periodicals:
             destination_dir = out_text_dir
-        elif document_type == DocumentType.text_for_speech:
+        elif document_type == BncDocumentType.alltyp4_written_to_be_spoken:
             # Text for speech is still text
+            destination_dir = out_text_dir
+        elif document_type == BncDocumentType.alltyp5_written_miscellaneous:
             destination_dir = out_text_dir
         else:
             # This error logically cannot be raised, it's just here to help PyCharm's static analysis.
@@ -83,13 +93,15 @@ def main():
             logger.info(f"\t{doc_i} files")
 
 
-class DocumentType(Enum):
+class BncDocumentType(Enum):
     """
     The type of a document within the corpus
     """
-    text            = auto()
-    speech          = auto()
-    text_for_speech = auto()
+    alltyp1_spoken_demographically_sampled = auto()
+    alltyp2_spoken_context_governed        = auto()
+    alltyp3_written_books_and_periodicals  = auto()
+    alltyp4_written_to_be_spoken           = auto()
+    alltyp5_written_miscellaneous          = auto()
 
 
 if __name__ == '__main__':
