@@ -62,10 +62,6 @@ class CountVectorModel(VectorSemanticModel):
     def _save(self):
         # Only save a model if we got one.
         assert self.is_trained
-
-        # TODO: this won't work with data that's larger than 4GB (which it often is).
-        #     https://stackoverflow.com/questions/31468117/python-3-can-pickle-handle-byte-objects-larger-than-4gb
-        #     https://github.com/numpy/numpy/issues/3858
         scipy.sparse.save_npz(os.path.join(self.save_dir, self._model_filename_with_ext), self._model, compressed=False)
 
     def _load(self):
@@ -149,10 +145,15 @@ class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
 
     def _save(self):
         assert self.is_trained
-        scipy.sparse.save_npz(os.path.join(self.save_dir, self._model_filename_with_ext), self._model, compressed=False)
+        # Can't use scipy save_npz, as this isn's a sparse matrix, it's a vector.
+        # So just use numpy savez
+        # TODO: this won't work with data that's larger than 4GB (which it often is).
+        #     https://stackoverflow.com/questions/31468117/python-3-can-pickle-handle-byte-objects-larger-than-4gb
+        #     https://github.com/numpy/numpy/issues/3858
+        numpy.savez(os.path.join(self.save_dir, self._model_filename_with_ext), self._model)
 
     def _load(self):
-        self._model = scipy.sparse.load_npz(os.path.join(self.save_dir, self._model_filename_with_ext)).tocsr()
+        self._model = numpy.load(os.path.join(self.save_dir, self._model_filename_with_ext))["arr_0"]
         assert self.is_trained
 
     def scalar_for_word(self, word: str):
