@@ -21,13 +21,14 @@ import nltk
 
 _treebank_word_tokenizer = nltk.tokenize.TreebankWordTokenizer()
 
+nltk.tokenize.word_tokenize()
+
 # -----------------------------------
 # Copied from word_tokenize
 # -----------------------------------
 improved_open_quote_regex = re.compile(u'([«“‘])', re.U)
 improved_close_quote_regex = re.compile(u'([»”’])', re.U)
 improved_punct_regex = re.compile(r'([^\.])(\.)([\]\)}>"\'' u'»”’ ' r']*)\s*$', re.U)
-
 _treebank_word_tokenizer.STARTING_QUOTES.insert(0, (improved_open_quote_regex, r' \1 '))
 _treebank_word_tokenizer.ENDING_QUOTES.insert(0, (improved_close_quote_regex, r' \1 '))
 _treebank_word_tokenizer.PUNCTUATION.insert(0, (improved_punct_regex, r'\1 \2 \3 '))
@@ -36,7 +37,11 @@ _treebank_word_tokenizer.PUNCTUATION.insert(0, (improved_punct_regex, r'\1 \2 \3
 # New stuff below
 
 # Add extra currency symbols
-improved_currency_regex = re.compile(r'([£€¥])')
+improved_currency_regex = re.compile(r'(['
+                                     r'£'  # pound currency symbol
+                                     r'€'  # euro currency symbol
+                                     r'¥'  # yen currency symbol
+                                     r'])', re.U)
 
 # Add extra punctuation which should be split from words
 extra_punctuation_regex = re.compile(r"(["

@@ -23,3 +23,5 @@ outputs the text content of every element found. The text content will
 be output as plain text, using the UTF-8 encoding scheme for
 Unicode. -->
 
+<!-- Downloaded from http://www.natcorp.ox.ac.uk/scripts/justTheWords.xsl,
+linked from http://www.natcorp.ox.ac.uk/using/index.xml?ID=stylesheets. -->
