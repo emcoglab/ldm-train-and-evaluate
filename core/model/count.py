@@ -542,16 +542,29 @@ class PPMIModel(CountVectorModel):
         self._freq_dist = freq_dist
 
     def _retrain(self):
+
+        # Start with probability ratio model
         ratios_model = ProbabilityRatioModel(self.corpus_meta, self.window_radius, self.token_indices,
                                              self._freq_dist)
         ratios_model.train()
 
-        # Apply log to entries in the ngram matrix
-        self._model = ratios_model.matrix
-        del ratios_model
-        self._model.data = numpy.log2(self._model.data)
+        # Initialise PPMI model with zero matrix
+        self._model = scipy.sparse.csr_matrix(ratios_model.matrix.shape, dtype=ratios_model.matrix.dtype)
 
-        # Non-negative values only
-        self._model = sparse_max(self._model,
-                                 # same-shape zero matrix
-                                 scipy.sparse.csr_matrix(self._model.shape))
+        # PPMI model data is log_2 of ratios model data
+        self._model.data = numpy.log2(ratios_model.matrix.data)
+
+        # Copy data pointers
+        self._model.indices = ratios_model.matrix.indices
+        self._model.indptr = ratios_model.matrix.indptr
+
+        # Save memory
+        del ratios_model
+
+        logger.info("Keeping only positive values")
+
+        # Keep non-negative values only
+        self._model.data[self._model.data < 0] = 0
+        self._model.eliminate_zeros()
+
+        logger.info("Training done")
