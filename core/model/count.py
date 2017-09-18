@@ -551,23 +551,13 @@ class PPMIModel(CountVectorModel):
                                              self._freq_dist)
         ratios_model.train()
 
-        # Initialise PPMI model with zero matrix
-        self._model = scipy.sparse.csr_matrix(ratios_model.matrix.shape, dtype=ratios_model.matrix.dtype)
-
-        # PPMI model data is log_2 of ratios model data
-        self._model.data = numpy.log2(ratios_model.matrix.data)
-
-        # Copy data pointers
-        self._model.indices = ratios_model.matrix.indices
-        self._model.indptr = ratios_model.matrix.indptr
-
-        # Save memory
+        # Copy ratios model matrix
+        self._model = ratios_model.matrix
         del ratios_model
 
-        logger.info("Keeping only positive values")
+        # PPMI model data is log_2 of ratios model data
+        self._model.data = numpy.log2(self._model.data)
 
         # Keep non-negative values only
         self._model.data[self._model.data < 0] = 0
         self._model.eliminate_zeros()
-
-        logger.info("Training done")
