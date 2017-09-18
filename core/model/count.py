@@ -308,6 +308,7 @@ class LogNgramModel(CountVectorModel):
         del ngram_model
         # Apply log to entries in the ngram matrix
         self._model.data = numpy.log10(self._model.data + 1)
+        self._model.eliminate_zeros()
 
 
 class NgramProbabilityModel(CountVectorModel):
@@ -427,6 +428,7 @@ class ConditionalProbabilityModel(CountVectorModel):
         #
         # According to https://stackoverflow.com/a/12238133/2883198, this is how you do that:
         self._model.data = self._model.data / token_probability_model.vector.repeat(numpy.diff(self._model.indptr))
+        self._model.eliminate_zeros()
 
 
 class ContextProbabilityModel(CountScalarModel):
@@ -518,6 +520,7 @@ class ProbabilityRatioModel(CountVectorModel):
         # that the row method is fast, so we'll transpose, divide, transpose back.
         self._model = self._model.transpose().tocsr()
         self._model.data = self._model.data / context_probability_model.vector.repeat(numpy.diff(self._model.indptr))
+        self._model.eliminate_zeros()
         self._model = self._model.transpose().tocsr()
 
 
