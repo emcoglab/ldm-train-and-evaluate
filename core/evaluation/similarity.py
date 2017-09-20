@@ -22,12 +22,12 @@ from abc import ABCMeta, abstractmethod
 from typing import List
 
 import numpy
+import scipy.stats
 
 from ..model.base import VectorSemanticModel
 from ..model.predict import PredictVectorModel
-from ..utils.maths import DistanceType
+from ..utils.maths import DistanceType, CorrelationType
 from ...preferences.preferences import Preferences
-
 
 logger = logging.getLogger(__name__)
 
@@ -267,10 +267,12 @@ class SimilarityTester(object):
         self.test_battery = test_battery
 
     def administer_tests(self,
-                         model: VectorSemanticModel) -> List[SimilarityTestResult]:
+                         model: VectorSemanticModel,
+                         correlation: CorrelationType) -> List[SimilarityTestResult]:
         """
         Administers a battery of tests against a model
         :param model: Must be trained.
+        :param correlation:
         :return:
         """
 
@@ -300,9 +302,22 @@ class SimilarityTester(object):
                         human_judgement.word_2,
                         distance))
 
-                correlation = numpy.corrcoef(
-                    [j.similarity for j in human_judgements],
-                    [j.similarity for j in model_judgements])[0][1]
+                # Apply correlation
+                if correlation is CorrelationType.Pearson:
+                    correlation = numpy.corrcoef(
+                        [j.similarity for j in human_judgements],
+                        [j.similarity for j in model_judgements])[0][1]
+
+                elif correlation is CorrelationType.Spearman:
+
+                    # PyCharm erroneously detects input types for scipy.stats.spearmanr as int rather than ndarray
+                    # noinspection PyTypeChecker
+                    correlation = scipy.stats.spearmanr(
+                        [j.similarity for j in human_judgements],
+                        [j.similarity for j in model_judgements])[0][1]
+
+                else:
+                    raise ValueError(correlation)
 
                 results.append(SimilarityTestResult(model, test, distance_type, correlation))
 

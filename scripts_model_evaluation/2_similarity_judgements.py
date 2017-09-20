@@ -21,6 +21,7 @@ import sys
 
 from typing import List
 
+from ..core.utils.maths import CorrelationType
 from ..core.corpus.distribution import FreqDist
 from ..core.evaluation.similarity import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
     SimilarityTester, SimilarityTestResult
@@ -52,6 +53,8 @@ def main():
         MenSimilarity()
     ]
 
+    correlation = CorrelationType.Pearson
+
     # TODO: this should skip, not overwrite, existing test results
     for corpus_metadata in Preferences.source_corpus_metas:
 
@@ -67,25 +70,25 @@ def main():
             # Log n-gram
             model = LogNgramModel(corpus_metadata, window_radius, token_index)
             model.train()
-            results = tester.administer_tests(model)
+            results = tester.administer_tests(model, correlation)
             save_results(results)
 
             # Conditional probability
             model = ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist)
             model.train()
-            results = tester.administer_tests(model)
+            results = tester.administer_tests(model, correlation)
             save_results(results)
 
             # Probability ratios
             model = ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist)
             model.train()
-            results = tester.administer_tests(model)
+            results = tester.administer_tests(model, correlation)
             save_results(results)
 
             # PPMI
             model = PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
             model.train()
-            results = tester.administer_tests(model)
+            results = tester.administer_tests(model, correlation)
             save_results(results)
 
             # PREDICT MODELS
@@ -94,13 +97,13 @@ def main():
                 # Skip-gram
                 model = SkipGramModel(corpus_metadata, window_radius, embedding_size)
                 model.train()
-                results = tester.administer_tests(model)
+                results = tester.administer_tests(model, correlation)
                 save_results(results)
 
                 # CBOW
                 model = CbowModel(corpus_metadata, window_radius, embedding_size)
                 model.train()
-                results = tester.administer_tests(model)
+                results = tester.administer_tests(model, correlation)
                 save_results(results)
 
 

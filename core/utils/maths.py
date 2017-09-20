@@ -21,13 +21,21 @@ import numpy
 from scipy import spatial
 
 
+class CorrelationType(Enum):
+    """
+    Representative of a correlation type.
+    """
+    Pearson  = auto()
+    Spearman = auto()
+
+
 class DistanceType(Enum):
     """
     Representative of a distance type.
     """
     correlation = auto()
-    cosine = auto()
-    Euclidean = auto()
+    cosine      = auto()
+    Euclidean   = auto()
 
     @property
     def name(self) -> str:
