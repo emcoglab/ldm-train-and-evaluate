@@ -162,13 +162,6 @@ class SppNaming(object):
         self._data: pandas.DataFrame = None
 
     @property
-    def correct_prime_target_pairs(self) -> pandas.DataFrame:
-        """
-        Prime-Target pairs.
-        """
-        return self.data.where(self.data["target.ACC"] == 1).groupby(["prime", "target"])
-
-    @property
     def data(self) -> pandas.DataFrame:
         if self._data is None:
             if self._could_load:
@@ -185,6 +178,13 @@ class SppNaming(object):
         return self._data[[
             "Subject", "Session", "Trial", "prime", "target", "target.RT", "target.ACC"
         ]]
+
+    @property
+    def correct_prime_target_pairs(self) -> pandas.DataFrame:
+        """
+        Prime-Target pairs.
+        """
+        return self.data.where(self.data["target.ACC"] == 1).groupby(["prime", "target"])
 
     @property
     def n_targets(self) -> int:
