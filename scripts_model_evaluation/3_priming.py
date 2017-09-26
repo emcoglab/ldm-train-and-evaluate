@@ -18,7 +18,7 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.evaluation.priming import SppNaming, SppItems
+from ..core.evaluation.priming import SppData
 from ..core.utils.logging import log_message, date_format
 
 
@@ -26,16 +26,8 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    spp_naming = SppNaming()
-    spp_items = SppItems()
 
-    data = spp_naming.data
-
-    pairs = spp_naming.correct_prime_target_pairs
-
-    print(pairs["target.RT"].mean())
-
-    spp_items._load_from_source()
+    spp_data = SppData()
 
     return
 

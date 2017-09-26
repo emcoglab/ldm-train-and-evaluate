@@ -135,11 +135,9 @@ class Preferences(object):
     wordsim_relatedness_path = "/Users/caiwingfield/evaluation/tests/WordSim353/wordsim_relatedness_goldstandard.txt"
     men_path                 = "/Users/caiwingfield/evaluation/tests/MEN/MEN_dataset_natural_form_full"
 
-    # Priming data
-    spp_naming_path_xls      = "/Users/cai/Box Sync/Semantic priming project/all naming subjects.xlsx"
-    spp_naming_path          = "/Users/cai/Box Sync/Semantic priming project/all naming subjects.pickle"
-    spp_items_path_xls       = "/Users/cai/Box Sync/Semantic priming project/items_spreadsheet_items_only.xls"
-    spp_items_path           = "/Users/cai/Box Sync/Semantic priming project/items_spreadsheet_items_only.pickle"
+    # Semantic priming data
+    spp_path_xls             = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.xls"
+    spp_path                 = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.pickle"
 
     # Model evaluation results
     eval_dir                 = "/Users/caiwingfield/evaluation/results/"
