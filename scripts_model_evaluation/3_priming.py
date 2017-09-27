@@ -18,18 +18,28 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.evaluation.priming import SppData
+from ..core.evaluation.priming import SppRegressionTester
+from ..core.model.count import LogNgramModel
+from ..core.utils.indexing import TokenIndexDictionary
 from ..core.utils.logging import log_message, date_format
-
+from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
 
 def main():
 
-    spp_data = SppData()
+    tester = SppRegressionTester()
 
-    return
+    for corpus_metadata in Preferences.source_corpus_metas:
+
+        token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
+
+        for window_radius in Preferences.window_radii:
+
+            model = LogNgramModel(corpus_metadata, window_radius, token_index)
+
+            tester.administer_test(model)
 
 
 if __name__ == "__main__":

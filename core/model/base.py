@@ -311,6 +311,7 @@ class VectorSemanticModel(DistributionalSemanticModel, metaclass=ABCMeta):
     def vector_for_word(self, word: str):
         """
         Returns the vector representation of a word.
+        :raises WordNotFoundError
         """
         raise NotImplementedError()
 
@@ -338,6 +339,7 @@ class VectorSemanticModel(DistributionalSemanticModel, metaclass=ABCMeta):
         :param distance_type:
         :param truncate_vectors_at_length:
         :return:
+        :raises: WordNotFoundError
         """
         v_1 = self.vector_for_word(word_1)
         v_2 = self.vector_for_word(word_2)

@@ -28,8 +28,9 @@ from ..corpus.corpus import CorpusMetadata, WindowedCorpus
 from ..corpus.distribution import FreqDist
 from ..model.base import VectorSemanticModel, DistributionalSemanticModel, ScalarSemanticModel
 from ..utils.constants import Chirality
+from ..utils.exceptions import WordNotFoundError
 from ..utils.indexing import TokenIndexDictionary
-from ..utils.maths import DistanceType, distance, sparse_max
+from ..utils.maths import DistanceType, distance
 
 logger = logging.getLogger(__name__)
 
@@ -82,8 +83,11 @@ class CountVectorModel(VectorSemanticModel):
         return self._model[word_id].todense()
 
     def vector_for_word(self, word: str):
-        word_id = self.token_indices.token2id[word]
-        return self.vector_for_id(word_id)
+        try:
+            word_id = self.token_indices.token2id[word]
+            return self.vector_for_id(word_id)
+        except KeyError:
+            raise WordNotFoundError(f"The word '{word}' was not found.")
 
     def nearest_neighbours(self, word: str, distance_type: DistanceType, n: int):
 

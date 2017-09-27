@@ -22,6 +22,7 @@ from abc import abstractmethod
 
 import gensim
 
+from ..utils.exceptions import WordNotFoundError
 from ..utils.maths import distance, DistanceType
 from ..corpus.corpus import CorpusMetadata, BatchedCorpus
 from ..model.base import VectorSemanticModel, DistributionalSemanticModel
@@ -111,7 +112,10 @@ class PredictVectorModel(VectorSemanticModel):
             return [w for w, d in nearest_neighbours]
 
     def vector_for_word(self, word: str):
-        return self._model.wv.word_vec(word)
+        try:
+            return self._model.wv.word_vec(word)
+        except KeyError:
+            raise WordNotFoundError(f"The word '{word}' was not found.")
 
 
 class CbowModel(PredictVectorModel):

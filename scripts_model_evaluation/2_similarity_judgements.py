@@ -55,13 +55,13 @@ def main():
 
     correlation = CorrelationType.Pearson
 
+    tester = SimilarityTester(test_battery)
+
     # TODO: this should skip, not overwrite, existing test results
     for corpus_metadata in Preferences.source_corpus_metas:
 
         token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
         freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
-
-        tester = SimilarityTester(test_battery)
 
         for window_radius in Preferences.window_radii:
 
