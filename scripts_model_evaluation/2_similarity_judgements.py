@@ -67,44 +67,31 @@ def main():
 
             # COUNT MODELS
 
-            # Log n-gram
-            model = LogNgramModel(corpus_metadata, window_radius, token_index)
-            model.train()
-            results = tester.administer_tests(model, correlation)
-            save_results(results)
+            count_models = [
+                LogNgramModel(corpus_metadata, window_radius, token_index),
+                ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
+                ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
+                PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
+            ]
 
-            # Conditional probability
-            model = ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist)
-            model.train()
-            results = tester.administer_tests(model, correlation)
-            save_results(results)
-
-            # Probability ratios
-            model = ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist)
-            model.train()
-            results = tester.administer_tests(model, correlation)
-            save_results(results)
-
-            # PPMI
-            model = PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
-            model.train()
-            results = tester.administer_tests(model, correlation)
-            save_results(results)
+            for model in count_models:
+                model.train()
+                results = tester.administer_tests(model, correlation)
+                save_results(results)
 
             # PREDICT MODELS
 
             for embedding_size in Preferences.predict_embedding_sizes:
-                # Skip-gram
-                model = SkipGramModel(corpus_metadata, window_radius, embedding_size)
-                model.train()
-                results = tester.administer_tests(model, correlation)
-                save_results(results)
 
-                # CBOW
-                model = CbowModel(corpus_metadata, window_radius, embedding_size)
-                model.train()
-                results = tester.administer_tests(model, correlation)
-                save_results(results)
+                predict_models = [
+                    SkipGramModel(corpus_metadata, window_radius, embedding_size),
+                    CbowModel(corpus_metadata, window_radius, embedding_size)
+                ]
+
+                for model in predict_models:
+                    model.train()
+                    results = tester.administer_tests(model, correlation)
+                    save_results(results)
 
 
 if __name__ == "__main__":

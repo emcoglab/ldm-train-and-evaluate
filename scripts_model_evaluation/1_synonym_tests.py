@@ -46,39 +46,22 @@ def main():
 
             # COUNT MODELS
 
-            # Log n-gram
-            model = LogNgramModel(corpus_metadata, window_radius, token_index)
-            csv_name = model.name + '.csv'
-            if not ReportCard.saved_with_name(csv_name):
-                model.train()
-                report_card = SynonymTester.administer_tests(model, test_battery)
-                report_card.save_csv(csv_name)
+            count_models = [
+                LogNgramModel(corpus_metadata, window_radius, token_index),
+                ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
+                ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
+                PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
+            ]
 
-            # Conditional probability
-            model = ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist)
-            csv_name = model.name + '.csv'
-            if not ReportCard.saved_with_name(csv_name):
-                model.train()
-                report_card = SynonymTester.administer_tests(model, test_battery)
-                report_card.save_csv(csv_name)
-
-            # Probability ratios
-            model = ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist)
-            csv_name = model.name + '.csv'
-            if not ReportCard.saved_with_name(csv_name):
-                model.train()
-                report_card = SynonymTester.administer_tests(model, test_battery)
-                report_card.save_csv(csv_name)
-
-            # PPMI
-            model = PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
-            csv_name = model.name + '.csv'
-            if not ReportCard.saved_with_name(csv_name):
-                model.train()
-                report_card = SynonymTester.administer_tests(model, test_battery)
-                report_card.save_csv(csv_name)
+            for model in count_models:
+                csv_name = model.name + '.csv'
+                if not ReportCard.saved_with_name(csv_name):
+                    model.train()
+                    report_card = SynonymTester.administer_tests(model, test_battery)
+                    report_card.save_csv(csv_name)
 
             # PPMI (TRUNCATED, for replication of B&L 2007)
+            model = PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
             truncate_length = 10_000
             csv_name = model.name + ' (10k).csv'
             if not ReportCard.saved_with_name(csv_name):
@@ -90,21 +73,17 @@ def main():
 
             for embedding_size in Preferences.predict_embedding_sizes:
 
-                # Skip-gram
-                model = SkipGramModel(corpus_metadata, window_radius, embedding_size)
-                csv_name = model.name + '.csv'
-                if not ReportCard.saved_with_name(csv_name):
-                    model.train()
-                    report_card = SynonymTester.administer_tests(model, test_battery)
-                    report_card.save_csv(csv_name)
+                predict_models = [
+                    SkipGramModel(corpus_metadata, window_radius, embedding_size),
+                    CbowModel(corpus_metadata, window_radius, embedding_size)
+                ]
 
-                # CBOW
-                model = CbowModel(corpus_metadata, window_radius, embedding_size)
-                csv_name = model.name + '.csv'
-                if not ReportCard.saved_with_name(csv_name):
-                    model.train()
-                    report_card = SynonymTester.administer_tests(model, test_battery)
-                    report_card.save_csv(csv_name)
+                for model in predict_models:
+                    csv_name = model.name + '.csv'
+                    if not ReportCard.saved_with_name(csv_name):
+                        model.train()
+                        report_card = SynonymTester.administer_tests(model, test_battery)
+                        report_card.save_csv(csv_name)
 
 
 if __name__ == "__main__":
