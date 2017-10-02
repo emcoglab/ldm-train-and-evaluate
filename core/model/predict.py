@@ -39,7 +39,7 @@ class PredictVectorModel(VectorSemanticModel):
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
                  embedding_size: int,
-                 n_workers: int):
+                 n_workers: int = None):
         super().__init__(model_type, corpus_meta, window_radius)
         self.embedding_size = embedding_size
 
@@ -50,7 +50,11 @@ class PredictVectorModel(VectorSemanticModel):
         self._sub_sample = 1e-5
 
         # Parallel workers
-        self._workers = n_workers
+        if self._workers is not None:
+            self._workers = n_workers
+        else:
+            # Default to 8
+            self._workers = 8
 
         self._corpus = BatchedCorpus(corpus_meta, batch_size=1_000)
         self._model: gensim.models.Word2Vec = None
@@ -127,7 +131,7 @@ class CbowModel(PredictVectorModel):
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
                  embedding_size: int,
-                 n_workers: int = 8):
+                 n_workers: int = None):
         super().__init__(VectorSemanticModel.ModelType.cbow,
                          corpus_meta, window_radius, embedding_size, n_workers)
 
@@ -155,7 +159,7 @@ class SkipGramModel(PredictVectorModel):
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
                  embedding_size: int,
-                 n_workers: int = 8):
+                 n_workers: int = None):
         super().__init__(VectorSemanticModel.ModelType.skip_gram,
                          corpus_meta, window_radius, embedding_size, n_workers)
 
