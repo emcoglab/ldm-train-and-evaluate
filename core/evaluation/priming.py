@@ -77,8 +77,9 @@ class SppData(object):
         """
         Export the current dataframe as a csv.
         """
-        # TODO
-        raise NotImplementedError()
+        assert self._all_data is not None
+        with open(Preferences.spp_path_csv, mode="w") as spp_file:
+            self.dataframe.to_csv(spp_file)
 
     @property
     def _could_load(self) -> bool:
