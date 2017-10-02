@@ -41,12 +41,10 @@ def main():
             model = LogNgramModel(corpus_metadata, window_radius, token_index)
             model.train()
 
-            logger.info(f"Missing words for {model}:")
-            for word in spp_data.missing_words(model):
-                logger.info(f"\t{word}")
-
-            logger.info(f"Adding model predictor for {model} to SPP data.")
             for distance_type in DistanceType:
+
+                logger.info(f"Adding model predictor for '{model.name}' using '{distance_type.name}' to SPP data.")
+
                 spp_data.add_model_predictor(model, distance_type)
 
     spp_data.export_csv()

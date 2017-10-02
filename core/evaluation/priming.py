@@ -109,8 +109,8 @@ class SppData(object):
         """
         vocab: set = set()
 
-        vocab += set(self.dataframe["PrimeWord"])
-        vocab += set(self.dataframe["TargetWord"])
+        vocab = vocab.union(set(self.dataframe["PrimeWord"]))
+        vocab = vocab.union(set(self.dataframe["TargetWord"]))
 
         return vocab
 
@@ -128,7 +128,7 @@ class SppData(object):
             if not model.contains_word(word):
                 missing_word_list.append(word)
 
-        return [w for w in self.vocabulary() if not model.contains_word(w)]
+        return sorted([w for w in self.vocabulary() if not model.contains_word(w)])
 
     def add_model_predictor(self, model: VectorSemanticModel, distance_type: DistanceType):
         """
@@ -140,18 +140,19 @@ class SppData(object):
         predictor_name = f"{model.name}_{distance_type.name}"
 
         # Skip existing predictors
-        if self.dataframe.names.contains(predictor_name):
-            logger.info(f"{predictor_name} already added")
+        if self.dataframe.keys().contains(predictor_name):
+            logger.info(f"'{predictor_name}' already added")
 
         else:
-            logger.info(f"Adding {predictor_name} model")
+            logger.info(f"Adding '{predictor_name}' model")
 
             # In case we one of the words doesn't exist in the corpus, we just want missing data
-            def model_distance_or_none(word_1, word_2):
+            def model_distance_or_none(word_pair):
+                word_1, word_2 = word_pair
                 try:
                     return model.distance_between(word_1, word_2, distance_type)
                 except WordNotFoundError as er:
-                    logger.warning(er)
+                    logger.warning(er.args[0])
                     return None
 
             # Add model distance column to data frame

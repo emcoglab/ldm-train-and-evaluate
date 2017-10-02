@@ -103,7 +103,6 @@ class Preferences(object):
     # The final locations of the processed corpora
     source_corpus_metas = [
         bnc_processing_metas["tokenised"],
-        # bnc_text_processing_metas["tokenised"],
         bbc_processing_metas["tokenised"],
         ukwac_processing_metas["tokenised"]
     ]
