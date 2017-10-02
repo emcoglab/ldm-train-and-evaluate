@@ -18,7 +18,7 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.evaluation.priming import SppRegressionTester
+from ..core.evaluation.priming import SppRegressionTester, SppData
 from ..core.model.count import LogNgramModel
 from ..core.utils.indexing import TokenIndexDictionary
 from ..core.utils.logging import log_message, date_format
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 def main():
 
-    tester = SppRegressionTester()
+    spp_data = SppData()
 
     for corpus_metadata in Preferences.source_corpus_metas:
 
@@ -38,8 +38,13 @@ def main():
         for window_radius in Preferences.window_radii:
 
             model = LogNgramModel(corpus_metadata, window_radius, token_index)
+            model.train()
 
-            tester.administer_test(model)
+            logger.info(f"Missing words for {model}:")
+            for word in spp_data.missing_words(model):
+                logger.info(f"\t{word}")
+
+            spp_data.add_model_predictor(model)
 
 
 if __name__ == "__main__":
