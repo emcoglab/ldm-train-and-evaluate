@@ -136,8 +136,12 @@ class Preferences(object):
     men_path                 = "/Users/caiwingfield/evaluation/tests/MEN/MEN_dataset_natural_form_full"
 
     # Semantic priming data
+    # Source xls file
     spp_path_xls             = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.xls"
+    # Pickled version for faster loading
     spp_path                 = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.pickle"
+    # Exported csv version with model predictors
+    spp_path_csv             = "/Users/caiwingfield/evaluation/tests/SPP/model_predictors.csv"
 
     # Model evaluation results
     eval_dir                 = "/Users/caiwingfield/evaluation/results/"

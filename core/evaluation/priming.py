@@ -45,7 +45,7 @@ class SppData(object):
             self._all_data = self._load()
         else:
             logger.info("Loading SPP data from source xls file")
-            self._all_data = self._load_from_source()
+            self._all_data = self._load_from_source_xls()
             # If loading from source, re-save a quick-load copy
             self._save()
         assert self._all_data is not None
@@ -73,6 +73,13 @@ class SppData(object):
         with open(Preferences.spp_path, mode="wb") as spp_file:
             pickle.dump(self._all_data, spp_file)
 
+    def export_csv(self):
+        """
+        Export the current dataframe as a csv.
+        """
+        # TODO
+        raise NotImplementedError()
+
     @property
     def _could_load(self) -> bool:
         """
@@ -81,7 +88,7 @@ class SppData(object):
         return os.path.isfile(Preferences.spp_path)
 
     @classmethod
-    def _load_from_source(cls) -> pandas.DataFrame:
+    def _load_from_source_xls(cls) -> pandas.DataFrame:
         """
         Load data from excel file, dealing with errors in source material.
         """

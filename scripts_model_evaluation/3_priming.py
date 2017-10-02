@@ -18,7 +18,8 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.evaluation.priming import SppRegressionTester, SppData
+from ..core.utils.maths import DistanceType
+from ..core.evaluation.priming import SppData
 from ..core.model.count import LogNgramModel
 from ..core.utils.indexing import TokenIndexDictionary
 from ..core.utils.logging import log_message, date_format
@@ -44,7 +45,11 @@ def main():
             for word in spp_data.missing_words(model):
                 logger.info(f"\t{word}")
 
-            spp_data.add_model_predictor(model)
+            logger.info(f"Adding model predictor for {model} to SPP data.")
+            for distance_type in DistanceType:
+                spp_data.add_model_predictor(model, distance_type)
+
+    spp_data.export_csv()
 
 
 if __name__ == "__main__":
