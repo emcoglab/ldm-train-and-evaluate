@@ -25,6 +25,16 @@ from ..core.utils.logging import log_message, date_format
 logger = logging.getLogger(__name__)
 
 
+def main_parallel(n_workers: int):
+
+    for meta in Preferences.source_corpus_metas:
+        for embedding_size in Preferences.predict_embedding_sizes:
+            for window_radius in Preferences.window_radii:
+                predict_model = SkipGramModel(meta, window_radius, embedding_size, n_workers=n_workers)
+                if not predict_model.could_load:
+                    predict_model.train()
+
+
 def main():
 
     for meta in Preferences.source_corpus_metas:
