@@ -50,7 +50,7 @@ class PredictVectorModel(VectorSemanticModel):
         self._sub_sample = 1e-5
 
         # Parallel workers
-        if self._workers is not None:
+        if self.n_workers is not None:
             self._workers = n_workers
         else:
             # Default to 8
