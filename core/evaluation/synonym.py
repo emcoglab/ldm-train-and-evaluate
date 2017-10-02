@@ -365,42 +365,53 @@ class ReportCard(object):
         """
         self._entries.append(entry)
 
-    # TODO: Better to save the csvs without a header row, and also make sure that a " header.csv" file is created.
-    # TODO: That way all files can be catted together to produce a valid csv.
-    def save_csv(self,
-                 csv_filename: str,
-                 separator: str = ",",
-                 include_headers: bool = True,
-                 append_existing: bool = False
-                 ):
+    @classmethod
+    def save_headers(cls, separator: str = ","):
         """
-        Writes records to a CSV, creating it if it doesn't exist.
-        :param append_existing: If True, an existing file will be appended
+        Saves a CSV file containing headers, if it doesn't already exist.
+        """
+
+        csv_filename = " header.csv"
+
+        csv_path = os.path.join(Preferences.synonym_results_dir, csv_filename)
+
+        # Skip it if it exists
+        if os.path.isfile(csv_path):
+            return
+
+        with open(csv_path, mode="w", encoding="utf-8") as csv_file:
+
+            # Write headings
+            csv_file.write(separator.join(ReportCard.headings) + "\n")
+
+    @classmethod
+    def saved_with_name(cls, csv_filename: str) -> bool:
+        """
+        Has a report card been saved with this name?
+        """
+        return os.path.isfile(
+            os.path.join(
+                Preferences.synonym_results_dir,
+                csv_filename))
+
+    def save_csv(self, csv_filename: str, separator: str = ","):
+        """
+        Writes records to a CSV, overwriting if it exists.
         :param csv_filename:
         :param separator:
-        :param include_headers:
-        Whether or not to include a header row. If appending, headers will not be written again even if this is True.
         """
         # Validate filename
         if not csv_filename.endswith(".csv"):
             csv_filename += ".csv"
 
-        file_already_exists = os.path.isfile(csv_filename)
+        csv_path = os.path.join(Preferences.synonym_results_dir, csv_filename)
 
-        if file_already_exists and append_existing:
-            file_mode = "a"
-        else:
-            file_mode = "w"
-
-        with open(csv_filename, mode=file_mode, encoding="utf-8") as csv_file:
-
-            # Write headings
-            if include_headers and not file_already_exists:
-                csv_file.write(separator.join(ReportCard.headings) + "\n")
-
-            # Write entries
+        with open(csv_path, mode="w", encoding="utf-8") as csv_file:
             for entry in self.entries:
                 csv_file.write(separator.join(entry.fields) + "\n")
+
+        # Make sure the headers are saved too
+        self.save_headers()
 
 
 # Static class
@@ -436,10 +447,6 @@ class SynonymTester(object):
                     answers.append(answer)
 
                 answer_paper = AnswerPaper(answers)
-
-                # Save the transcripts for this test
-                answer_paper.save_text_transcript(SynonymTester._text_transcript_path(test, distance_type, model,
-                                                                                      truncate_vectors_at_length))
 
                 append_to_model_name = "" if truncate_vectors_at_length is None else f" ({truncate_vectors_at_length})"
                 report_card.add_entry(ReportCard.Entry(test, model, distance_type, answer_paper,
@@ -490,8 +497,16 @@ class SynonymTester(object):
         # Only record truncation of vectors if we're doing it
         filename += f" - s={truncate_vectors_at_length}" if truncate_vectors_at_length is not None else ""
         filename += f".txt"
-        # TODO: this path shouldn't really be defined here
-        return os.path.join(Preferences.eval_dir, "synonyms", "transcripts", filename)
+
+        return os.path.join(Preferences.synonym_results_dir, filename)
+
+    @staticmethod
+    def transcript_exists_for(model: VectorSemanticModel,
+                              test: SynonymTest,
+                              distance_type: DistanceType,
+                              truncate_vectors_at_length: int = None) -> bool:
+        return os.path.isfile(
+            SynonymTester._text_transcript_path(test, distance_type, model, truncate_vectors_at_length))
 
     @staticmethod
     def all_transcripts_exist_for(model: VectorSemanticModel,
@@ -500,11 +515,7 @@ class SynonymTester(object):
         """
         If every test transcript file exists for this model.
         """
-        for distance_type in DistanceType:
-            for test in test_battery:
-                # If one file doesn't exist
-                if not os.path.isfile(SynonymTester._text_transcript_path(test, distance_type, model,
-                                                                          truncate_vectors_at_length)):
-                    # The not all of them do
-                    return False
-        return True
+        return all(
+            [SynonymTester.transcript_exists_for(model, test, distance_type, truncate_vectors_at_length)
+             for distance_type in DistanceType
+             for test in test_battery])

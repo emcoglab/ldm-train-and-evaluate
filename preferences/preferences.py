@@ -122,6 +122,10 @@ class Preferences(object):
     # The base directory for the models to be saved
     model_dir = "/Users/caiwingfield/vectors/"
 
+    # TESTS
+
+    test_dir                 = "/Users/caiwingfield/evaluation/tests/"
+
     # Synonym tests
     toefl_question_path      = "/Users/caiwingfield/evaluation/tests/TOEFL/toefl.qst"
     toefl_answer_path        = "/Users/caiwingfield/evaluation/tests/TOEFL/toefl.ans"
@@ -134,13 +138,18 @@ class Preferences(object):
     wordsim_relatedness_path = "/Users/caiwingfield/evaluation/tests/WordSim353/wordsim_relatedness_goldstandard.txt"
     men_path                 = "/Users/caiwingfield/evaluation/tests/MEN/MEN_dataset_natural_form_full"
 
-    # Semantic priming data
-    # Source xls file
+    # Semantic priming data: source xls file
     spp_path_xls             = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.xls"
-    # Pickled version for faster loading
+    # Semantic priming data: pickled version for faster loading
     spp_path                 = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.pickle"
-    # Exported csv version with model predictors
-    spp_path_csv             = "/Users/caiwingfield/evaluation/tests/SPP/model_predictors.csv"
+
+    # TEST RESULTS
 
     # Model evaluation results
     eval_dir                 = "/Users/caiwingfield/evaluation/results/"
+
+    # Semantic priming predictor csv
+    spp_path_csv             = "/Users/caiwingfield/evaluation/results/SPP/model_predictors.csv"
+
+    # Synonym results
+    synonym_results_dir      = "/Users/caiwingfield/evaluation/results/synonyms/"
