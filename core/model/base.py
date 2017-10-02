@@ -275,6 +275,13 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
         """
         raise NotImplementedError()
 
+    @abstractmethod
+    def contains_word(self, word: str) -> bool:
+        """
+        Whether the model is trained on a corpus containing a specific word.
+        """
+        raise NotImplementedError()
+
 
 class VectorSemanticModel(DistributionalSemanticModel, metaclass=ABCMeta):
     """

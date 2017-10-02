@@ -122,6 +122,12 @@ class PredictVectorModel(VectorSemanticModel):
         except KeyError:
             raise WordNotFoundError(f"The word '{word}' was not found.")
 
+    def contains_word(self, word: str) -> bool:
+        if word.lower() in self._model.wv.vocab:
+            return True
+        else:
+            return False
+
 
 class CbowModel(PredictVectorModel):
     """

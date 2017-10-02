@@ -125,6 +125,12 @@ class CountVectorModel(VectorSemanticModel):
 
         return [self.token_indices.id2token(i) for i, dist in nearest_neighbours]
 
+    def contains_word(self, word: str) -> bool:
+        if word.lower() in self.token_indices.token2id:
+            return True
+        else:
+            return False
+
 
 class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
     """
@@ -162,6 +168,12 @@ class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
 
     def scalar_for_word(self, word: str):
         return self._model[self.token_indices.token2id[word]]
+
+    def contains_word(self, word: str) -> bool:
+        if word.lower() in self.token_indices.token2id:
+            return True
+        else:
+            return False
 
 
 class UnsummedNgramCountModel(CountVectorModel):
