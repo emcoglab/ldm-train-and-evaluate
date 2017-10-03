@@ -24,13 +24,58 @@ from abc import ABCMeta, abstractmethod
 from copy import copy
 from typing import List
 
+from .results import ReportCard
 from ..model.base import VectorSemanticModel
-from ..model.predict import PredictVectorModel
 from ..utils.indexing import LetterIndexing
 from ..utils.maths import DistanceType
 from ...preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
+
+
+class SynonymReportCard(ReportCard):
+    def __init__(self):
+        super().__init__()
+
+    @classmethod
+    def results_dir(cls) -> str:
+        return Preferences.synonym_results_dir
+
+    @classmethod
+    def headings(cls) -> List[str]:
+        return [
+            "Test name",
+            "Model",
+            "Embedding size",
+            "Radius",
+            "Distance",
+            "Corpus",
+            "Score"
+        ]
+
+    class Entry(ReportCard.Entry):
+        def __init__(self,
+                     test: SynonymTest,
+                     model: VectorSemanticModel,
+                     distance_type: DistanceType,
+                     answer_paper: AnswerPaper,
+                     # ugh
+                     append_to_model_name: str = ""):
+            super().__init__(test.name, model.model_type.name + append_to_model_name, model, distance_type)
+            self._answer_paper = answer_paper
+
+        @property
+        def fields(self):
+            return [
+                self._test_name,
+                self._model_type_name,
+                # Only PredictModels have an embedding size
+                f"{self._embedding_size}" if self._embedding_size is not None else "",
+                f"{self._window_radius}",
+                self._distance_type.name,
+                self._corpus_name,
+                f"{self._answer_paper.score}%"
+            ]
 
 
 class SynonymTestQuestion(object):
@@ -287,133 +332,6 @@ class McqTest(SynonymTest):
         return questions
 
 
-class ReportCard(object):
-    """
-    Description of the results of a battery of tests.
-    """
-
-    class Entry(object):
-        """
-        Description of the results of a test.
-        """
-
-        def __init__(self,
-                     test: SynonymTest,
-                     model: VectorSemanticModel,
-                     distance_type: DistanceType,
-                     answer_paper: AnswerPaper,
-                     # ugh
-                     append_to_model_name: str = ""):
-            self._answer_paper = answer_paper
-            self._distance_type = distance_type
-            self._model_type_name = model.model_type.name + append_to_model_name
-            self._window_radius = model.window_radius
-            self._corpus_name = model.corpus_meta.name
-            self._embedding_size = model.embedding_size if isinstance(model, PredictVectorModel) else None
-            self._test_name = test.name
-
-        @property
-        def fields(self) -> List[str]:
-            return [
-                self._test_name,
-                self._model_type_name,
-                # Only PredictModels have an embedding size
-                f"{self._embedding_size}" if self._embedding_size is not None else "",
-                f"{self._window_radius}",
-                self._distance_type.name,
-                self._corpus_name,
-                f"{self._answer_paper.score}%"
-            ]
-
-    # An ordered list of the headings for each piece of data on the report card.
-    headings = [
-        "Test name",
-        "Model",
-        "Embedding size",
-        "Radius",
-        "Distance",
-        "Corpus",
-        "Score"
-    ]
-
-    def __init__(self):
-        # Backing for self.entries property
-        self._entries: List[ReportCard.Entry] = []
-
-    def __iadd__(self, other: 'ReportCard'):
-        for entry in other.entries:
-            self.add_entry(entry)
-
-    def __add__(self, other: 'ReportCard'):
-        new = ReportCard()
-        for entry in self.entries:
-            new.add_entry(entry)
-        for entry in other.entries:
-            new.add_entry(entry)
-        return new
-
-    @property
-    def entries(self) -> List[Entry]:
-        """
-        The entries on this report card.
-        """
-        return self._entries
-
-    def add_entry(self, entry: Entry):
-        """
-        Adds an entry to the report card.
-        """
-        self._entries.append(entry)
-
-    @classmethod
-    def save_headers(cls, separator: str = ","):
-        """
-        Saves a CSV file containing headers, if it doesn't already exist.
-        """
-
-        csv_filename = " header.csv"
-
-        csv_path = os.path.join(Preferences.synonym_results_dir, csv_filename)
-
-        # Skip it if it exists
-        if os.path.isfile(csv_path):
-            return
-
-        with open(csv_path, mode="w", encoding="utf-8") as csv_file:
-
-            # Write headings
-            csv_file.write(separator.join(ReportCard.headings) + "\n")
-
-    @classmethod
-    def saved_with_name(cls, csv_filename: str) -> bool:
-        """
-        Has a report card been saved with this name?
-        """
-        return os.path.isfile(
-            os.path.join(
-                Preferences.synonym_results_dir,
-                csv_filename))
-
-    def save_csv(self, csv_filename: str, separator: str = ","):
-        """
-        Writes records to a CSV, overwriting if it exists.
-        :param csv_filename:
-        :param separator:
-        """
-        # Validate filename
-        if not csv_filename.endswith(".csv"):
-            csv_filename += ".csv"
-
-        csv_path = os.path.join(Preferences.synonym_results_dir, csv_filename)
-
-        with open(csv_path, mode="w", encoding="utf-8") as csv_file:
-            for entry in self.entries:
-                csv_file.write(separator.join(entry.fields) + "\n")
-
-        # Make sure the headers are saved too
-        self.save_headers()
-
-
 # Static class
 class SynonymTester(object):
     """
@@ -424,7 +342,7 @@ class SynonymTester(object):
     def administer_tests(model: VectorSemanticModel,
                          test_battery: List[SynonymTest],
                          truncate_vectors_at_length: int = None
-                         ) -> ReportCard:
+                         ) -> SynonymReportCard:
         """
         Administers a battery of tests against a model
         :param test_battery:
@@ -435,7 +353,7 @@ class SynonymTester(object):
 
         assert model.is_trained
 
-        report_card = ReportCard()
+        report_card = SynonymReportCard()
 
         for distance_type in DistanceType:
 
@@ -449,8 +367,8 @@ class SynonymTester(object):
                 answer_paper = AnswerPaper(answers)
 
                 append_to_model_name = "" if truncate_vectors_at_length is None else f" ({truncate_vectors_at_length})"
-                report_card.add_entry(ReportCard.Entry(test, model, distance_type, answer_paper,
-                                                       append_to_model_name=append_to_model_name))
+                report_card.add_entry(SynonymReportCard.Entry(test, model, distance_type, answer_paper,
+                                                              append_to_model_name))
 
         return report_card
 

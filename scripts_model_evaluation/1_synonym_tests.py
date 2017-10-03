@@ -19,7 +19,7 @@ import logging
 import sys
 
 from ..core.corpus.distribution import FreqDist
-from ..core.evaluation.synonym import ToeflTest, EslTest, McqTest, SynonymTester, ReportCard
+from ..core.evaluation.synonym import ToeflTest, EslTest, McqTest, SynonymTester, SynonymReportCard
 from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..core.utils.indexing import TokenIndexDictionary
@@ -55,7 +55,7 @@ def main():
 
             for model in count_models:
                 csv_name = model.name + '.csv'
-                if not ReportCard.saved_with_name(csv_name):
+                if not SynonymReportCard.saved_with_name(csv_name):
                     model.train()
                     report_card = SynonymTester.administer_tests(model, test_battery)
                     report_card.save_csv(csv_name)
@@ -64,7 +64,7 @@ def main():
             model = PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
             truncate_length = 10_000
             csv_name = model.name + ' (10k).csv'
-            if not ReportCard.saved_with_name(csv_name):
+            if not SynonymReportCard.saved_with_name(csv_name):
                 model.train()
                 report_card = SynonymTester.administer_tests(model, test_battery, truncate_length)
                 report_card.save_csv(csv_name)
@@ -80,7 +80,7 @@ def main():
 
                 for model in predict_models:
                     csv_name = model.name + '.csv'
-                    if not ReportCard.saved_with_name(csv_name):
+                    if not SynonymReportCard.saved_with_name(csv_name):
                         model.train()
                         report_card = SynonymTester.administer_tests(model, test_battery)
                         report_card.save_csv(csv_name)

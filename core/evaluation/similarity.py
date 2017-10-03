@@ -24,12 +24,57 @@ from typing import List
 import numpy
 import scipy.stats
 
+from .results import ReportCard
 from ..model.base import VectorSemanticModel
-from ..model.predict import PredictVectorModel
 from ..utils.maths import DistanceType, CorrelationType
 from ...preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
+
+
+class SimilarityReportCard(ReportCard):
+
+    @classmethod
+    def headings(cls) -> List[str]:
+        return [
+            'Test name',
+            'Model type',
+            'Embedding size',
+            'Window radius',
+            'Distance type',
+            'Corpus',
+            'Correlation'
+        ]
+
+    @classmethod
+    def results_dir(cls) -> str:
+        return Preferences.similarity_judgement_results_dir
+
+    class Entry(ReportCard.Entry):
+        """
+        Result of a similarity test.
+        """
+
+        def __init__(self,
+                     model: VectorSemanticModel,
+                     test: SimilarityJudgementTest,
+                     distance_type: DistanceType,
+                     correlation: float):
+            super().__init__(test.name, model.model_type.name, model, distance_type)
+            self._correlation = correlation
+
+        @property
+        def fields(self) -> List[str]:
+            return [
+                self._test_name,
+                self._model_type_name,
+                # Only PredictModels have an embedding size
+                f"{self._embedding_size}" if self._embedding_size is not None else "",
+                f"{self._window_radius}",
+                self._distance_type.name,
+                self._corpus_name,
+                f"{self._correlation}"
+            ]
 
 
 class SimilarityJudgement(object):
@@ -226,38 +271,6 @@ class WordsimRelatedness(SimilarityJudgementTest):
         return judgements
 
 
-class SimilarityTestResult(object):
-    """
-    Result of a similarity test.
-    """
-
-    def __init__(self,
-                 model: VectorSemanticModel,
-                 test: SimilarityJudgementTest,
-                 distance_type: DistanceType,
-                 correlation: float):
-        self._test_name = test.name
-        self._model_type_name = model.model_type.name
-        self._window_radius = model.window_radius
-        self._corpus_name = model.corpus_meta.name
-        self._distance_type = distance_type
-        self._embedding_size = model.embedding_size if isinstance(model, PredictVectorModel) else None
-        self._correlation = correlation
-
-    @property
-    def fields(self) -> List[str]:
-        return [
-            self._test_name,
-            self._model_type_name,
-            # Only PredictModels have an embedding size
-            f"{self._embedding_size}" if self._embedding_size is not None else "",
-            f"{self._window_radius}",
-            self._distance_type.name,
-            self._corpus_name,
-            f"{self._correlation}"
-        ]
-
-
 class SimilarityTester(object):
     """
     Administers a synonym test against a model.
@@ -268,7 +281,7 @@ class SimilarityTester(object):
 
     def administer_tests(self,
                          model: VectorSemanticModel,
-                         correlation: CorrelationType) -> List[SimilarityTestResult]:
+                         correlation: CorrelationType) -> List[SimilarityReportCard.Entry]:
         """
         Administers a battery of tests against a model
         :param model: Must be trained.
@@ -278,7 +291,7 @@ class SimilarityTester(object):
 
         assert model.is_trained
 
-        results: List[SimilarityTestResult] = []
+        results: List[SimilarityReportCard.Entry] = []
 
         for distance_type in DistanceType:
             for test in self.test_battery:
@@ -319,6 +332,6 @@ class SimilarityTester(object):
                 else:
                     raise ValueError(correlation)
 
-                results.append(SimilarityTestResult(model, test, distance_type, correlation))
+                results.append(SimilarityReportCard.Entry(model, test, distance_type, correlation))
 
         return results

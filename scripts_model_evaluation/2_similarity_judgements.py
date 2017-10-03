@@ -24,7 +24,7 @@ from typing import List
 from ..core.utils.maths import CorrelationType
 from ..core.corpus.distribution import FreqDist
 from ..core.evaluation.similarity import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
-    SimilarityTester, SimilarityTestResult
+    SimilarityTester, SimilarityReportCard
 from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..core.utils.indexing import TokenIndexDictionary
@@ -34,13 +34,11 @@ from ..preferences.preferences import Preferences
 logger = logging.getLogger(__name__)
 
 
-def save_results(results: List[SimilarityTestResult]):
-    results_dir = os.path.join(Preferences.eval_dir, "similarity")
-    csv_name = os.path.join(results_dir, "similarity_judgements.csv")
+def save_results(results: List[SimilarityReportCard.Entry]):
+    csv_path = os.path.join(Preferences.similarity_judgement_results_dir, "similarity_judgements.csv")
 
-    separator = ","
-
-    with open(csv_name, mode="a", encoding="utf-8") as csv_file:
+    with open(csv_path, mode="w", encoding="utf-8") as csv_file:
+        separator = ","
         for result in results:
             csv_file.write(separator.join(result.fields) + "\n")
 

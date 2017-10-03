@@ -124,32 +124,32 @@ class Preferences(object):
 
     # TESTS
 
-    test_dir                 = "/Users/caiwingfield/evaluation/tests/"
+    test_dir                         = "/Users/caiwingfield/evaluation/tests/"
 
     # Synonym tests
-    toefl_question_path      = "/Users/caiwingfield/evaluation/tests/TOEFL/toefl.qst"
-    toefl_answer_path        = "/Users/caiwingfield/evaluation/tests/TOEFL/toefl.ans"
-    esl_test_path            = "/Users/caiwingfield/evaluation/tests/ESL/esl.txt"
-    mcq_test_path            = "/Users/caiwingfield/evaluation/tests/LBM vocab MCQ/newMCQ.txt"
+    toefl_question_path              = "/Users/caiwingfield/evaluation/tests/TOEFL/toefl.qst"
+    toefl_answer_path                = "/Users/caiwingfield/evaluation/tests/TOEFL/toefl.ans"
+    esl_test_path                    = "/Users/caiwingfield/evaluation/tests/ESL/esl.txt"
+    mcq_test_path                    = "/Users/caiwingfield/evaluation/tests/LBM vocab MCQ/newMCQ.txt"
 
     # Word similarity judgement tests
-    simlex_path              = "/Users/caiwingfield/evaluation/tests/SimLex-999/SimLex-999.txt"
-    wordsim_similarity_path  = "/Users/caiwingfield/evaluation/tests/WordSim353/wordsim_similarity_goldstandard.txt"
-    wordsim_relatedness_path = "/Users/caiwingfield/evaluation/tests/WordSim353/wordsim_relatedness_goldstandard.txt"
-    men_path                 = "/Users/caiwingfield/evaluation/tests/MEN/MEN_dataset_natural_form_full"
+    simlex_path                      = "/Users/caiwingfield/evaluation/tests/SimLex-999/SimLex-999.txt"
+    wordsim_similarity_path          = "/Users/caiwingfield/evaluation/tests/WordSim353/wordsim_similarity_goldstandard.txt"
+    wordsim_relatedness_path         = "/Users/caiwingfield/evaluation/tests/WordSim353/wordsim_relatedness_goldstandard.txt"
+    men_path                         = "/Users/caiwingfield/evaluation/tests/MEN/MEN_dataset_natural_form_full"
 
     # Semantic priming data: source xls file
-    spp_path_xls             = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.xls"
+    spp_path_xls                     = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.xls"
     # Semantic priming data: pickled version for faster loading
-    spp_path                 = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.pickle"
+    spp_path                         = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.pickle"
 
     # TEST RESULTS
 
     # Model evaluation results
-    eval_dir                 = "/Users/caiwingfield/evaluation/results/"
+    eval_dir                         = "/Users/caiwingfield/evaluation/results/"
 
     # Semantic priming predictor csv
-    spp_path_csv             = "/Users/caiwingfield/evaluation/results/SPP/model_predictors.csv"
+    spp_path_csv                     = "/Users/caiwingfield/evaluation/results/SPP/model_predictors.csv"
 
-    # Synonym results
-    synonym_results_dir      = "/Users/caiwingfield/evaluation/results/synonyms/"
+    synonym_results_dir              = "/Users/caiwingfield/evaluation/results/synonyms/"
+    similarity_judgement_results_dir = "/Users/caiwingfield/evaluation/results/similarity/"
