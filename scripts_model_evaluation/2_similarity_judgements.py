@@ -16,12 +16,8 @@ caiwingfield.net
 """
 
 import logging
-import os
 import sys
 
-from typing import List
-
-from ..core.utils.maths import CorrelationType
 from ..core.corpus.distribution import FreqDist
 from ..core.evaluation.similarity import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
     SimilarityTester, SimilarityReportCard
@@ -34,15 +30,6 @@ from ..preferences.preferences import Preferences
 logger = logging.getLogger(__name__)
 
 
-def save_results(results: List[SimilarityReportCard.Entry]):
-    csv_path = os.path.join(Preferences.similarity_judgement_results_dir, "similarity_judgements.csv")
-
-    with open(csv_path, mode="w", encoding="utf-8") as csv_file:
-        separator = ","
-        for result in results:
-            csv_file.write(separator.join(result.fields) + "\n")
-
-
 def main():
     test_battery = [
         SimlexSimilarity(),
@@ -51,11 +38,6 @@ def main():
         MenSimilarity()
     ]
 
-    correlation = CorrelationType.Pearson
-
-    tester = SimilarityTester(test_battery)
-
-    # TODO: this should skip, not overwrite, existing test results
     for corpus_metadata in Preferences.source_corpus_metas:
 
         token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
@@ -73,9 +55,11 @@ def main():
             ]
 
             for model in count_models:
-                model.train()
-                results = tester.administer_tests(model, correlation)
-                save_results(results)
+                csv_name = model.name + '.csv'
+                if not SimilarityReportCard.saved_with_name(csv_name):
+                    model.train()
+                    report_card = SimilarityTester.administer_tests(model, test_battery)
+                    report_card.save_csv(csv_name)
 
             # PREDICT MODELS
 
@@ -87,9 +71,11 @@ def main():
                 ]
 
                 for model in predict_models:
-                    model.train()
-                    results = tester.administer_tests(model, correlation)
-                    save_results(results)
+                    csv_name = model.name + '.csv'
+                    if not SimilarityReportCard.saved_with_name(csv_name):
+                        model.train()
+                        report_card = SimilarityTester.administer_tests(model, test_battery)
+                        report_card.save_csv(csv_name)
 
 
 if __name__ == "__main__":

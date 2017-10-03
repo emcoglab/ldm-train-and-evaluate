@@ -15,10 +15,9 @@ caiwingfield.net
 ---------------------------
 """
 
-import re
-import math
 import logging
-import os
+import math
+import re
 
 from abc import ABCMeta, abstractmethod
 from copy import copy
@@ -345,8 +344,8 @@ class SynonymTester(object):
                          ) -> SynonymReportCard:
         """
         Administers a battery of tests against a model
-        :param test_battery:
         :param model: Must be trained.
+        :param test_battery:
         :param truncate_vectors_at_length:
         :return:
         """
@@ -367,8 +366,8 @@ class SynonymTester(object):
                 answer_paper = AnswerPaper(answers)
 
                 append_to_model_name = "" if truncate_vectors_at_length is None else f" ({truncate_vectors_at_length})"
-                report_card.add_entry(SynonymReportCard.Entry(test, model, distance_type, answer_paper,
-                                                              append_to_model_name))
+                report_card.add_entry(
+                    SynonymReportCard.Entry(test, model, distance_type, answer_paper, append_to_model_name))
 
         return report_card
 
@@ -401,39 +400,3 @@ class SynonymTester(object):
                 best_guess_d = guess_d
 
         return AnsweredQuestion(copy(question), best_guess_i)
-
-    @staticmethod
-    def _text_transcript_path(test: SynonymTest, distance_type: DistanceType, model: VectorSemanticModel,
-                              truncate_vectors_at_length: int) -> str:
-        """
-        Where the text transcript would be saved for a particular test.
-        """
-        filename = ""
-        filename += f"{test.name}"
-        filename += f" - {model.name}"
-        filename += f" - {distance_type.name}"
-        # Only record truncation of vectors if we're doing it
-        filename += f" - s={truncate_vectors_at_length}" if truncate_vectors_at_length is not None else ""
-        filename += f".txt"
-
-        return os.path.join(Preferences.synonym_results_dir, filename)
-
-    @staticmethod
-    def transcript_exists_for(model: VectorSemanticModel,
-                              test: SynonymTest,
-                              distance_type: DistanceType,
-                              truncate_vectors_at_length: int = None) -> bool:
-        return os.path.isfile(
-            SynonymTester._text_transcript_path(test, distance_type, model, truncate_vectors_at_length))
-
-    @staticmethod
-    def all_transcripts_exist_for(model: VectorSemanticModel,
-                                  test_battery: List[SynonymTest],
-                                  truncate_vectors_at_length: int = None) -> bool:
-        """
-        If every test transcript file exists for this model.
-        """
-        return all(
-            [SynonymTester.transcript_exists_for(model, test, distance_type, truncate_vectors_at_length)
-             for distance_type in DistanceType
-             for test in test_battery])

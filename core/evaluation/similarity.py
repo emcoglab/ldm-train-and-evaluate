@@ -271,67 +271,65 @@ class WordsimRelatedness(SimilarityJudgementTest):
         return judgements
 
 
+# Static class
 class SimilarityTester(object):
     """
     Administers a synonym test against a model.
     """
 
-    def __init__(self, test_battery: List[SimilarityJudgementTest]):
-        self.test_battery = test_battery
-
-    def administer_tests(self,
-                         model: VectorSemanticModel,
-                         correlation: CorrelationType) -> List[SimilarityReportCard.Entry]:
+    @staticmethod
+    def administer_tests(model: VectorSemanticModel,
+                         test_battery: List[SimilarityJudgementTest]) -> SimilarityReportCard:
         """
         Administers a battery of tests against a model
         :param model: Must be trained.
-        :param correlation:
+        :param test_battery:
         :return:
         """
 
         assert model.is_trained
 
-        results: List[SimilarityReportCard.Entry] = []
+        report_card = SimilarityReportCard()
 
-        for distance_type in DistanceType:
-            for test in self.test_battery:
-                human_judgements: List[SimilarityJudgement] = []
-                model_judgements: List[SimilarityJudgement] = []
-                for human_judgement in test.judgement_list:
-                    try:
-                        distance = model.distance_between(
+        for test in test_battery:
+            for distance_type in DistanceType:
+                for correlation in CorrelationType:
+                    human_judgements: List[SimilarityJudgement] = []
+                    model_judgements: List[SimilarityJudgement] = []
+                    for human_judgement in test.judgement_list:
+                        try:
+                            distance = model.distance_between(
+                                human_judgement.word_1,
+                                human_judgement.word_2,
+                                distance_type)
+                        except KeyError as key_error:
+                            # If we can't find one of the words in the corpus, just ignore it.
+                            logger.warning(f'{model.corpus_meta.name} corpus doesn\'t contain "{key_error.args[0]}"')
+                            continue
+
+                        # If both words were found in the model, add them to the test list
+                        human_judgements.append(human_judgement)
+                        model_judgements.append(SimilarityJudgement(
                             human_judgement.word_1,
                             human_judgement.word_2,
-                            distance_type)
-                    except KeyError as key_error:
-                        # If we can't find one of the words in the corpus, just ignore it.
-                        logger.warning(f'{model.corpus_meta.name} corpus doesn\'t contain "{key_error.args[0]}"')
-                        continue
+                            distance))
 
-                    # If both words were found in the model, add them to the test list
-                    human_judgements.append(human_judgement)
-                    model_judgements.append(SimilarityJudgement(
-                        human_judgement.word_1,
-                        human_judgement.word_2,
-                        distance))
+                    # Apply correlation
+                    if correlation is CorrelationType.Pearson:
+                        correlation = numpy.corrcoef(
+                            [j.similarity for j in human_judgements],
+                            [j.similarity for j in model_judgements])[0][1]
+                    elif correlation is CorrelationType.Spearman:
+                        # PyCharm erroneously detects input types for scipy.stats.spearmanr as int rather than ndarray
+                        # noinspection PyTypeChecker
+                        correlation = scipy.stats.spearmanr(
+                            [j.similarity for j in human_judgements],
+                            [j.similarity for j in model_judgements])[0][1]
+                    else:
+                        raise ValueError(correlation)
 
-                # Apply correlation
-                if correlation is CorrelationType.Pearson:
-                    correlation = numpy.corrcoef(
-                        [j.similarity for j in human_judgements],
-                        [j.similarity for j in model_judgements])[0][1]
+                    # Record correlation on report card
+                    report_card.add_entry(
+                        SimilarityReportCard.Entry(model, test, distance_type, correlation))
 
-                elif correlation is CorrelationType.Spearman:
-
-                    # PyCharm erroneously detects input types for scipy.stats.spearmanr as int rather than ndarray
-                    # noinspection PyTypeChecker
-                    correlation = scipy.stats.spearmanr(
-                        [j.similarity for j in human_judgements],
-                        [j.similarity for j in model_judgements])[0][1]
-
-                else:
-                    raise ValueError(correlation)
-
-                results.append(SimilarityReportCard.Entry(model, test, distance_type, correlation))
-
-        return results
+        return report_card
