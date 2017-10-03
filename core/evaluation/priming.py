@@ -132,31 +132,25 @@ class SppData(object):
 
         return sorted([w for w in self.vocabulary if not model.contains_word(w)])
 
-    @staticmethod
-    def predictor_name(model: VectorSemanticModel, distance_type: DistanceType) -> str:
-        return f"{model.name}_{distance_type.name}"
-
-    def predictor_added(self, model: VectorSemanticModel, distance_type: DistanceType) -> bool:
+    def predictor_added_with_name(self, predictor_name: str) -> bool:
         """
-        Whether the current predictor is already added
-        :param model:
-        :param distance_type:
-        :return:
+        Whether the named predictor is already added.
         """
-        predictor_name = self.predictor_name(model, distance_type)
         return self.dataframe.keys().contains(predictor_name)
+
+    @staticmethod
+    def predictor_name_for_model(model: VectorSemanticModel, distance_type: DistanceType) -> str:
+        return f"{model.name}_{distance_type.name}"
 
     def add_model_predictor(self, model: VectorSemanticModel, distance_type: DistanceType):
         """
         Adds a data column containing predictors from a semantic model.
-        :param distance_type:
-        :param model:
         """
 
-        predictor_name = self.predictor_name(model, distance_type)
+        predictor_name = self.predictor_name_for_model(model, distance_type)
 
         # Skip existing predictors
-        if self.predictor_added(model, distance_type):
+        if self.predictor_added_with_name(predictor_name):
             logger.info(f"'{predictor_name}' already added")
 
         else:
@@ -183,3 +177,10 @@ class SppData(object):
 
             # Save in current state
             self._save()
+
+    def add_word_keyed_predictor(self, predictor, predictor_name: str):
+        """
+        Adds a data column with a specified predictor.
+        """
+
+

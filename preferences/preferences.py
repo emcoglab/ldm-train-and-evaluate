@@ -104,7 +104,7 @@ class Preferences(object):
     source_corpus_metas = [
         bnc_processing_metas["tokenised"],
         bbc_processing_metas["tokenised"],
-        ukwac_processing_metas["tokenised"]
+        # ukwac_processing_metas["tokenised"]
     ]
 
     # Word lists
@@ -144,6 +144,8 @@ class Preferences(object):
     spp_path_xls                     = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.xls"
     # Semantic priming data: pickled version for faster loading
     spp_path_pickle                  = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.pickle"
+    # Additional Elexicon predictors csv
+    spp_elexicon_csv                 = "/Users/caiwingfield/evaluation/tests/SPP/elexicon/I148559.csv"
 
     # TEST RESULTS
 

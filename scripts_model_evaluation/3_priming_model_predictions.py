@@ -82,7 +82,7 @@ def add_predictors_for_model(model, spp_data):
     for distance_type in DistanceType:
 
         # Don't bother training the model until we know we need it
-        if spp_data.predictor_added(model, distance_type):
+        if spp_data.predictor_added_with_name(model, distance_type):
             logger.info(f"Predictor for '{model.name}' using '{distance_type.name}' already added to SPP data.")
             continue
 
