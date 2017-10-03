@@ -138,17 +138,20 @@ class Preferences(object):
     wordsim_relatedness_path         = "/Users/caiwingfield/evaluation/tests/WordSim353/wordsim_relatedness_goldstandard.txt"
     men_path                         = "/Users/caiwingfield/evaluation/tests/MEN/MEN_dataset_natural_form_full"
 
+    # Semantic priming data
+    spp_data_dir                     = "/Users/caiwingfield/evaluation/tests/SPP/"
     # Semantic priming data: source xls file
     spp_path_xls                     = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.xls"
     # Semantic priming data: pickled version for faster loading
-    spp_path                         = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.pickle"
+    spp_path_pickle                  = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.pickle"
 
     # TEST RESULTS
 
     # Model evaluation results
     eval_dir                         = "/Users/caiwingfield/evaluation/results/"
 
-    # Semantic priming predictor csv
+    # Semantic priming results
+    spp_results_dir                  = "/Users/caiwingfield/evaluation/results/SPP/"
     spp_path_csv                     = "/Users/caiwingfield/evaluation/results/SPP/model_predictors.csv"
 
     synonym_results_dir              = "/Users/caiwingfield/evaluation/results/synonyms/"

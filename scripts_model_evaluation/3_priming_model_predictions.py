@@ -15,8 +15,11 @@ caiwingfield.net
 ---------------------------
 """
 
+import os
 import logging
 import sys
+
+from typing import Set
 
 from ..core.utils.maths import DistanceType
 from ..core.evaluation.priming import SppData
@@ -34,6 +37,8 @@ logger = logging.getLogger(__name__)
 def main():
 
     spp_data = SppData()
+
+    save_wordlist(spp_data.vocabulary)
 
     for corpus_metadata in Preferences.source_corpus_metas:
 
@@ -70,6 +75,9 @@ def main():
 
 
 def add_predictors_for_model(model, spp_data):
+    """
+    Add all available predictors from this model.
+    """
 
     for distance_type in DistanceType:
 
@@ -82,6 +90,22 @@ def add_predictors_for_model(model, spp_data):
         model.train()
 
         spp_data.add_model_predictor(model, distance_type)
+
+
+def save_wordlist(vocab: Set[str]):
+    """
+    Saves the vocab to a file
+    """
+    wordlist_path = os.path.join(Preferences.spp_data_dir, 'spp_wordlist.txt')
+    separator = " "
+
+    logger.info(f"Saving SPP word list to {wordlist_path}.")
+
+    with open(wordlist_path, mode="w", encoding="utf-8") as wordlist_file:
+        for word in sorted(vocab):
+            wordlist_file.write(word + separator)
+        # Terminate with a newline XD
+        wordlist_file.write("\n")
 
 
 if __name__ == "__main__":

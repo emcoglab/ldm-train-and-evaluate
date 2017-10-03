@@ -62,7 +62,7 @@ class SppData(object):
         """
         Load previously saved data.
         """
-        with open(Preferences.spp_path, mode="rb") as spp_file:
+        with open(Preferences.spp_path_pickle, mode="rb") as spp_file:
             return pickle.load(spp_file)
 
     def _save(self):
@@ -70,7 +70,7 @@ class SppData(object):
         Save and overwrite data.
         """
         assert self._all_data is not None
-        with open(Preferences.spp_path, mode="wb") as spp_file:
+        with open(Preferences.spp_path_pickle, mode="wb") as spp_file:
             pickle.dump(self._all_data, spp_file)
 
     def export_csv(self):
@@ -86,7 +86,7 @@ class SppData(object):
         """
         Whether data has been previously saved.
         """
-        return os.path.isfile(Preferences.spp_path)
+        return os.path.isfile(Preferences.spp_path_pickle)
 
     @classmethod
     def _load_from_source_xls(cls) -> pandas.DataFrame:
@@ -104,6 +104,7 @@ class SppData(object):
 
         return prime_target_data
 
+    @property
     def vocabulary(self) -> Set[str]:
         """
         The set of words used in the SPP data.
@@ -125,11 +126,11 @@ class SppData(object):
         assert model.is_trained
 
         missing_word_list = []
-        for word in self.vocabulary():
+        for word in self.vocabulary:
             if not model.contains_word(word):
                 missing_word_list.append(word)
 
-        return sorted([w for w in self.vocabulary() if not model.contains_word(w)])
+        return sorted([w for w in self.vocabulary if not model.contains_word(w)])
 
     @staticmethod
     def predictor_name(model: VectorSemanticModel, distance_type: DistanceType) -> str:
