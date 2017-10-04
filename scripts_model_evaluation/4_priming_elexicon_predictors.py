@@ -52,6 +52,11 @@ def main():
     for predictor_name in predictors_to_add:
 
         # Don't bother training the model until we know we need it
+        # FIXME: This is only checking for predictor_name, not "elex_prime_"+predictor_name!
+        # FIxME:
+        # FIXME: This needs to be fixed!!!
+        # FIXME:
+        # FIXME: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if spp_data.predictor_added_with_name(predictor_name):
             logger.info(f"Elexicon predictor '{predictor_name}' already added to SPP data.")
             continue
@@ -63,10 +68,15 @@ def main():
         spp_data.add_word_keyed_predictor(predictor_column, predictor_name)
 
     # Add levenshtein distance column to data frame
-    logger.info("Adding Levenshtein-distance predictor to SPP data.")
-    levenshtein_column = spp_data.dataframe[["PrimeWord", "TargetWord"]].apply(levenshtein_distance_local, axis=1)
+    levenshtein_column_name = "PrimeTarget_OrthLD"
+    if spp_data.predictor_added_with_name(levenshtein_column_name):
+        logger.info("Levenshtein-distance predictor already added to SPP data.")
+    else:
+        logger.info("Adding Levenshtein-distance predictor to SPP data.")
+        levenshtein_column = spp_data.dataframe[["PrimeWord", "TargetWord"]].copy()
+        levenshtein_column[levenshtein_column_name] = levenshtein_column[["PrimeWord", "TargetWord"]].apply(levenshtein_distance_local, axis=1)
 
-    spp_data.add_word_pair_keyed_predictor(levenshtein_column)
+        spp_data.add_word_pair_keyed_predictor(levenshtein_column)
 
     # Save it out for more processing by R or whatever
     spp_data.export_csv()

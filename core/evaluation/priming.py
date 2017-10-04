@@ -185,6 +185,7 @@ class SppData(object):
         one for the prime word and the other for target word.
         """
 
+        # TODO: shouldn't really have "elex" in here, if this is a general function
         target_predictor_name = 'elex_target_' + predictor_name
         prime_predictor_name = 'elex_prime_' + predictor_name
 
@@ -209,5 +210,8 @@ class SppData(object):
         """
         Adds a predictor column keyed from a prime-target pair.
         """
-        # TODO
-        raise NotImplementedError()
+
+        self._all_data = pandas.merge(self.dataframe, predictor, on=["PrimeWord", "TargetWord"], how="left")
+
+        # Save in current state
+        self._save()
