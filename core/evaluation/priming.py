@@ -179,9 +179,29 @@ class SppData(object):
             # Save in current state
             self._save()
 
-    def add_word_keyed_predictor(self, predictor, predictor_name: str):
+    def add_word_keyed_predictor(self, predictor: pandas.DataFrame, predictor_name: str):
         """
         Adds a data column with a specified predictor.
         """
+
+        target_predictor_name = 'elex_target_' + predictor_name
+        prime_predictor_name = 'elex_prime_' + predictor_name
+
+        # Rename words column in predictor for the target merge
+        if not self.predictor_added_with_name(target_predictor_name):
+            predictor_renamed = predictor.rename(columns={'Word' : 'TargetWord', predictor_name : target_predictor_name})
+            self._all_data = pandas.merge(self.dataframe, predictor_renamed, on="TargetWord", how="left")
+
+        # Rename words column in predictor for the prime merge
+        if not self.predictor_added_with_name(prime_predictor_name):
+            predictor_renamed = predictor.rename(columns={'Word' : 'PrimeWord', predictor_name : prime_predictor_name})
+            self._all_data = pandas.merge(self.dataframe, predictor_renamed, on="PrimeWord", how="left")
+
+        # Add model to list of current models
+        self.model_predictor_names.append(target_predictor_name)
+        self.model_predictor_names.append(prime_predictor_name)
+
+        # Save in current state
+        self._save()
 
 

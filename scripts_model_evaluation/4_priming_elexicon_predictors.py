@@ -32,24 +32,28 @@ def main():
 
     elexicon_dataframe: pandas.DataFrame = pandas.read_csv(Preferences.spp_elexicon_csv, header=0, encoding="utf-8")
 
-    predictors_to_add = {
-        # elexicon name : # new name
-        "Log_Freq_HAL"  : "elex_Log_Freq_HAL",
-        "OLD"           : "elex_OLD20"
-    }
+    # Make sure the words are lowercase, as we'll use them as merging keys
+    elexicon_dataframe['Word'] = elexicon_dataframe['Word'].str.lower()
 
-    for predictor_key in predictors_to_add.keys():
+    predictors_to_add = [
+        "LgSUBTLWF",
+        "OLD",
+        "PLD",
+        "NSyll"
+    ]
 
-        predictor_name = predictors_to_add[predictor_key]
+    for predictor_name in predictors_to_add:
 
         # Don't bother training the model until we know we need it
         if spp_data.predictor_added_with_name(predictor_name):
             logger.info(f"Elexicon predictor '{predictor_name}' already added to SPP data.")
             continue
 
-        predictor = elexicon_dataframe[predictor_key]
+        # Dataframe with two columns: 'Word', [predictor_name]
+        predictor_column = elexicon_dataframe[["Word", predictor_name]]
 
-        spp_data.add_word_keyed_predictor(predictor, predictor_name)
+        spp_data.add_word_keyed_predictor(predictor_column, predictor_name)
+
 
     spp_data.export_csv()
 
