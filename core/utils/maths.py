@@ -18,6 +18,8 @@ caiwingfield.net
 from enum import Enum, auto
 
 import numpy
+import nltk
+
 from scipy import spatial
 
 
@@ -110,3 +112,12 @@ def sparse_max(a, b):
 
     # Return elements of a where a was bigger, and elements of b where b was bigger
     return a - a.multiply(b_is_bigger) + b.multiply(b_is_bigger)
+
+
+def levenshtein_distance(string_1: str, string_2: str) -> float:
+    """
+    Levenshtein edit distance between two strings.
+    """
+    return nltk.edit_distance(string_1, string_2,
+                              substitution_cost=1,
+                              transpositions=False)

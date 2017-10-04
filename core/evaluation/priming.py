@@ -181,7 +181,8 @@ class SppData(object):
 
     def add_word_keyed_predictor(self, predictor: pandas.DataFrame, predictor_name: str):
         """
-        Adds a data column with a specified predictor.
+        Adds a pair of predictor word-keyed predictor columns,
+        one for the prime word and the other for target word.
         """
 
         target_predictor_name = 'elex_target_' + predictor_name
@@ -204,4 +205,9 @@ class SppData(object):
         # Save in current state
         self._save()
 
-
+    def add_word_pair_keyed_predictor(self, predictor: pandas.DataFrame):
+        """
+        Adds a predictor column keyed from a prime-target pair.
+        """
+        # TODO
+        raise NotImplementedError()

@@ -20,11 +20,18 @@ import sys
 
 import pandas
 
+from ..core.utils.maths import levenshtein_distance
 from ..core.evaluation.priming import SppData
 from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
+
+
+# Add prime–target Levenshtein distance
+def levenshtein_distance_local(word_pair):
+    word_1, word_2 = word_pair
+    return levenshtein_distance(word_1, word_2)
 
 
 def main():
@@ -52,9 +59,16 @@ def main():
         # Dataframe with two columns: 'Word', [predictor_name]
         predictor_column = elexicon_dataframe[["Word", predictor_name]]
 
+        logger.info(f"Adding Elexicon predictor '{predictor_name} to SPP data.")
         spp_data.add_word_keyed_predictor(predictor_column, predictor_name)
 
+    # Add levenshtein distance column to data frame
+    logger.info("Adding Levenshtein-distance predictor to SPP data.")
+    levenshtein_column = spp_data.dataframe[["PrimeWord", "TargetWord"]].apply(levenshtein_distance_local, axis=1)
 
+    spp_data.add_word_pair_keyed_predictor(levenshtein_column)
+
+    # Save it out for more processing by R or whatever
     spp_data.export_csv()
 
 
