@@ -48,7 +48,7 @@ class SimilarityReportCard(ReportCard):
 
     @classmethod
     def results_dir(cls) -> str:
-        return Preferences.similarity_judgement_results_dir
+        return Preferences.similarity_results_dir
 
     class Entry(ReportCard.Entry):
         """

@@ -78,7 +78,8 @@ class SppData(object):
         Export the current dataframe as a csv.
         """
         assert self._all_data is not None
-        with open(Preferences.spp_path_csv, mode="w") as spp_file:
+        results_csv_path = os.path.join(Preferences.spp_results_dir, "model_predictors.csv")
+        with open(results_csv_path, mode="w") as spp_file:
             self.dataframe.to_csv(spp_file)
 
     @property

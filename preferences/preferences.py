@@ -15,6 +15,8 @@ caiwingfield.net
 ---------------------------
 """
 
+import os
+
 from ..core.corpus.corpus import CorpusMetadata
 
 
@@ -120,41 +122,32 @@ class Preferences(object):
     predict_embedding_sizes = [50, 100, 200, 300, 500]
 
     # The base directory for the models to be saved
-    model_dir = "/Users/caiwingfield/vectors/"
+    model_dir                = "/Users/caiwingfield/vectors/"
 
     # TESTS
-
-    test_dir                         = "/Users/caiwingfield/evaluation/tests/"
+    test_dir                 = "/Users/caiwingfield/evaluation/tests/"
 
     # Synonym tests
-    toefl_question_path              = "/Users/caiwingfield/evaluation/tests/TOEFL/toefl.qst"
-    toefl_answer_path                = "/Users/caiwingfield/evaluation/tests/TOEFL/toefl.ans"
-    esl_test_path                    = "/Users/caiwingfield/evaluation/tests/ESL/esl.txt"
-    mcq_test_path                    = "/Users/caiwingfield/evaluation/tests/LBM vocab MCQ/newMCQ.txt"
+    toefl_question_path      = os.path.join(test_dir, "TOEFL/toefl.qst")
+    toefl_answer_path        = os.path.join(test_dir, "TOEFL/toefl.ans")
+    esl_test_path            = os.path.join(test_dir, "ESL/esl.txt")
+    mcq_test_path            = os.path.join(test_dir, "LBM vocab MCQ/newMCQ.txt")
 
     # Word similarity judgement tests
-    simlex_path                      = "/Users/caiwingfield/evaluation/tests/SimLex-999/SimLex-999.txt"
-    wordsim_similarity_path          = "/Users/caiwingfield/evaluation/tests/WordSim353/wordsim_similarity_goldstandard.txt"
-    wordsim_relatedness_path         = "/Users/caiwingfield/evaluation/tests/WordSim353/wordsim_relatedness_goldstandard.txt"
-    men_path                         = "/Users/caiwingfield/evaluation/tests/MEN/MEN_dataset_natural_form_full"
+    simlex_path              = os.path.join(test_dir, "SimLex-999/SimLex-999.txt")
+    wordsim_similarity_path  = os.path.join(test_dir, "WordSim353/wordsim_similarity_goldstandard.txt")
+    wordsim_relatedness_path = os.path.join(test_dir, "WordSim353/wordsim_relatedness_goldstandard.txt")
+    men_path                 = os.path.join(test_dir, "MEN/MEN_dataset_natural_form_full")
 
     # Semantic priming data
-    spp_data_dir                     = "/Users/caiwingfield/evaluation/tests/SPP/"
-    # Semantic priming data: source xls file
-    spp_path_xls                     = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.xls"
-    # Semantic priming data: pickled version for faster loading
-    spp_path_pickle                  = "/Users/caiwingfield/evaluation/tests/SPP/Hutchinson et al. (2013) SPP.pickle"
-    # Additional Elexicon predictors csv
-    spp_elexicon_csv                 = "/Users/caiwingfield/evaluation/tests/SPP/elexicon/I148559.csv"
+    spp_data_dir             = os.path.join(test_dir, "SPP/")
+    spp_path_xls             = os.path.join(test_dir, "SPP/Hutchinson et al. (2013) SPP.xls")  # Semantic priming data: source xls file
+    spp_path_pickle          = os.path.join(test_dir, "SPP/Hutchinson et al. (2013) SPP.pickle")  # Semantic priming data: pickled version for faster loading
+    spp_elexicon_csv         = os.path.join(test_dir, "SPP/elexicon/I148559.csv")  # Additional Elexicon predictors csv
 
     # TEST RESULTS
+    results_dir              = "/Users/caiwingfield/evaluation/results/"
 
-    # Model evaluation results
-    eval_dir                         = "/Users/caiwingfield/evaluation/results/"
-
-    # Semantic priming results
-    spp_results_dir                  = "/Users/caiwingfield/evaluation/results/SPP/"
-    spp_path_csv                     = "/Users/caiwingfield/evaluation/results/SPP/model_predictors.csv"
-
-    synonym_results_dir              = "/Users/caiwingfield/evaluation/results/synonyms/"
-    similarity_judgement_results_dir = "/Users/caiwingfield/evaluation/results/similarity/"
+    spp_results_dir          = os.path.join(results_dir, "SPP/")
+    synonym_results_dir      = os.path.join(results_dir, "synonyms/")
+    similarity_results_dir   = os.path.join(results_dir, "similarity/")
