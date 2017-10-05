@@ -37,6 +37,8 @@ def levenshtein_distance_local(word_pair):
 def main():
     spp_data = SppData()
 
+    # Add Elexicon predictors
+
     elexicon_dataframe: pandas.DataFrame = pandas.read_csv(Preferences.spp_elexicon_csv, header=0, encoding="utf-8")
 
     # Make sure the words are lowercase, as we'll use them as merging keys
@@ -50,26 +52,14 @@ def main():
     ]
 
     for predictor_name in predictors_to_add:
+        add_elexicon_predictor(spp_data, elexicon_dataframe, predictor_name, prime_or_target="Prime")
+        add_elexicon_predictor(spp_data, elexicon_dataframe, predictor_name, prime_or_target="Target")
 
-        # Don't bother training the model until we know we need it
-        # FIXME: This is only checking for predictor_name, not "elex_prime_"+predictor_name!
-        # FIxME:
-        # FIXME: This needs to be fixed!!!
-        # FIXME:
-        # FIXME: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if spp_data.predictor_added_with_name(predictor_name):
-            logger.info(f"Elexicon predictor '{predictor_name}' already added to SPP data.")
-            continue
-
-        # Dataframe with two columns: 'Word', [predictor_name]
-        predictor_column = elexicon_dataframe[["Word", predictor_name]]
-
-        logger.info(f"Adding Elexicon predictor '{predictor_name} to SPP data.")
-        spp_data.add_word_keyed_predictor(predictor_column, predictor_name)
+    # Add prime-target Levenschtein distance
 
     # Add levenshtein distance column to data frame
     levenshtein_column_name = "PrimeTarget_OrthLD"
-    if spp_data.predictor_added_with_name(levenshtein_column_name):
+    if spp_data.predictor_exists_with_name(levenshtein_column_name):
         logger.info("Levenshtein-distance predictor already added to SPP data.")
     else:
         logger.info("Adding Levenshtein-distance predictor to SPP data.")
@@ -80,6 +70,40 @@ def main():
 
     # Save it out for more processing by R or whatever
     spp_data.export_csv()
+
+
+def add_elexicon_predictor(spp_data: SppData,
+                           elexicon_dataframe: pandas.DataFrame,
+                           predictor_name: str,
+                           prime_or_target: str):
+
+    assert(prime_or_target in ["Prime", "Target"])
+
+    # elex_prime_<predictor_name> or
+    # elex_target_<predictor_name>
+    new_predictor_name = f"elex_{prime_or_target.lower()}_" + predictor_name
+
+    # PrimeWord or
+    # TargetWord
+    key_name = f"{prime_or_target}Word"
+
+    # Don't bother training the model until we know we need it
+    if spp_data.predictor_exists_with_name(new_predictor_name):
+        logger.info(f"Elexicon predictor '{new_predictor_name}' already added to SPP data.")
+    else:
+
+        logger.info(f"Adding Elexicon predictor '{new_predictor_name} to SPP data.")
+
+        # Dataframe with two columns: 'Word', [predictor_name]
+        predictor = elexicon_dataframe[["Word", predictor_name]]
+
+        # We'll join on PrimeWord first
+        predictor.rename(columns={
+            "Word": key_name,
+            predictor_name: new_predictor_name
+        })
+
+        spp_data.add_word_keyed_predictor(predictor, key_name, new_predictor_name)
 
 
 if __name__ == "__main__":

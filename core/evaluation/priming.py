@@ -133,7 +133,7 @@ class SppData(object):
 
         return sorted([w for w in self.vocabulary if not model.contains_word(w)])
 
-    def predictor_added_with_name(self, predictor_name: str) -> bool:
+    def predictor_exists_with_name(self, predictor_name: str) -> bool:
         """
         Whether the named predictor is already added.
         """
@@ -151,7 +151,7 @@ class SppData(object):
         predictor_name = self.predictor_name_for_model(model, distance_type)
 
         # Skip existing predictors
-        if self.predictor_added_with_name(predictor_name):
+        if self.predictor_exists_with_name(predictor_name):
             logger.info(f"'{predictor_name}' already added")
 
         else:
@@ -179,29 +179,21 @@ class SppData(object):
             # Save in current state
             self._save()
 
-    def add_word_keyed_predictor(self, predictor: pandas.DataFrame, predictor_name: str):
+    def add_word_keyed_predictor(self, predictor: pandas.DataFrame, key_name: str, predictor_name: str):
         """
-        Adds a pair of predictor word-keyed predictor columns,
-        one for the prime word and the other for target word.
+        Adds a word-keyed predictor column.
+        :param predictor: Should have a column named `key_name`, used to left-join with the main dataframe, and a column named `predictor_name`, containing the actual values..
+        :param predictor_name:
+        :param key_name:
+        :return:
         """
-
-        # TODO: shouldn't really have "elex" in here, if this is a general function
-        target_predictor_name = 'elex_target_' + predictor_name
-        prime_predictor_name = 'elex_prime_' + predictor_name
 
         # Rename words column in predictor for the target merge
-        if not self.predictor_added_with_name(target_predictor_name):
-            predictor_renamed = predictor.rename(columns={'Word' : 'TargetWord', predictor_name : target_predictor_name})
-            self._all_data = pandas.merge(self.dataframe, predictor_renamed, on="TargetWord", how="left")
-
-        # Rename words column in predictor for the prime merge
-        if not self.predictor_added_with_name(prime_predictor_name):
-            predictor_renamed = predictor.rename(columns={'Word' : 'PrimeWord', predictor_name : prime_predictor_name})
-            self._all_data = pandas.merge(self.dataframe, predictor_renamed, on="PrimeWord", how="left")
+        if not self.predictor_exists_with_name(predictor_name):
+            self._all_data = pandas.merge(self.dataframe, predictor, on=key_name, how="left")
 
         # Add model to list of current models
-        self.model_predictor_names.append(target_predictor_name)
-        self.model_predictor_names.append(prime_predictor_name)
+        self.model_predictor_names.append(predictor_name)
 
         # Save in current state
         self._save()
