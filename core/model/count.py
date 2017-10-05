@@ -160,7 +160,6 @@ class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
         assert self.is_trained
         # Can't use scipy save_npz, as this isn's a sparse matrix, it's a vector.
         # So just use numpy savez
-        # TODO: this won't work with data that's larger than 4GB (which it often is).
         #     https://stackoverflow.com/questions/31468117/python-3-can-pickle-handle-byte-objects-larger-than-4gb
         #     https://github.com/numpy/numpy/issues/3858
         numpy.savez(os.path.join(self.save_dir, self._model_filename_with_ext), self._model)
@@ -202,7 +201,6 @@ class UnsummedNgramCountModel(CountVectorModel):
     def name(self) -> str:
         return f"{self.model_type.name} ({self.corpus_meta.name}), r={self.window_radius}, {self._chirality.name}"
 
-    # TODO: Rename this to put the type at the start!
     # Overwrite, to include chirality
     @property
     def _model_filename(self):
@@ -251,9 +249,9 @@ class UnsummedNgramCountModel(CountVectorModel):
             target_id = self.token_indices.token2id[target_token]
             context_id = self.token_indices.token2id[context_token]
 
-            # TODO: Are the left- and right-context matrices transposes of one another?  For the edge-most elements of
-            # TODO: every window, one is either the target or the context, and the other is the other.  If so, we can
-            # TODO: speed up this whole shebang
+            # TODO: Left- and right-context matrices are transposes of one another.  For the edge-most elements of
+            # TODO: every window, one is either the target or the context, and the other is the other.  So we could
+            # TODO: speed up this whole shebang by only computing and saving the lower-triangular elements.
             self._model[target_id, context_id] += 1
 
             # Count cooccurrences

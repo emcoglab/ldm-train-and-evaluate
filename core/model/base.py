@@ -309,7 +309,6 @@ class VectorSemanticModel(DistributionalSemanticModel, metaclass=ABCMeta):
     def name(self) -> str:
         return f"{self.model_type.name} ({self.corpus_meta.name}), r={self.window_radius}"
 
-    # TODO: Rename this to put the type at the start!
     @property
     def _model_filename(self):
         return f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.slug}"
@@ -383,7 +382,6 @@ class ScalarSemanticModel(DistributionalSemanticModel, metaclass=ABCMeta):
     def name(self) -> str:
         return f"{self.model_type.name} ({self.corpus_meta.name}), r={self.window_radius}"
 
-    # TODO: Rename this to put the type at the start!
     @property
     def _model_filename(self):
         return f"{self.corpus_meta.name}_r={self.window_radius}_{self.model_type.name}"

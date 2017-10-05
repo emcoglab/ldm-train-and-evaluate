@@ -63,7 +63,6 @@ class PredictVectorModel(VectorSemanticModel):
     def name(self) -> str:
         return f"{self.model_type.name} ({self.corpus_meta.name}), r={self.window_radius}, s={self.embedding_size}"
 
-    # TODO: Rename this to put the type at the start!
     @property
     def _model_filename(self):
         # Include embedding size
