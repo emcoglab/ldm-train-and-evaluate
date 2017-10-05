@@ -93,6 +93,9 @@ class CountVectorModel(VectorSemanticModel):
 
         vocab_size = len(self.token_indices)
 
+        if not self.contains_word(word):
+            raise WordNotFoundError(f"The word '{word}' was not found.")
+
         target_id = self.token_indices.token2id[word]
         target_vector = self.vector_for_id(target_id)
 
@@ -167,6 +170,10 @@ class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
         assert self.is_trained
 
     def scalar_for_word(self, word: str):
+
+        if not self.contains_word(word):
+            raise WordNotFoundError(f"The word '{word}' was not found.")
+
         return self._model[self.token_indices.token2id[word]]
 
     def contains_word(self, word: str) -> bool:

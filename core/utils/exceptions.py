@@ -16,7 +16,6 @@ caiwingfield.net
 """
 
 
-# TODO: use this in all models
 class WordNotFoundError(LookupError):
     """
     An error raised when a word is not found in a model or corpus.

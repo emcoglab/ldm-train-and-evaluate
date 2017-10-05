@@ -87,6 +87,10 @@ class PredictVectorModel(VectorSemanticModel):
         raise NotImplementedError()
 
     def nearest_neighbours(self, word: str, distance_type: DistanceType, n: int):
+
+        if not self.contains_word(word):
+            raise WordNotFoundError(f"The word '{word}' was not found.")
+
         if distance_type is DistanceType.cosine:
             # gensim implements cosine anyway, so this is an easy shortcut
             return self._model.wv.most_similar(positive=word, topn=n)
