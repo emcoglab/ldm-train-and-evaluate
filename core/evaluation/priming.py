@@ -188,9 +188,14 @@ class SppData(object):
         :return:
         """
 
-        # Rename words column in predictor for the target merge
-        if not self.predictor_exists_with_name(predictor_name):
-            self._all_data = pandas.merge(self.dataframe, predictor, on=key_name, how="left")
+        # Skip the predictor if at already exists
+        if self.predictor_exists_with_name(predictor_name):
+            logger.info(f"Predictor '{predictor_name} already exists")
+            return
+
+        logger.info(f"Adding predictor '{predictor_name}'")
+
+        self._all_data = pandas.merge(self.dataframe, predictor, on=key_name, how="left")
 
         # Add model to list of current models
         self.model_predictor_names.append(predictor_name)

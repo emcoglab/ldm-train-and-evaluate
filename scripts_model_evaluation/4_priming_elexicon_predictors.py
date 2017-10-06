@@ -98,7 +98,7 @@ def add_elexicon_predictor(spp_data: SppData,
         predictor = elexicon_dataframe[["Word", predictor_name]]
 
         # We'll join on PrimeWord first
-        predictor.rename(columns={
+        predictor = predictor.rename(columns={
             "Word": key_name,
             predictor_name: new_predictor_name
         })
