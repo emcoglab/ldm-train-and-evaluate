@@ -1,6 +1,6 @@
 """
 ===========================
-Evaluate using priming data.
+Evaluate using priming data: import lexical predictors from Elexicon.
 ===========================
 
 Dr. Cai Wingfield

@@ -1,6 +1,6 @@
 """
 ===========================
-Evaluate using priming data.
+Evaluate using priming data: compute model predictions.
 ===========================
 
 Dr. Cai Wingfield

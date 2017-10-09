@@ -212,3 +212,28 @@ class SppData(object):
 
         # Save in current state
         self._save()
+
+
+class BaselineRegression(object):
+    def __init__(self, dv_name: str, result):
+        self.dv_name = dv_name
+        self.result = result
+
+    @property
+    def name(self) -> str:
+        return f"{self.dv_name} baseline"
+
+    @property
+    def rsquared(self) -> float:
+        return self.result.rsquared
+
+
+class ModelRegression(BaselineRegression):
+    def __init__(self, dv_name:str, model: VectorSemanticModel, distance_type: DistanceType, result):
+        super().__init__(dv_name, result)
+        self.model = model
+        self.distance_type = distance_type
+
+    @property
+    def name(self):
+        return f"{self.dv_name} baseline + {self.model.name}, {self.distance_type.name}"
