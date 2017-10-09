@@ -37,7 +37,9 @@ def main():
 
     spp_data: SppData = SppData()
 
-    all_data = spp_data.dataframe
+    first_assoc_prime_data = spp_data.dataframe.where(
+        # TODO!
+    )
 
     # Compute all models for non-priming data
 
@@ -62,7 +64,7 @@ def main():
         "PrimeTarget_OrthLD"
     ]
 
-    results = fit_all_models(all_data, dependent_variable_names, baseline_variable_names)
+    results = fit_all_models(first_assoc_prime_data, dependent_variable_names, baseline_variable_names)
 
     # Compute all models for priming data
 
@@ -77,7 +79,7 @@ def main():
         "PrimeTarget_OrthLD"
     ]
 
-    priming_results = fit_all_models(all_data, dependent_variable_priming_names, baseline_variable_priming_names)
+    priming_results = fit_all_models(first_assoc_prime_data, dependent_variable_priming_names, baseline_variable_priming_names)
 
     results.extend(priming_results)
 
