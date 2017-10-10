@@ -122,7 +122,7 @@ class Preferences(object):
     predict_embedding_sizes = [50, 100, 200, 300, 500]
 
     # The base directory for the models to be saved
-    model_dir                = "/Users/caiwingfield/vectors/"
+    model_dir                = "/Volumes/Data/vectors/"
 
     # TESTS
     test_dir                 = "/Users/caiwingfield/evaluation/tests/"
