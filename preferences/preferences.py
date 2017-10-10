@@ -37,7 +37,7 @@ class Preferences(object):
             name="BNC",
             path="/Volumes/Data/corpora/BNC/2 Tokenised/BNC.corpus",
             freq_dist_path="/Volumes/Data/corpora/BNC/2.1 info/frequency_distribution_BNC",
-            index_path="/Users/caiwingfield/vectors/indexes/BNC.index"))
+            index_path="/Volumes/Data/vectors/indexes/BNC.index"))
     bnc_text_processing_metas = dict(
         raw=CorpusMetadata(
             name="BNC-text",
@@ -49,7 +49,7 @@ class Preferences(object):
             name="BNC-text",
             path="/Volumes/Data/corpora/BNC-text/2 Tokenised/BNC-text.corpus",
             freq_dist_path="/Volumes/Data/corpora/BNC-text/2.1 info/frequency_distribution_BNC_text",
-            index_path="/Users/caiwingfield/vectors/indexes/BNC-text.index"))
+            index_path="/Volumes/Data/vectors/indexes/BNC-text.index"))
     bnc_speech_processing_metas = dict(
         raw=CorpusMetadata(
             name="BNC-speech",
@@ -61,7 +61,7 @@ class Preferences(object):
             name="BNC-speech",
             path="/Volumes/Data/corpora/BNC-speech/2 Tokenised/BNC-speech.corpus",
             freq_dist_path="/Volumes/Data/corpora/BNC-speech/2.1 info/frequency_distribution_BNC_speech",
-            index_path="/Users/caiwingfield/vectors/indexes/BNC-speech.index"))
+            index_path="/Volumes/Data/vectors/indexes/BNC-speech.index"))
     bbc_processing_metas = dict(
         raw=CorpusMetadata(
             name="BBC",
@@ -79,7 +79,7 @@ class Preferences(object):
             name="BBC",
             path="/Volumes/Data/corpora/BBC/4 Tokenised/BBC.corpus",
             freq_dist_path="/Volumes/Data/corpora/BBC/4.1 info/frequency_distribution_BBC",
-            index_path="/Users/caiwingfield/vectors/indexes/BBC.index"))
+            index_path="/Volumes/Data/vectors/indexes/BBC.index"))
     ukwac_processing_metas = dict(
         raw=CorpusMetadata(
             name="UKWAC",
@@ -94,7 +94,7 @@ class Preferences(object):
             name="UKWAC",
             path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
             freq_dist_path="/Users/caiwingfield/corpora/UKWAC/3.1 info/frequency_distribution_UKWAC",
-            index_path="/Users/caiwingfield/vectors/indexes/UKWAC.index"))
+            index_path="/Volumes/Data/vectors/indexes/UKWAC.index"))
     toy_processing_metas = dict(
         tokenised=CorpusMetadata(
             name="Toy",
