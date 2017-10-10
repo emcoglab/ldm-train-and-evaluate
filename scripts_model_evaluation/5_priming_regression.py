@@ -37,9 +37,8 @@ def main():
 
     spp_data: SppData = SppData()
 
-    first_assoc_prime_data = spp_data.dataframe.where(
-        # TODO!
-    )
+    # Get only the first associate prime–target pairs
+    first_assoc_prime_data = spp_data.dataframe.query('PrimeType == "first_associate"')
 
     # Compute all models for non-priming data
 
