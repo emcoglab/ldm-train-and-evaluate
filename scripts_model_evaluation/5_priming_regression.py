@@ -17,7 +17,11 @@ caiwingfield.net
 
 import logging
 import sys
+import os
 
+from typing import List
+
+import pandas
 import statsmodels.formula.api as sm
 
 from ..core.utils.maths import DistanceType
@@ -26,11 +30,30 @@ from ..core.utils.indexing import TokenIndexDictionary
 from ..core.model.count import LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..preferences.preferences import Preferences
-from ..core.evaluation.priming import SppData, BaselineRegression, ModelRegression
+from ..core.evaluation.priming import SppData, BaselineRegressionResult, ModelRegressionResult, RegressionResult
 from ..core.utils.logging import log_message, date_format
 
 
 logger = logging.getLogger(__name__)
+
+
+def export_csv(results: List[RegressionResult]):
+    results_path = os.path.join(Preferences.spp_results_dir, "regression.csv")
+
+    header = [
+        "Name",
+        "R-squared"
+    ]
+
+    with open(results_path, mode="w", encoding="utf-8") as results_file:
+        # Print header
+        results_file.write(",".join(header))
+        # Print results
+        for result in results:
+            results_file.write(",".join([
+                result.name,
+                str(result.rsquared)
+            ]))
 
 
 def main():
@@ -82,11 +105,13 @@ def main():
 
     results.extend(priming_results)
 
+    export_csv(results)
+
     for result in results:
         logger.info(f"{result.name}:\t{result.rsquared}")
 
 
-def fit_all_models(all_data, dependent_variable_names, baseline_variable_names):
+def fit_all_models(all_data: pandas.DataFrame, dependent_variable_names: List[str], baseline_variable_names: List[str]):
 
     results = []
 
@@ -95,7 +120,7 @@ def fit_all_models(all_data, dependent_variable_names, baseline_variable_names):
         # Predictor variables
         predictor_formula = ' + '.join(baseline_variable_names)
 
-        results.append(BaselineRegression(
+        results.append(BaselineRegressionResult(
             dv_name=dv_name,
             result=sm.ols(
                 formula=f"{dv_name} ~ {predictor_formula}",
@@ -124,13 +149,13 @@ def fit_all_models(all_data, dependent_variable_names, baseline_variable_names):
                     predictor_formula = ' + '.join(baseline_variable_names + [model_predictor_name])
 
                     for dv_name in dependent_variable_names:
-                        results += ModelRegression(
+                        results.append(ModelRegressionResult(
                             dv_name=dv_name,
                             model=model,
                             distance_type=distance_type,
                             result=sm.ols(
                                 formula=f"{dv_name} ~ {predictor_formula}",
-                                data=all_data).fit())
+                                data=all_data).fit()))
 
             for embedding_size in Preferences.predict_embedding_sizes:
 
@@ -145,7 +170,7 @@ def fit_all_models(all_data, dependent_variable_names, baseline_variable_names):
                         model_predictor_name = SppData.predictor_name_for_model(model, distance_type)
 
                         for dv_name in dependent_variable_names:
-                            results.append(ModelRegression(
+                            results.append(ModelRegressionResult(
                                 dv_name=dv_name,
                                 model=model,
                                 distance_type=distance_type,

@@ -158,10 +158,10 @@ class SppData(object):
 
         # Skip existing predictors
         if self.predictor_exists_with_name(predictor_name):
-            logger.info(f"'{predictor_name}' already added")
+            logger.info(f"Model predictor '{predictor_name}' already added")
 
         else:
-            logger.info(f"Adding '{predictor_name}' model")
+            logger.info(f"Adding '{predictor_name}' model predictor")
 
             # In case we one of the words doesn't exist in the corpus, we just want missing data
             def model_distance_or_none(word_pair):
@@ -169,7 +169,7 @@ class SppData(object):
                 try:
                     return model.distance_between(word_1, word_2, distance_type)
                 except WordNotFoundError as er:
-                    logger.warning(er.args[0])
+                    logger.warning(er.message)
                     return None
 
             # Add model distance column to data frame
@@ -199,8 +199,6 @@ class SppData(object):
             logger.info(f"Predictor '{predictor_name} already exists")
             return
 
-        logger.info(f"Adding predictor '{predictor_name}'")
-
         self._all_data = pandas.merge(self.dataframe, predictor, on=key_name, how="left")
 
         # Add model to list of current models
@@ -220,26 +218,33 @@ class SppData(object):
         self._save()
 
 
-class BaselineRegression(object):
+class RegressionResult(object):
     def __init__(self, dv_name: str, result):
         self.dv_name = dv_name
         self.result = result
 
     @property
     def name(self) -> str:
-        return f"{self.dv_name} baseline"
+        return f"{self.dv_name}"
 
     @property
     def rsquared(self) -> float:
         return self.result.rsquared
 
 
-class ModelRegression(BaselineRegression):
-    def __init__(self, dv_name:str, model: VectorSemanticModel, distance_type: DistanceType, result):
+class BaselineRegressionResult(RegressionResult):
+
+    @property
+    def name(self) -> str:
+        return f"{self.dv_name} baseline"
+
+
+class ModelRegressionResult(RegressionResult):
+    def __init__(self, dv_name: str, model: VectorSemanticModel, distance_type: DistanceType, result):
         super().__init__(dv_name, result)
-        self.model = model
+        self.model_name = model.name
         self.distance_type = distance_type
 
     @property
     def name(self):
-        return f"{self.dv_name} baseline + {self.model.name}, {self.distance_type.name}"
+        return f"{self.dv_name} baseline + {self.model_name}, {self.distance_type.name}"

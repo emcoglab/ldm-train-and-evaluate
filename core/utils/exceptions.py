@@ -28,3 +28,7 @@ class WordNotFoundError(LookupError):
     def __str__(self, *args, **kwargs):  # real signature unknown
         """ Return str(self). """
         pass
+
+    @property
+    def message(self) -> str:
+        return self.args[0]
