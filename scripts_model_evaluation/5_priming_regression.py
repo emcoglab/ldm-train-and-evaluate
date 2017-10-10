@@ -158,7 +158,11 @@ def main():
         "LDT_200ms_Z_Priming",
         "LDT_200ms_Acc_Priming",
         "LDT_1200ms_Z_Priming",
-        "LDT_1200ms_Acc_Priming"
+        "LDT_1200ms_Acc_Priming",
+        "NT_200ms_Z_Priming",
+        "NT_200ms_Acc_Priming",
+        "NT_1200ms_Z_Priming",
+        "NT_1200ms_Acc_Priming"
     ]
 
     baseline_variable_priming_names = [
