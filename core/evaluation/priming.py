@@ -249,7 +249,7 @@ class PrimingRegressionResult(object):
     @classmethod
     def headings(cls) -> List[str]:
         return [
-            'Dependent variable'
+            'Dependent variable',
             'Model type',
             'Embedding size',
             'Window radius',
