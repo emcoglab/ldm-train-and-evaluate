@@ -96,7 +96,7 @@ def save_wordlist(vocab: Set[str]):
     """
     Saves the vocab to a file
     """
-    wordlist_path = os.path.join(Preferences.spp_data_dir, 'spp_wordlist.txt')
+    wordlist_path = os.path.join(Preferences.spp_results_dir, 'spp_wordlist.txt')
     separator = " "
 
     logger.info(f"Saving SPP word list to {wordlist_path}.")

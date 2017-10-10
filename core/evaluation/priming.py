@@ -18,6 +18,7 @@ caiwingfield.net
 import logging
 import os
 import pickle
+import re
 
 from typing import List, Set
 
@@ -141,7 +142,12 @@ class SppData(object):
 
     @staticmethod
     def predictor_name_for_model(model: VectorSemanticModel, distance_type: DistanceType) -> str:
-        return f"{model.name}_{distance_type.name}"
+        unsafe_name = f"{model.name}_{distance_type.name}"
+        # Remove unsafe characters
+        unsafe_name = re.sub(r"[(),=]", "", unsafe_name)
+        # Convert hyphens and spaces to underscores
+        safe_name = re.sub(r"[-\s]", "_", unsafe_name)
+        return safe_name
 
     def add_model_predictor(self, model: VectorSemanticModel, distance_type: DistanceType):
         """

@@ -140,14 +140,13 @@ class Preferences(object):
     men_path                 = os.path.join(test_dir, "MEN/MEN_dataset_natural_form_full")
 
     # Semantic priming data
-    spp_data_dir             = os.path.join(test_dir, "SPP/")
     spp_path_xls             = os.path.join(test_dir, "SPP/Hutchinson et al. (2013) SPP.xls")  # Semantic priming data: source xls file
-    spp_path_pickle          = os.path.join(test_dir, "SPP/Hutchinson et al. (2013) SPP.pickle")  # Semantic priming data: pickled version for faster loading
     spp_elexicon_csv         = os.path.join(test_dir, "SPP/elexicon/I148613.csv")  # Additional Elexicon predictors csv
 
     # TEST RESULTS
     results_dir              = "/Users/caiwingfield/evaluation/results/"
 
-    spp_results_dir          = os.path.join(results_dir, "SPP/")
     synonym_results_dir      = os.path.join(results_dir, "synonyms/")
     similarity_results_dir   = os.path.join(results_dir, "similarity/")
+    spp_results_dir          = os.path.join(results_dir, "SPP/")
+    spp_path_pickle          = os.path.join(results_dir, "SPP/Hutchinson et al. (2013) SPP.pickle")  # Semantic priming data: pickled version for faster loading
