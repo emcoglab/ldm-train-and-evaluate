@@ -24,6 +24,7 @@ from typing import List, Set
 
 import pandas
 
+from ..model.predict import PredictVectorModel
 from ..model.base import VectorSemanticModel
 from ..utils.maths import DistanceType
 from ..utils.exceptions import WordNotFoundError
@@ -218,33 +219,55 @@ class SppData(object):
         self._save()
 
 
-class RegressionResult(object):
-    def __init__(self, dv_name: str, result):
-        self.dv_name = dv_name
-        self.result = result
+class PrimingRegressionResult(object):
+    """
+    The result of a priming regression.
+    """
+    def __init__(self,
+                 dv_name: str,
+                 model: VectorSemanticModel,
+                 distance_type: DistanceType,
+                 baseline_r2: float,
+                 model_r2: float):
+
+        # Dependent variable
+        self.dv_name         = dv_name
+
+        # Baseline R^2 from lexical factors
+        self.baseline_r2     = baseline_r2
+
+        # Model info
+        self.model_type_name = model.model_type.name
+        self.embedding_size  = model.embedding_size if isinstance(model, PredictVectorModel) else None
+        self.window_radius   = model.window_radius
+        self.distance_type   = distance_type
+        self.corpus_name     = model.corpus_meta.name
+
+        # R^2 with the inclusion of the model predictors
+        self.model_r2        = model_r2
+
+    @classmethod
+    def headings(cls) -> List[str]:
+        return [
+            'Dependent variable'
+            'Model type',
+            'Embedding size',
+            'Window radius',
+            'Distance type',
+            'Corpus',
+            'Baseline R-squared',
+            'Model R-squared'
+        ]
 
     @property
-    def name(self) -> str:
-        return f"{self.dv_name}"
-
-    @property
-    def rsquared(self) -> float:
-        return self.result.rsquared
-
-
-class BaselineRegressionResult(RegressionResult):
-
-    @property
-    def name(self) -> str:
-        return f"{self.dv_name} baseline"
-
-
-class ModelRegressionResult(RegressionResult):
-    def __init__(self, dv_name: str, model: VectorSemanticModel, distance_type: DistanceType, result):
-        super().__init__(dv_name, result)
-        self.model_name = model.name
-        self.distance_type = distance_type
-
-    @property
-    def name(self):
-        return f"{self.dv_name} baseline + {self.model_name}, {self.distance_type.name}"
+    def fields(self) -> List[str]:
+        return [
+            self.dv_name,
+            self.model_type_name,
+            str(self.embedding_size) if self.embedding_size is not None else "",
+            str(self.window_radius),
+            self.distance_type.name,
+            self.corpus_name,
+            str(self.baseline_r2),
+            str(self.model_r2)
+        ]

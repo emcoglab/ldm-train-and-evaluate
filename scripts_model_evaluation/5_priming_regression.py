@@ -24,60 +24,44 @@ from typing import List
 import pandas
 import statsmodels.formula.api as sm
 
+from ..core.model.base import VectorSemanticModel
 from ..core.utils.maths import DistanceType
 from ..core.corpus.distribution import FreqDist
 from ..core.utils.indexing import TokenIndexDictionary
 from ..core.model.count import LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..preferences.preferences import Preferences
-from ..core.evaluation.priming import SppData, BaselineRegressionResult, ModelRegressionResult, RegressionResult
+from ..core.evaluation.priming import SppData, PrimingRegressionResult
 from ..core.utils.logging import log_message, date_format
 
 
 logger = logging.getLogger(__name__)
 
 
-def export_csv(results: List[RegressionResult]):
+def export_csv(results: List[PrimingRegressionResult]):
     results_path = os.path.join(Preferences.spp_results_dir, "regression.csv")
 
-    header = [
-        "Name",
-        "R-squared"
-    ]
-
+    separator = ","
     with open(results_path, mode="w", encoding="utf-8") as results_file:
         # Print header
-        results_file.write(",".join(header))
+        results_file.write(separator.join(PrimingRegressionResult.headings()) + "\n")
         # Print results
         for result in results:
-            results_file.write(",".join([
-                result.name,
-                str(result.rsquared)
-            ]))
+            results_file.write(separator.join(result.fields) + '\n')
 
 
 def fit_all_models(all_data: pandas.DataFrame, dependent_variable_names: List[str], baseline_variable_names: List[str]):
 
-    results = []
+    results : List[PrimingRegressionResult] = []
 
-    # Baseline models
-    for dv_name in dependent_variable_names:
-        # Predictor variables
-        predictor_formula = ' + '.join(baseline_variable_names)
-
-        results.append(BaselineRegressionResult(
-            dv_name=dv_name,
-            result=sm.ols(
-                formula=f"{dv_name} ~ {predictor_formula}",
-                data=all_data).fit()))
-
-    # Compute full models for non-priming data
     for corpus_metadata in Preferences.source_corpus_metas:
 
         token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
         freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 
         for window_radius in Preferences.window_radii:
+
+            # Count models
 
             count_models = [
                 LogNgramModel(corpus_metadata, window_radius, token_index),
@@ -88,19 +72,11 @@ def fit_all_models(all_data: pandas.DataFrame, dependent_variable_names: List[st
 
             for model in count_models:
                 for distance_type in DistanceType:
-
-                    model_predictor_name = SppData.predictor_name_for_model(model, distance_type)
-
-                    predictor_formula = ' + '.join(baseline_variable_names + [model_predictor_name])
-
                     for dv_name in dependent_variable_names:
-                        results.append(ModelRegressionResult(
-                            dv_name=dv_name,
-                            model=model,
-                            distance_type=distance_type,
-                            result=sm.ols(
-                                formula=f"{dv_name} ~ {predictor_formula}",
-                                data=all_data).fit()))
+                        result = run_regression(all_data, distance_type, dv_name, model, baseline_variable_names)
+                        results.append(result)
+
+            # Predict models
 
             for embedding_size in Preferences.predict_embedding_sizes:
 
@@ -111,18 +87,33 @@ def fit_all_models(all_data: pandas.DataFrame, dependent_variable_names: List[st
 
                 for model in predict_models:
                     for distance_type in DistanceType:
-
-                        model_predictor_name = SppData.predictor_name_for_model(model, distance_type)
-
                         for dv_name in dependent_variable_names:
-                            results.append(ModelRegressionResult(
-                                dv_name=dv_name,
-                                model=model,
-                                distance_type=distance_type,
-                                result=sm.ols(
-                                    formula=f"{dv_name} ~ {model_predictor_name}",
-                                    data=all_data).fit()))
+                            result = run_regression(all_data, distance_type, dv_name, model, baseline_variable_names)
+                            results.append(result)
     return results
+
+
+def run_regression(all_data, distance_type, dv_name, model: VectorSemanticModel, baseline_variable_names: List[str]):
+
+    model_predictor_name = SppData.predictor_name_for_model(model, distance_type)
+
+    # Formulae
+    baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
+    model_formula = f"{baseline_formula} + {model_predictor_name}"
+
+    baseline_regression = sm.ols(
+        formula=baseline_formula,
+        data=all_data).fit()
+    model_regression = sm.ols(
+        formula=model_formula,
+        data=all_data).fit()
+
+    return PrimingRegressionResult(
+        dv_name,
+        model,
+        distance_type,
+        baseline_regression.rsquared,
+        model_regression.rsquared)
 
 
 def main():
@@ -138,7 +129,11 @@ def main():
         "LDT_200ms_Z",
         "LDT_200ms_Acc",
         "LDT_1200ms_Z",
-        "LDT_1200ms_Acc"
+        "LDT_1200ms_Acc",
+        "NT_200ms_Z",
+        "NT_200ms_Acc",
+        "NT_1200ms_Z",
+        "NT_1200ms_Acc"
     ]
 
     baseline_variable_names = [
@@ -175,9 +170,6 @@ def main():
     results.extend(priming_results)
 
     export_csv(results)
-
-    for result in results:
-        logger.info(f"{result.name}:\t{result.rsquared}")
 
 
 if __name__ == "__main__":
