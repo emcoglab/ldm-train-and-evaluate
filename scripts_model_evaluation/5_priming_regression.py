@@ -56,61 +56,6 @@ def export_csv(results: List[RegressionResult]):
             ]))
 
 
-def main():
-
-    spp_data: SppData = SppData()
-
-    # Get only the first associate prime–target pairs
-    first_assoc_prime_data = spp_data.dataframe.query('PrimeType == "first_associate"')
-
-    # Compute all models for non-priming data
-
-    dependent_variable_names = [
-        "LDT_200ms_Z",
-        "LDT_200ms_Acc",
-        "LDT_1200ms_Z",
-        "LDT_1200ms_Acc"
-    ]
-
-    baseline_variable_names = [
-        "TargetLength",
-        "PrimeLength",
-        "elex_prime_LgSUBTLWF",
-        "elex_target_LgSUBTLWF",
-        "elex_prime_OLD",
-        "elex_target_OLD",
-        "elex_prime_PLD",
-        "elex_target_PLD",
-        "elex_prime_NSyll",
-        "elex_target_NSyll",
-        "PrimeTarget_OrthLD"
-    ]
-
-    results = fit_all_models(first_assoc_prime_data, dependent_variable_names, baseline_variable_names)
-
-    # Compute all models for priming data
-
-    dependent_variable_priming_names = [
-        "LDT_200ms_Z_Priming",
-        "LDT_200ms_Acc_Priming",
-        "LDT_1200ms_Z_Priming",
-        "LDT_1200ms_Acc_Priming"
-    ]
-
-    baseline_variable_priming_names = [
-        "PrimeTarget_OrthLD"
-    ]
-
-    priming_results = fit_all_models(first_assoc_prime_data, dependent_variable_priming_names, baseline_variable_priming_names)
-
-    results.extend(priming_results)
-
-    export_csv(results)
-
-    for result in results:
-        logger.info(f"{result.name}:\t{result.rsquared}")
-
-
 def fit_all_models(all_data: pandas.DataFrame, dependent_variable_names: List[str], baseline_variable_names: List[str]):
 
     results = []
@@ -178,6 +123,61 @@ def fit_all_models(all_data: pandas.DataFrame, dependent_variable_names: List[st
                                     formula=f"{dv_name} ~ {model_predictor_name}",
                                     data=all_data).fit()))
     return results
+
+
+def main():
+
+    spp_data: SppData = SppData()
+
+    # Get only the first associate prime–target pairs
+    first_assoc_prime_data = spp_data.dataframe.query('PrimeType == "first_associate"')
+
+    # Compute all models for non-priming data
+
+    dependent_variable_names = [
+        "LDT_200ms_Z",
+        "LDT_200ms_Acc",
+        "LDT_1200ms_Z",
+        "LDT_1200ms_Acc"
+    ]
+
+    baseline_variable_names = [
+        "TargetLength",
+        "PrimeLength",
+        "elex_prime_LgSUBTLWF",
+        "elex_target_LgSUBTLWF",
+        "elex_prime_OLD",
+        "elex_target_OLD",
+        "elex_prime_PLD",
+        "elex_target_PLD",
+        "elex_prime_NSyll",
+        "elex_target_NSyll",
+        "PrimeTarget_OrthLD"
+    ]
+
+    results = fit_all_models(first_assoc_prime_data, dependent_variable_names, baseline_variable_names)
+
+    # Compute all models for priming data
+
+    dependent_variable_priming_names = [
+        "LDT_200ms_Z_Priming",
+        "LDT_200ms_Acc_Priming",
+        "LDT_1200ms_Z_Priming",
+        "LDT_1200ms_Acc_Priming"
+    ]
+
+    baseline_variable_priming_names = [
+        "PrimeTarget_OrthLD"
+    ]
+
+    priming_results = fit_all_models(first_assoc_prime_data, dependent_variable_priming_names, baseline_variable_priming_names)
+
+    results.extend(priming_results)
+
+    export_csv(results)
+
+    for result in results:
+        logger.info(f"{result.name}:\t{result.rsquared}")
 
 
 if __name__ == "__main__":
