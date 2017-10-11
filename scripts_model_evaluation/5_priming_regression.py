@@ -97,6 +97,8 @@ def run_regression(all_data, distance_type, dv_name, model: VectorSemanticModel,
 
     model_predictor_name = SppData.predictor_name_for_model(model, distance_type)
 
+    logger.info(f"Running {dv_name} regressions for model {model_predictor_name}")
+
     # Formulae
     baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
     model_formula = f"{baseline_formula} + {model_predictor_name}"
@@ -130,10 +132,14 @@ def main():
         "LDT_200ms_Acc",
         "LDT_1200ms_Z",
         "LDT_1200ms_Acc",
+        "LDT_mean_Z",
+        "LDT_mean_Acc",
         "NT_200ms_Z",
         "NT_200ms_Acc",
         "NT_1200ms_Z",
-        "NT_1200ms_Acc"
+        "NT_1200ms_Acc",
+        "NT_mean_Z",
+        "NT_mean_Acc"
     ]
 
     baseline_variable_names = [
@@ -159,10 +165,14 @@ def main():
         "LDT_200ms_Acc_Priming",
         "LDT_1200ms_Z_Priming",
         "LDT_1200ms_Acc_Priming",
+        "LDT_mean_Z_Priming",
+        "LDT_mean_Acc_Priming",
         "NT_200ms_Z_Priming",
         "NT_200ms_Acc_Priming",
         "NT_1200ms_Z_Priming",
-        "NT_1200ms_Acc_Priming"
+        "NT_1200ms_Acc_Priming",
+        "NT_mean_Z_Priming",
+        "NT_mean_Acc_Priming"
     ]
 
     baseline_variable_priming_names = [
