@@ -106,7 +106,7 @@ class Preferences(object):
     source_corpus_metas = [
         bnc_processing_metas["tokenised"],
         bbc_processing_metas["tokenised"],
-        ukwac_processing_metas["tokenised"]
+        # ukwac_processing_metas["tokenised"]
     ]
 
     # Word lists
