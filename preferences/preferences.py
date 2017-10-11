@@ -125,25 +125,27 @@ class Preferences(object):
     model_dir                = "/Volumes/Data/vectors/"
 
     # TESTS
+
     test_dir                 = "/Users/caiwingfield/evaluation/tests/"
 
     # Synonym tests
-    toefl_question_path      = os.path.join(test_dir, "TOEFL/toefl.qst")
-    toefl_answer_path        = os.path.join(test_dir, "TOEFL/toefl.ans")
-    esl_test_path            = os.path.join(test_dir, "ESL/esl.txt")
+    toefl_question_path      = os.path.join(test_dir, "TOEFL_BrEng_&_substitutions/toefl.qst")
+    toefl_answer_path        = os.path.join(test_dir, "TOEFL_BrEng_&_substitutions/toefl.ans")
+    esl_test_path            = os.path.join(test_dir, "ESL_BrEng/esl.txt")
     mcq_test_path            = os.path.join(test_dir, "LBM vocab MCQ/newMCQ.txt")
 
     # Word similarity judgement tests
-    simlex_path              = os.path.join(test_dir, "SimLex-999/SimLex-999.txt")
+    simlex_path              = os.path.join(test_dir, "SimLex-999 BrEng/SimLex-999.txt")
     wordsim_similarity_path  = os.path.join(test_dir, "WordSim353/wordsim_similarity_goldstandard.txt")
     wordsim_relatedness_path = os.path.join(test_dir, "WordSim353/wordsim_relatedness_goldstandard.txt")
-    men_path                 = os.path.join(test_dir, "MEN/MEN_dataset_natural_form_full")
+    men_path                 = os.path.join(test_dir, "MEN BrEng/MEN_dataset_natural_form_full")
 
     # Semantic priming data
-    spp_path_xls             = os.path.join(test_dir, "SPP/Hutchinson et al. (2013) SPP.xls")  # Semantic priming data: source xls file
+    spp_path_xls             = os.path.join(test_dir, "SPP/Hutchinson et al. (2013) SPP BrEng & substitutions.xls")  # Semantic priming data: source xls file
     spp_elexicon_csv         = os.path.join(test_dir, "SPP/elexicon/I148613.csv")  # Additional Elexicon predictors csv
 
     # TEST RESULTS
+    
     results_dir              = "/Users/caiwingfield/evaluation/results/"
 
     synonym_results_dir      = os.path.join(results_dir, "synonyms/")
