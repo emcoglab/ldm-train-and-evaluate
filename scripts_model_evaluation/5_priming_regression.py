@@ -143,15 +143,15 @@ def main():
     ]
 
     baseline_variable_names = [
+        # "PrimeLength",
         "TargetLength",
-        "PrimeLength",
-        "elex_prime_LgSUBTLWF",
+        # "elex_prime_LgSUBTLWF",
         "elex_target_LgSUBTLWF",
-        "elex_prime_OLD",
+        # "elex_prime_OLD",
         "elex_target_OLD",
-        "elex_prime_PLD",
+        # "elex_prime_PLD",
         "elex_target_PLD",
-        "elex_prime_NSyll",
+        # "elex_prime_NSyll",
         "elex_target_NSyll",
         "PrimeTarget_OrthLD"
     ]
