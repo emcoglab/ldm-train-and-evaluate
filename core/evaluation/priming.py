@@ -235,14 +235,15 @@ class SppData(object):
         """
         Adds a data column containing priming predictors from a semantic model.
         """
-        predictor_name = self.priming_predictor_name_for_model(model, distance_type)
+        predictor_name = self.predictor_name_for_model(model, distance_type)
+        priming_predictor_name = self.priming_predictor_name_for_model(model, distance_type)
 
         # Skip existing predictors
-        if self.predictor_exists_with_name(predictor_name):
-            logger.info(f"Model predictor '{predictor_name}' already added")
+        if self.predictor_exists_with_name(priming_predictor_name):
+            logger.info(f"Model predictor '{priming_predictor_name}' already added")
 
         else:
-            logger.info(f"Adding '{predictor_name}' model predictor")
+            logger.info(f"Adding '{priming_predictor_name}' model predictor")
 
             # Make sure the model predictor exists already
             self.add_model_predictor(model, distance_type)
@@ -257,11 +258,14 @@ class SppData(object):
                     return None
 
             # Add model distance column to data frame
-            self.dataframe[predictor_name] = self.dataframe[
+            matched_model_prediction = self.dataframe[
                 ["MatchedPrimeWord", "TargetWord"]
             ].apply(
                 model_distance_or_none,
                 axis=1)
+
+            # The priming predictor is the difference in model distance between the related and matched-unrelated word pairs
+            self.dataframe[priming_predictor_name] = matched_model_prediction - self.dataframe[predictor_name]
 
             # Save in current state
             self._save()

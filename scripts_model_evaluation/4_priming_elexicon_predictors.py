@@ -64,11 +64,11 @@ def main():
     else:
         logger.info("Adding Levenshtein-distance predictor to SPP data.")
 
-        merge_on = ["PrimeWord", "TargetWord"]
-        levenshtein_column = spp_data.dataframe[merge_on].copy()
-        levenshtein_column[levenshtein_column_name] = levenshtein_column[merge_on].apply(levenshtein_distance_local, axis=1)
+        word_columns = ["PrimeWord", "TargetWord"]
+        word_pairs = spp_data.dataframe[word_columns].copy()
+        word_pairs[levenshtein_column_name] = word_pairs[word_columns].apply(levenshtein_distance_local, axis=1)
 
-        spp_data.add_word_pair_keyed_predictor(levenshtein_column, merge_on=merge_on)
+        spp_data.add_word_pair_keyed_predictor(word_pairs, merge_on=word_columns)
 
     # Add Levenshtein priming distance column to data frame
     priming_levenshtein_column_name = "PrimeTarget_OrthLD_Priming"
@@ -77,11 +77,13 @@ def main():
     else:
         logger.info("Adding Levenshtein-distance priming predictor to SPP data.")
 
-        merge_on = ["MatchedPrimeWord", "TargetWord"]
-        levenshtein_column = spp_data.dataframe[merge_on].copy()
-        levenshtein_column[priming_levenshtein_column_name] = levenshtein_column[merge_on].apply(levenshtein_distance_local, axis=1)
+        priming_word_columns = ["MatchedPrimeWord", "TargetWord"]
+        matched_word_pairs = spp_data.dataframe[priming_word_columns].copy()
 
-        spp_data.add_word_pair_keyed_predictor(levenshtein_column, merge_on=merge_on)
+        # The priming OLD is the difference between related and matched unrelated pair OLDs
+        matched_word_pairs[priming_levenshtein_column_name] = matched_word_pairs[priming_word_columns].apply(levenshtein_distance_local, axis=1) - spp_data.dataframe[levenshtein_column_name]
+
+        spp_data.add_word_pair_keyed_predictor(matched_word_pairs, merge_on=priming_word_columns)
 
     # Save it out for more processing by R or whatever
     spp_data.export_csv()
