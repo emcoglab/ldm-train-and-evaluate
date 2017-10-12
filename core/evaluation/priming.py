@@ -54,9 +54,6 @@ class SppData(object):
         assert self._all_data is not None
         self._save()
 
-        # Names of currently added predictor models
-        self.model_predictor_names: List[str] = []
-
     @property
     def dataframe(self) -> pandas.DataFrame:
         return self._all_data
@@ -220,8 +217,6 @@ class SppData(object):
                 model_distance_or_none,
                 axis=1)
 
-            # Add model to list of current models
-            self.model_predictor_names.append(predictor_name)
 
             # Save in current state
             self._save()
@@ -241,9 +236,6 @@ class SppData(object):
             return
 
         self._all_data = pandas.merge(self.dataframe, predictor, on=key_name, how="left")
-
-        # Add model to list of current models
-        self.model_predictor_names.append(predictor_name)
 
         # Save in current state
         self._save()
