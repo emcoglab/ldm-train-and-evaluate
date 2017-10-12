@@ -285,12 +285,15 @@ class SppData(object):
         # Save in current state
         self._save()
 
-    def add_word_pair_keyed_predictor(self, predictor: pandas.DataFrame):
+    def add_word_pair_keyed_predictor(self, predictor: pandas.DataFrame, merge_on=None):
         """
         Adds a predictor column keyed from a prime-target pair.
         """
 
-        self._all_data = pandas.merge(self.dataframe, predictor, on=["PrimeWord", "TargetWord"], how="left")
+        if merge_on is None:
+            merge_on = ["PrimeWord", "TargetWord"]
+
+        self._all_data = pandas.merge(self.dataframe, predictor, on=merge_on, how="left")
 
         # Save in current state
         self._save()
