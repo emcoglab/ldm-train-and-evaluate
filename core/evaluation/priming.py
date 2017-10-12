@@ -100,6 +100,11 @@ class SppData(object):
 
         prime_target_data: pandas.DataFrame = prime_target_data.copy()
 
+        # Convert all to strings (to avoid False becoming a bool 😭)
+        prime_target_data["TargetWord"] = prime_target_data["TargetWord"].apply(str)
+        prime_target_data["PrimeWord"] = prime_target_data["PrimeWord"].apply(str)
+        prime_target_data["MatchedPrimeWord"] = prime_target_data["MatchedPrimeWord"].apply(str)
+
         # Convert all to lower case
         prime_target_data["TargetWord"] = prime_target_data["TargetWord"].str.lower()
         prime_target_data["PrimeWord"] = prime_target_data["PrimeWord"].str.lower()
