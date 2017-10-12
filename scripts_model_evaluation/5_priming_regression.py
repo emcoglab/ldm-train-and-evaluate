@@ -31,20 +31,20 @@ from ..core.utils.indexing import TokenIndexDictionary
 from ..core.model.count import LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..preferences.preferences import Preferences
-from ..core.evaluation.priming import SppData, PrimingRegressionResult
+from ..core.evaluation.priming import SppData, SppRegressionResult
 from ..core.utils.logging import log_message, date_format
 
 
 logger = logging.getLogger(__name__)
 
 
-def export_csv(results: List[PrimingRegressionResult]):
+def export_csv(results: List[SppRegressionResult]):
     results_path = os.path.join(Preferences.spp_results_dir, "regression.csv")
 
     separator = ","
     with open(results_path, mode="w", encoding="utf-8") as results_file:
         # Print header
-        results_file.write(separator.join(PrimingRegressionResult.headings()) + "\n")
+        results_file.write(separator.join(SppRegressionResult.headings()) + "\n")
         # Print results
         for result in results:
             results_file.write(separator.join(result.fields) + '\n')
@@ -52,7 +52,7 @@ def export_csv(results: List[PrimingRegressionResult]):
 
 def fit_all_models(all_data: pandas.DataFrame, dependent_variable_names: List[str], baseline_variable_names: List[str]):
 
-    results : List[PrimingRegressionResult] = []
+    results : List[SppRegressionResult] = []
 
     for corpus_metadata in Preferences.source_corpus_metas:
 
@@ -93,6 +93,50 @@ def fit_all_models(all_data: pandas.DataFrame, dependent_variable_names: List[st
     return results
 
 
+# TODO: there is a lot of shared code between this function and fit_all_models
+def fit_all_priming_models(all_data: pandas.DataFrame, dependent_variable_names: List[str], baseline_variable_names: List[str]):
+
+    results : List[SppRegressionResult] = []
+
+    for corpus_metadata in Preferences.source_corpus_metas:
+
+        token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
+        freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
+
+        for window_radius in Preferences.window_radii:
+
+            # Count models
+
+            count_models = [
+                LogNgramModel(corpus_metadata, window_radius, token_index),
+                ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
+                ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
+                PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
+            ]
+
+            for model in count_models:
+                for distance_type in DistanceType:
+                    for dv_name in dependent_variable_names:
+                        result = run_priming_regression(all_data, distance_type, dv_name, model, baseline_variable_names)
+                        results.append(result)
+
+            # Predict models
+
+            for embedding_size in Preferences.predict_embedding_sizes:
+
+                predict_models = [
+                    SkipGramModel(corpus_metadata, window_radius, embedding_size),
+                    CbowModel(corpus_metadata, window_radius, embedding_size)
+                ]
+
+                for model in predict_models:
+                    for distance_type in DistanceType:
+                        for dv_name in dependent_variable_names:
+                            result = run_regression(all_data, distance_type, dv_name, model, baseline_variable_names)
+                            results.append(result)
+    return results
+
+
 def run_regression(all_data, distance_type, dv_name, model: VectorSemanticModel, baseline_variable_names: List[str]):
 
     model_predictor_name = SppData.predictor_name_for_model(model, distance_type)
@@ -110,7 +154,33 @@ def run_regression(all_data, distance_type, dv_name, model: VectorSemanticModel,
         formula=model_formula,
         data=all_data).fit()
 
-    return PrimingRegressionResult(
+    return SppRegressionResult(
+        dv_name,
+        model,
+        distance_type,
+        baseline_regression.rsquared,
+        model_regression.rsquared)
+
+
+# TODO: there is a lot of shared code between this and run_regression
+def run_priming_regression(all_data, distance_type, dv_name, model: VectorSemanticModel, baseline_variable_names: List[str]):
+
+    model_predictor_name = SppData.priming_predictor_name_for_model(model, distance_type)
+
+    logger.info(f"Running {dv_name} regressions for model {model_predictor_name}")
+
+    # Formulae
+    baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
+    model_formula = f"{baseline_formula} + {model_predictor_name}"
+
+    baseline_regression = sm.ols(
+        formula=baseline_formula,
+        data=all_data).fit()
+    model_regression = sm.ols(
+        formula=model_formula,
+        data=all_data).fit()
+
+    return SppRegressionResult(
         dv_name,
         model,
         distance_type,
@@ -176,10 +246,10 @@ def main():
     ]
 
     baseline_variable_priming_names = [
-        "PrimeTarget_OrthLD"
+        "PrimeTarget_OrthLD_Priming"
     ]
 
-    priming_results = fit_all_models(first_assoc_prime_data, dependent_variable_priming_names, baseline_variable_priming_names)
+    priming_results = fit_all_priming_models(first_assoc_prime_data, dependent_variable_priming_names, baseline_variable_priming_names)
 
     results.extend(priming_results)
 

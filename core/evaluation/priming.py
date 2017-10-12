@@ -103,6 +103,7 @@ class SppData(object):
         # Convert all to lower case
         prime_target_data["TargetWord"] = prime_target_data["TargetWord"].str.lower()
         prime_target_data["PrimeWord"] = prime_target_data["PrimeWord"].str.lower()
+        prime_target_data["MatchedPrimeWord"] = prime_target_data["MatchedPrimeWord"].str.lower()
 
         return prime_target_data
 
@@ -149,7 +150,7 @@ class SppData(object):
         """
         The set of words used in the SPP data.
         """
-        vocab: set = set()
+        vocab: Set[str] = set()
 
         vocab = vocab.union(set(self.dataframe["PrimeWord"]))
         vocab = vocab.union(set(self.dataframe["TargetWord"]))
@@ -178,14 +179,18 @@ class SppData(object):
         """
         return self.dataframe.keys().contains(predictor_name)
 
-    @staticmethod
-    def predictor_name_for_model(model: VectorSemanticModel, distance_type: DistanceType) -> str:
+    @classmethod
+    def predictor_name_for_model(cls, model: VectorSemanticModel, distance_type: DistanceType) -> str:
         unsafe_name = f"{model.name}_{distance_type.name}"
         # Remove unsafe characters
         unsafe_name = re.sub(r"[(),=]", "", unsafe_name)
         # Convert hyphens and spaces to underscores
         safe_name = re.sub(r"[-\s]", "_", unsafe_name)
         return safe_name
+
+    @classmethod
+    def priming_predictor_name_for_model(cls, model: VectorSemanticModel, distance_type: DistanceType) -> str:
+        return cls.predictor_name_for_model(model, distance_type) + "_Priming"
 
     def add_model_predictor(self, model: VectorSemanticModel, distance_type: DistanceType):
         """
@@ -217,6 +222,41 @@ class SppData(object):
                 model_distance_or_none,
                 axis=1)
 
+            # Save in current state
+            self._save()
+
+    # TODO there is a lot of duplicated code between this function and add_model_predictor
+    def add_model_priming_predictor(self, model: VectorSemanticModel, distance_type: DistanceType):
+        """
+        Adds a data column containing priming predictors from a semantic model.
+        """
+        predictor_name = self.priming_predictor_name_for_model(model, distance_type)
+
+        # Skip existing predictors
+        if self.predictor_exists_with_name(predictor_name):
+            logger.info(f"Model predictor '{predictor_name}' already added")
+
+        else:
+            logger.info(f"Adding '{predictor_name}' model predictor")
+
+            # Make sure the model predictor exists already
+            self.add_model_predictor(model, distance_type)
+
+            # In case we one of the words doesn't exist in the corpus, we just want missing data
+            def model_distance_or_none(word_pair):
+                word_1, word_2 = word_pair
+                try:
+                    return model.distance_between(word_1, word_2, distance_type)
+                except WordNotFoundError as er:
+                    logger.warning(er.message)
+                    return None
+
+            # Add model distance column to data frame
+            self.dataframe[predictor_name] = self.dataframe[
+                ["MatchedPrimeWord", "TargetWord"]
+            ].apply(
+                model_distance_or_none,
+                axis=1)
 
             # Save in current state
             self._save()
@@ -251,7 +291,7 @@ class SppData(object):
         self._save()
 
 
-class PrimingRegressionResult(object):
+class SppRegressionResult(object):
     """
     The result of a priming regression.
     """

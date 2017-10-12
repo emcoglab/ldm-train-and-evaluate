@@ -74,22 +74,26 @@ def main():
     spp_data.export_csv()
 
 
-def add_predictors_for_model(model, spp_data):
+def add_predictors_for_model(model, spp_data: SppData):
     """
     Add all available predictors from this model.
     """
 
     for distance_type in DistanceType:
 
-        # Don't bother training the model until we know we need it
         if spp_data.predictor_exists_with_name(spp_data.predictor_name_for_model(model, distance_type)):
             logger.info(f"Predictor for '{model.name}' using '{distance_type.name}' already added to SPP data.")
-            continue
+        else:
+            logger.info(f"Adding model predictor for '{model.name}' using '{distance_type.name}' to SPP data.")
+            model.train()
+            spp_data.add_model_predictor(model, distance_type)
 
-        logger.info(f"Adding model predictor for '{model.name}' using '{distance_type.name}' to SPP data.")
-        model.train()
-
-        spp_data.add_model_predictor(model, distance_type)
+        if spp_data.predictor_exists_with_name(spp_data.priming_predictor_name_for_model(model, distance_type)):
+            logger.info(f"Priming predictor for '{model.name}' using '{distance_type.name}' already added to SPP data.")
+        else:
+            logger.info(f"Adding model priming predictor for '{model.name}' using '{distance_type.name}' to SPP data.")
+            model.train()
+            spp_data.add_model_priming_predictor(model, distance_type)
 
 
 def save_wordlist(vocab: Set[str]):

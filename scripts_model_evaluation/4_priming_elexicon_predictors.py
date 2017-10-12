@@ -57,7 +57,7 @@ def main():
 
     # Add prime-target Levenschtein distance
 
-    # Add levenshtein distance column to data frame
+    # Add Levenshtein distance column to data frame
     levenshtein_column_name = "PrimeTarget_OrthLD"
     if spp_data.predictor_exists_with_name(levenshtein_column_name):
         logger.info("Levenshtein-distance predictor already added to SPP data.")
@@ -65,6 +65,17 @@ def main():
         logger.info("Adding Levenshtein-distance predictor to SPP data.")
         levenshtein_column = spp_data.dataframe[["PrimeWord", "TargetWord"]].copy()
         levenshtein_column[levenshtein_column_name] = levenshtein_column[["PrimeWord", "TargetWord"]].apply(levenshtein_distance_local, axis=1)
+
+        spp_data.add_word_pair_keyed_predictor(levenshtein_column)
+
+    # Add Levenshtein priming distance column to data frame
+    priming_levenshtein_column_name = "PrimeTarget_OrthLD_Priming"
+    if spp_data.predictor_exists_with_name(priming_levenshtein_column_name):
+        logger.info("Levenshtein-distance priming predictor already added to SPP data.")
+    else:
+        logger.info("Adding Levenshtein-distance predictor to SPP data.")
+        levenshtein_column = spp_data.dataframe[["MatchedPrimeWord", "TargetWord"]].copy()
+        levenshtein_column[priming_levenshtein_column_name] = levenshtein_column[["MatchedPrimeWord", "TargetWord"]].apply(levenshtein_distance_local, axis=1)
 
         spp_data.add_word_pair_keyed_predictor(levenshtein_column)
 
