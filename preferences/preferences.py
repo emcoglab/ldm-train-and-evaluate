@@ -83,17 +83,17 @@ class Preferences(object):
     ukwac_processing_metas = dict(
         raw=CorpusMetadata(
             name="UKWAC",
-            path="/Users/caiwingfield/corpora/UKWAC/0 Raw untagged/cleaned_pre.pos.corpus"),
+            path="/Volumes/Data/corpora/UKWAC/0 Raw untagged/cleaned_pre.pos.corpus"),
         no_urls=CorpusMetadata(
             name="UKWAC",
-            path="/Users/caiwingfield/corpora/UKWAC/1 Text only/cleaned_pre.pos.corpus"),
+            path="/Volumes/Data/corpora/UKWAC/1 Text only/cleaned_pre.pos.corpus"),
         partitioned=CorpusMetadata(
             name="UKWAC",
-            path="/Users/caiwingfield/corpora/UKWAC/2 Partitioned"),
+            path="/Volumes/Data/corpora/UKWAC/2 Partitioned"),
         tokenised=CorpusMetadata(
             name="UKWAC",
-            path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
-            freq_dist_path="/Users/caiwingfield/corpora/UKWAC/3.1 info/frequency_distribution_UKWAC",
+            path="/Volumes/Data/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
+            freq_dist_path="/Volumes/Data/corpora/UKWAC/3.1 info/frequency_distribution_UKWAC",
             index_path="/Volumes/Data/vectors/indexes/UKWAC.index"))
     toy_processing_metas = dict(
         tokenised=CorpusMetadata(
@@ -126,7 +126,7 @@ class Preferences(object):
 
     # TESTS
 
-    test_dir                 = "/Users/caiwingfield/evaluation/tests/"
+    test_dir                 = "/Volumes/Data/evaluation/tests/"
 
     # Synonym tests
     toefl_question_path      = os.path.join(test_dir, "TOEFL_BrEng_&_substitutions/toefl.qst")
@@ -146,7 +146,7 @@ class Preferences(object):
 
     # TEST RESULTS
     
-    results_dir              = "/Users/caiwingfield/evaluation/results/"
+    results_dir              = "/Volumes/Data/evaluation/results/"
 
     synonym_results_dir      = os.path.join(results_dir, "synonyms/")
     similarity_results_dir   = os.path.join(results_dir, "similarity/")
