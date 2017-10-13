@@ -19,6 +19,7 @@ import logging
 import os
 import sys
 
+from ..preferences.preferences import Preferences
 from ..core.utils.logging import log_message, date_format
 from ..core.corpus.corpus import CorpusMetadata, StreamedCorpus, BatchedCorpus
 from ..core.corpus.distribution import FreqDist
@@ -28,36 +29,16 @@ logger = logging.getLogger(__name__)
 
 def main():
 
-    # TODO: these paths in Preferences
     corpus_metas = [
         dict(
-            source=CorpusMetadata(
-                name="BBC",
-                path="/Users/caiwingfield/corpora/BBC/4 Tokenised/BBC.corpus",
-                # TODO: info_paths have changed.
-                freq_dist_path="/Users/caiwingfield/corpora/BBC/4.1 info"),
-            target=CorpusMetadata(
-                name="BBC",
-                path="/Users/caiwingfield/corpora/BBC/5 Filtered/BBC.corpus",
-                freq_dist_path="/Users/caiwingfield/corpora/BBC/5.1 info")),
+            source=Preferences.bbc_processing_metas["tokenised"],
+            target=Preferences.bbc_processing_metas["filtered"]),
         dict(
-            source=CorpusMetadata(
-                name="BNC",
-                path="/Users/caiwingfield/corpora/BNC/2 Tokenised/BNC.corpus",
-                freq_dist_path="/Users/caiwingfield/corpora/BNC/2.1 info"),
-            target=CorpusMetadata(
-                name="BNC",
-                path="/Users/caiwingfield/corpora/BNC/3 Filtered/BNC.corpus",
-                freq_dist_path="/Users/caiwingfield/corpora/BNC/3.1 info")),
+            source=Preferences.bnc_processing_metas["tokenised"],
+            target=Preferences.bnc_processing_metas["filtered"]),
         dict(
-            source=CorpusMetadata(
-                name="UKWAC",
-                path="/Users/caiwingfield/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
-                freq_dist_path="/Users/caiwingfield/corpora/UKWAC/3.1 info"),
-            target=CorpusMetadata(
-                name="UKWAC",
-                path="/Users/caiwingfield/corpora/UKWAC/4 FIltered/UKWAC.corpus",
-                freq_dist_path="/Users/caiwingfield/corpora/UKWAC/4.1 info"))]
+            source=Preferences.ukwac_processing_metas["tokenised"],
+            target=Preferences.ukwac_processing_metas["filtered"])]
 
     # The frequency at which we ignore tokens.
     # Set to 0 to include all tokens, set to 1 to include tokens that occur more than once, etc.

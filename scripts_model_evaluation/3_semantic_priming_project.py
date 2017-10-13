@@ -34,157 +34,8 @@ from ..core.corpus.distribution import FreqDist
 from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
 
+
 logger = logging.getLogger(__name__)
-
-
-def export_csv(results: List[SppRegressionResult]):
-    results_path = os.path.join(Preferences.spp_results_dir, "regression.csv")
-
-    separator = ","
-    with open(results_path, mode="w", encoding="utf-8") as results_file:
-        # Print header
-        results_file.write(separator.join(SppRegressionResult.headings()) + "\n")
-        # Print results
-        for result in results:
-            results_file.write(separator.join(result.fields) + '\n')
-
-
-def fit_all_models(all_data: pandas.DataFrame, dependent_variable_names: List[str], baseline_variable_names: List[str]):
-
-    results : List[SppRegressionResult] = []
-
-    for corpus_metadata in Preferences.source_corpus_metas:
-
-        token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
-        freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
-
-        for window_radius in Preferences.window_radii:
-
-            # Count models
-
-            count_models = [
-                LogNgramModel(corpus_metadata, window_radius, token_index),
-                ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
-                ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
-                PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
-            ]
-
-            for model in count_models:
-                for distance_type in DistanceType:
-                    for dv_name in dependent_variable_names:
-                        result = run_regression(all_data, distance_type, dv_name, model, baseline_variable_names)
-                        results.append(result)
-
-            # Predict models
-
-            for embedding_size in Preferences.predict_embedding_sizes:
-
-                predict_models = [
-                    SkipGramModel(corpus_metadata, window_radius, embedding_size),
-                    CbowModel(corpus_metadata, window_radius, embedding_size)
-                ]
-
-                for model in predict_models:
-                    for distance_type in DistanceType:
-                        for dv_name in dependent_variable_names:
-                            result = run_regression(all_data, distance_type, dv_name, model, baseline_variable_names)
-                            results.append(result)
-    return results
-
-
-# TODO: there is a lot of shared code between this function and fit_all_models
-def fit_all_priming_models(all_data: pandas.DataFrame, dependent_variable_names: List[str], baseline_variable_names: List[str]):
-
-    results : List[SppRegressionResult] = []
-
-    for corpus_metadata in Preferences.source_corpus_metas:
-
-        token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
-        freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
-
-        for window_radius in Preferences.window_radii:
-
-            # Count models
-
-            count_models = [
-                LogNgramModel(corpus_metadata, window_radius, token_index),
-                ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
-                ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
-                PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
-            ]
-
-            for model in count_models:
-                for distance_type in DistanceType:
-                    for dv_name in dependent_variable_names:
-                        result = run_priming_regression(all_data, distance_type, dv_name, model, baseline_variable_names)
-                        results.append(result)
-
-            # Predict models
-
-            for embedding_size in Preferences.predict_embedding_sizes:
-
-                predict_models = [
-                    SkipGramModel(corpus_metadata, window_radius, embedding_size),
-                    CbowModel(corpus_metadata, window_radius, embedding_size)
-                ]
-
-                for model in predict_models:
-                    for distance_type in DistanceType:
-                        for dv_name in dependent_variable_names:
-                            result = run_regression(all_data, distance_type, dv_name, model, baseline_variable_names)
-                            results.append(result)
-    return results
-
-
-def run_regression(all_data, distance_type, dv_name, model: VectorSemanticModel, baseline_variable_names: List[str]):
-
-    model_predictor_name = SppData.predictor_name_for_model(model, distance_type)
-
-    logger.info(f"Running {dv_name} regressions for model {model_predictor_name}")
-
-    # Formulae
-    baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
-    model_formula = f"{baseline_formula} + {model_predictor_name}"
-
-    baseline_regression = sm.ols(
-        formula=baseline_formula,
-        data=all_data).fit()
-    model_regression = sm.ols(
-        formula=model_formula,
-        data=all_data).fit()
-
-    return SppRegressionResult(
-        dv_name,
-        model,
-        distance_type,
-        baseline_regression.rsquared,
-        model_regression.rsquared)
-
-
-# TODO: there is a lot of shared code between this and run_regression
-def run_priming_regression(all_data, distance_type, dv_name, model: VectorSemanticModel, baseline_variable_names: List[str]):
-
-    model_predictor_name = SppData.priming_predictor_name_for_model(model, distance_type)
-
-    logger.info(f"Running {dv_name} regressions for model {model_predictor_name}")
-
-    # Formulae
-    baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
-    model_formula = f"{baseline_formula} + {model_predictor_name}"
-
-    baseline_regression = sm.ols(
-        formula=baseline_formula,
-        data=all_data).fit()
-    model_regression = sm.ols(
-        formula=model_formula,
-        data=all_data).fit()
-
-    return SppRegressionResult(
-        dv_name,
-        model,
-        distance_type,
-        baseline_regression.rsquared,
-        model_regression.rsquared)
 
 
 def main():
@@ -192,6 +43,32 @@ def main():
 
     save_wordlist(spp_data.vocabulary)
 
+    add_all_model_predictors(spp_data)
+
+    add_elexicon_predictors(spp_data)
+
+    spp_data.export_csv()
+
+    regression_wrapper(spp_data)
+
+
+def save_wordlist(vocab: Set[str]):
+    """
+    Saves the vocab to a file
+    """
+    wordlist_path = os.path.join(Preferences.spp_results_dir, 'spp_wordlist.txt')
+    separator = " "
+
+    logger.info(f"Saving SPP word list to {wordlist_path}.")
+
+    with open(wordlist_path, mode="w", encoding="utf-8") as wordlist_file:
+        for word in sorted(vocab):
+            wordlist_file.write(word + separator)
+        # Terminate with a newline XD
+        wordlist_file.write("\n")
+
+
+def add_all_model_predictors(spp_data):
     for corpus_metadata in Preferences.source_corpus_metas:
 
         token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
@@ -209,7 +86,9 @@ def main():
             ]
 
             for model in count_models:
-                add_predictors_for_model(model, spp_data)
+                for distance_type in DistanceType:
+                    spp_data.add_model_predictor(model, distance_type, for_priming_effect=False)
+                    spp_data.add_model_predictor(model, distance_type, for_priming_effect=True)
 
             # PREDICT MODELS
 
@@ -221,16 +100,15 @@ def main():
                 ]
 
                 for model in predict_models:
-                    add_predictors_for_model(model, spp_data)
-
-    add_elexicon_predictors(spp_data)
-
-    do_the_regression(spp_data)
-
-    spp_data.export_csv()
+                    for distance_type in DistanceType:
+                        spp_data.add_model_predictor(model, distance_type, for_priming_effect=False)
+                        spp_data.add_model_predictor(model, distance_type, for_priming_effect=True)
 
 
-def do_the_regression(spp_data: SppData):
+def regression_wrapper(spp_data: SppData):
+
+    results_path = os.path.join(Preferences.spp_results_dir, "regression.csv")
+
     # Get only the first associate prime–target pairs
     first_assoc_prime_data = spp_data.dataframe.query('PrimeType == "first_associate"')
 
@@ -265,7 +143,7 @@ def do_the_regression(spp_data: SppData):
         "PrimeTarget_OrthLD"
     ]
 
-    results = fit_all_models(first_assoc_prime_data, dependent_variable_names, baseline_variable_names)
+    results = run_all_model_regressions(first_assoc_prime_data, dependent_variable_names, baseline_variable_names, for_priming_effect=False)
 
     # Compute all models for priming data
 
@@ -288,14 +166,98 @@ def do_the_regression(spp_data: SppData):
         "PrimeTarget_OrthLD_Priming"
     ]
 
-    priming_results = fit_all_priming_models(first_assoc_prime_data, dependent_variable_priming_names,
-                                             baseline_variable_priming_names)
+    priming_results = run_all_model_regressions(first_assoc_prime_data, dependent_variable_priming_names, baseline_variable_priming_names, for_priming_effect=True)
 
     results.extend(priming_results)
 
+    # Export results
+
+    separator = ","
+    with open(results_path, mode="w", encoding="utf-8") as results_file:
+        # Print header
+        results_file.write(separator.join(SppRegressionResult.headings()) + "\n")
+        # Print results
+        for result in results:
+            results_file.write(separator.join(result.fields) + '\n')
+
+
+def run_single_model_regression(all_data: pandas.DataFrame,
+                                distance_type: DistanceType,
+                                dv_name: str,
+                                model: VectorSemanticModel,
+                                baseline_variable_names: List[str],
+                                for_priming_effect: bool):
+
+    model_predictor_name = SppData.predictor_name_for_model(model, distance_type, for_priming_effect)
+
+    logger.info(f"Running {dv_name} regressions for model {model_predictor_name}")
+
+    # Formulae
+    baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
+    model_formula = f"{baseline_formula} + {model_predictor_name}"
+
+    baseline_regression = sm.ols(
+        formula=baseline_formula,
+        data=all_data).fit()
+    model_regression = sm.ols(
+        formula=model_formula,
+        data=all_data).fit()
+
+    return SppRegressionResult(
+        dv_name,
+        model,
+        distance_type,
+        baseline_regression.rsquared,
+        model_regression.rsquared)
+
+
+def run_all_model_regressions(all_data: pandas.DataFrame,
+                              dependent_variable_names: List[str],
+                              baseline_variable_names: List[str],
+                              for_priming_effect: bool):
+
+    results : List[SppRegressionResult] = []
+
+    for corpus_metadata in Preferences.source_corpus_metas:
+
+        token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
+        freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
+
+        for window_radius in Preferences.window_radii:
+
+            # Count models
+
+            count_models = [
+                LogNgramModel(corpus_metadata, window_radius, token_index),
+                ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
+                ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
+                PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
+            ]
+
+            for model in count_models:
+                for distance_type in DistanceType:
+                    for dv_name in dependent_variable_names:
+                        result = run_single_model_regression(all_data, distance_type, dv_name, model, baseline_variable_names, for_priming_effect)
+                        results.append(result)
+
+            # Predict models
+
+            for embedding_size in Preferences.predict_embedding_sizes:
+
+                predict_models = [
+                    SkipGramModel(corpus_metadata, window_radius, embedding_size),
+                    CbowModel(corpus_metadata, window_radius, embedding_size)
+                ]
+
+                for model in predict_models:
+                    for distance_type in DistanceType:
+                        for dv_name in dependent_variable_names:
+                            result = run_single_model_regression(all_data, distance_type, dv_name, model, baseline_variable_names, for_priming_effect)
+                            results.append(result)
+    return results
+
 
 def add_elexicon_predictors(spp_data: SppData):
-    # Add Elexicon predictors
 
     elexicon_dataframe: pandas.DataFrame = pandas.read_csv(Preferences.spp_elexicon_csv, header=0, encoding="utf-8")
 
@@ -313,7 +275,11 @@ def add_elexicon_predictors(spp_data: SppData):
         add_elexicon_predictor(spp_data, elexicon_dataframe, predictor_name, prime_or_target="Prime")
         add_elexicon_predictor(spp_data, elexicon_dataframe, predictor_name, prime_or_target="Target")
 
-    # Add prime-target Levenschtein distance
+    # Add prime-target Levenshtein distance
+
+    def levenshtein_distance_local(word_pair):
+        word_1, word_2 = word_pair
+        return levenshtein_distance(word_1, word_2)
 
     # Add Levenshtein distance column to data frame
     levenshtein_column_name = "PrimeTarget_OrthLD"
@@ -343,12 +309,6 @@ def add_elexicon_predictors(spp_data: SppData):
             levenshtein_distance_local, axis=1) - spp_data.dataframe[levenshtein_column_name]
 
         spp_data.add_word_pair_keyed_predictor(matched_word_pairs, merge_on=priming_word_columns)
-
-
-# Add prime–target Levenshtein distance
-def levenshtein_distance_local(word_pair):
-    word_1, word_2 = word_pair
-    return levenshtein_distance(word_1, word_2)
 
 
 def add_elexicon_predictor(spp_data: SppData,
@@ -382,44 +342,6 @@ def add_elexicon_predictor(spp_data: SppData,
         })
 
         spp_data.add_word_keyed_predictor(predictor, key_name, new_predictor_name)
-
-
-def add_predictors_for_model(model, spp_data: SppData):
-    """
-    Add all available predictors from this model.
-    """
-
-    for distance_type in DistanceType:
-
-        if spp_data.predictor_exists_with_name(spp_data.predictor_name_for_model(model, distance_type)):
-            logger.info(f"Predictor for '{model.name}' using '{distance_type.name}' already added to SPP data.")
-        else:
-            logger.info(f"Adding model predictor for '{model.name}' using '{distance_type.name}' to SPP data.")
-            model.train()
-            spp_data.add_model_predictor(model, distance_type)
-
-        if spp_data.predictor_exists_with_name(spp_data.priming_predictor_name_for_model(model, distance_type)):
-            logger.info(f"Priming predictor for '{model.name}' using '{distance_type.name}' already added to SPP data.")
-        else:
-            logger.info(f"Adding model priming predictor for '{model.name}' using '{distance_type.name}' to SPP data.")
-            model.train()
-            spp_data.add_model_priming_predictor(model, distance_type)
-
-
-def save_wordlist(vocab: Set[str]):
-    """
-    Saves the vocab to a file
-    """
-    wordlist_path = os.path.join(Preferences.spp_results_dir, 'spp_wordlist.txt')
-    separator = " "
-
-    logger.info(f"Saving SPP word list to {wordlist_path}.")
-
-    with open(wordlist_path, mode="w", encoding="utf-8") as wordlist_file:
-        for word in sorted(vocab):
-            wordlist_file.write(word + separator)
-        # Terminate with a newline XD
-        wordlist_file.write("\n")
 
 
 if __name__ == "__main__":

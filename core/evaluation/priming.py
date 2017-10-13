@@ -185,68 +185,50 @@ class SppData(object):
         return self.dataframe.keys().contains(predictor_name)
 
     @classmethod
-    def predictor_name_for_model(cls, model: VectorSemanticModel, distance_type: DistanceType) -> str:
+    def predictor_name_for_model(cls,
+                                 model: VectorSemanticModel,
+                                 distance_type: DistanceType,
+                                 for_priming_effect: bool) -> str:
+
         unsafe_name = f"{model.name}_{distance_type.name}"
+
         # Remove unsafe characters
         unsafe_name = re.sub(r"[(),=]", "", unsafe_name)
+
         # Convert hyphens and spaces to underscores
         safe_name = re.sub(r"[-\s]", "_", unsafe_name)
+
+        if for_priming_effect:
+            safe_name = safe_name + "_Priming"
+
         return safe_name
 
-    @classmethod
-    def priming_predictor_name_for_model(cls, model: VectorSemanticModel, distance_type: DistanceType) -> str:
-        return cls.predictor_name_for_model(model, distance_type) + "_Priming"
-
-    def add_model_predictor(self, model: VectorSemanticModel, distance_type: DistanceType):
+    def add_model_predictor(self,
+                            model: VectorSemanticModel,
+                            distance_type: DistanceType,
+                            for_priming_effect: bool):
         """
         Adds a data column containing predictors from a semantic model.
         """
 
-        predictor_name = self.predictor_name_for_model(model, distance_type)
+        predictor_name = self.predictor_name_for_model(model, distance_type, for_priming_effect)
 
         # Skip existing predictors
         if self.predictor_exists_with_name(predictor_name):
             logger.info(f"Model predictor '{predictor_name}' already added")
 
         else:
+
             logger.info(f"Adding '{predictor_name}' model predictor")
 
-            # In case we one of the words doesn't exist in the corpus, we just want missing data
-            def model_distance_or_none(word_pair):
-                word_1, word_2 = word_pair
-                try:
-                    return model.distance_between(word_1, word_2, distance_type)
-                except WordNotFoundError as er:
-                    logger.warning(er.message)
-                    return None
+            # Make sure model is trained
+            model.train()
 
-            # Add model distance column to data frame
-            self.dataframe[predictor_name] = self.dataframe[
-                ["PrimeWord", "TargetWord"]
-            ].apply(
-                model_distance_or_none,
-                axis=1)
-
-            # Save in current state
-            self._save()
-
-    # TODO there is a lot of duplicated code between this function and add_model_predictor
-    def add_model_priming_predictor(self, model: VectorSemanticModel, distance_type: DistanceType):
-        """
-        Adds a data column containing priming predictors from a semantic model.
-        """
-        predictor_name = self.predictor_name_for_model(model, distance_type)
-        priming_predictor_name = self.priming_predictor_name_for_model(model, distance_type)
-
-        # Skip existing predictors
-        if self.predictor_exists_with_name(priming_predictor_name):
-            logger.info(f"Model predictor '{priming_predictor_name}' already added")
-
-        else:
-            logger.info(f"Adding '{priming_predictor_name}' model predictor")
-
-            # Make sure the model predictor exists already
-            self.add_model_predictor(model, distance_type)
+            if for_priming_effect:
+                assert self.predictor_exists_with_name(self.predictor_name_for_model(model, distance_type,
+                                                                                     for_priming_effect=False))
+                # Make sure the non-priming model predictor exists already
+                self.add_model_predictor(model, distance_type, for_priming_effect=False)
 
             # In case we one of the words doesn't exist in the corpus, we just want missing data
             def model_distance_or_none(word_pair):
@@ -257,15 +239,23 @@ class SppData(object):
                     logger.warning(er.message)
                     return None
 
+            if for_priming_effect:
+                key_column = "MatchedPrimeWord"
+            else:
+                key_column = "PrimeWord"
+
             # Add model distance column to data frame
-            matched_model_prediction = self.dataframe[
-                ["MatchedPrimeWord", "TargetWord"]
+            model_distance = self.dataframe[
+                [key_column, "TargetWord"]
             ].apply(
                 model_distance_or_none,
                 axis=1)
 
-            # The priming predictor is the difference in model distance between the related and matched-unrelated word pairs
-            self.dataframe[priming_predictor_name] = matched_model_prediction - self.dataframe[predictor_name]
+            if for_priming_effect:
+                # The priming predictor is the difference in model distance between the related and matched-unrelated word pairs
+                self.dataframe[predictor_name] = model_distance - self.dataframe[self.predictor_name_for_model(model, distance_type, for_priming_effect=False)]
+            else:
+                self.dataframe[predictor_name] = model_distance
 
             # Save in current state
             self._save()
