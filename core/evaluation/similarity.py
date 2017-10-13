@@ -27,6 +27,7 @@ import scipy.stats
 from .results import ReportCard
 from ..model.base import VectorSemanticModel
 from ..utils.maths import DistanceType, CorrelationType
+from ..utils.exceptions import WordNotFoundError
 from ...preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -57,7 +58,7 @@ class SimilarityReportCard(ReportCard):
 
         def __init__(self,
                      model: VectorSemanticModel,
-                     test: SimilarityJudgementTest,
+                     test: 'SimilarityJudgementTest',
                      distance_type: DistanceType,
                      correlation: float):
             super().__init__(test.name, model.model_type.name, model, distance_type)
@@ -302,9 +303,9 @@ class SimilarityTester(object):
                                 human_judgement.word_1,
                                 human_judgement.word_2,
                                 distance_type)
-                        except KeyError as key_error:
+                        except WordNotFoundError as er:
                             # If we can't find one of the words in the corpus, just ignore it.
-                            logger.warning(f'{model.corpus_meta.name} corpus doesn\'t contain "{key_error.args[0]}"')
+                            logger.warning(er.message)
                             continue
 
                         # If both words were found in the model, add them to the test list
@@ -324,7 +325,7 @@ class SimilarityTester(object):
                         # noinspection PyTypeChecker
                         correlation = scipy.stats.spearmanr(
                             [j.similarity for j in human_judgements],
-                            [j.similarity for j in model_judgements])[0][1]
+                            [j.similarity for j in model_judgements]).correlation
                     else:
                         raise ValueError(correlation)
 

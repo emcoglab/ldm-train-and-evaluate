@@ -129,7 +129,7 @@ class ReportCard(object, metaclass=ABCMeta):
             self._embedding_size = model.embedding_size if isinstance(model, PredictVectorModel) else None
             self._test_name = test_name
 
-        @abstractmethod
         @property
+        @abstractmethod
         def fields(self) -> List[str]:
             raise NotImplementedError()

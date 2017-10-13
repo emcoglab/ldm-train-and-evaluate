@@ -25,8 +25,9 @@ from typing import List
 
 from .results import ReportCard
 from ..model.base import VectorSemanticModel
-from ..utils.indexing import LetterIndexing
 from ..utils.maths import DistanceType
+from ..utils.exceptions import WordNotFoundError
+from ..utils.indexing import LetterIndexing
 from ...preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -54,10 +55,10 @@ class SynonymReportCard(ReportCard):
 
     class Entry(ReportCard.Entry):
         def __init__(self,
-                     test: SynonymTest,
+                     test: 'SynonymTest',
                      model: VectorSemanticModel,
                      distance_type: DistanceType,
-                     answer_paper: AnswerPaper,
+                     answer_paper: 'AnswerPaper',
                      # ugh
                      append_to_model_name: str = ""):
             super().__init__(test.name, model.model_type.name + append_to_model_name, model, distance_type)
@@ -160,18 +161,7 @@ class AnswerPaper(object):
 class SynonymTest(object, metaclass=ABCMeta):
     def __init__(self):
         # Backs self.question_list
-        self._question_list: List[SynonymTestQuestion] = None
-
-    @property
-    def question_list(self) -> List[SynonymTestQuestion]:
-        """
-        The list of questions.
-        """
-        # Lazy load
-        if self._question_list is None:
-            self._question_list = self._load()
-        assert self._question_list is not None
-        return self._question_list
+        self.question_list: List[SynonymTestQuestion] = self._load()
 
     @property
     @abstractmethod
@@ -390,8 +380,8 @@ class SynonymTester(object):
             try:
                 guess_d = model.distance_between(question.prompt, option, distance_type,
                                                  truncate_vectors_at_length)
-            except KeyError as er:
-                logger.warning(f"{er.args[0]} was not found in the corpus.")
+            except WordNotFoundError as er:
+                logger.warning(er.message)
                 # Make sure we don't pick this one
                 guess_d = math.inf
 
