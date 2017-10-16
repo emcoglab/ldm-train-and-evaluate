@@ -72,6 +72,7 @@ class ReportCard(object, metaclass=ABCMeta):
         Saves a CSV file containing headers, if it doesn't already exist.
         """
 
+        # TODO: this file name needs to be know elsewhere...
         csv_filename = " header.csv"
 
         csv_path = os.path.join(self.results_dir(), csv_filename)

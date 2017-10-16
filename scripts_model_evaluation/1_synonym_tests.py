@@ -1,6 +1,6 @@
 """
 ===========================
-Evaluate using TOEFL test.
+Evaluate using synonym tests.
 ===========================
 
 Dr. Cai Wingfield

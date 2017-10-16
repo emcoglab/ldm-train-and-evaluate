@@ -153,6 +153,6 @@ class Preferences(object):
     spp_results_dir          = os.path.join(results_dir, "SPP/")
     spp_path_pickle          = os.path.join(results_dir, "SPP/Hutchinson et al. (2013) SPP.pickle")  # Semantic priming data: pickled version for faster loading
 
-    # Figures
+    # FIGURES
 
-    figures_dir              = "/Users/caiwingfield/evaluation/figures/"
+    figures_dir              = "/Volumes/Data/evaluation/figures/"
