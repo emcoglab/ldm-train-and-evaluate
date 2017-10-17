@@ -158,27 +158,28 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             """
             Get the model type from the slug.
             """
-            if slug is "CBOW":
+            slug = slug.lower()
+            if slug == "cbow":
                 return cls.cbow
-            elif slug is "Skip-gram":
+            elif slug == "skip-gram":
                 return cls.skip_gram
-            elif slug is "n-gram (unsummed)":
+            elif slug == "n-gram (unsummed)":
                 return cls.ngram_unsummed
-            elif slug is "n-gram (summed)":
+            elif slug == "n-gram (summed)":
                 return cls.ngram
-            elif slug is "log n-gram":
+            elif slug == "log n-gram":
                 return cls.log_ngram
-            elif slug is "n-gram probability":
+            elif slug == "n-gram probability":
                 return cls.ngram_probability
-            elif slug is "Token probability":
+            elif slug == "token probability":
                 return cls.token_probability
-            elif slug is "Context probability":
+            elif slug == "context probability":
                 return cls.context_probability
-            elif slug is "Conditional probability":
+            elif slug == "conditional probability":
                 return cls.conditional_probability
-            elif slug is "Probability ratio":
+            elif slug == "probability ratio":
                 return cls.probability_ratios
-            elif slug is "PPMI":
+            elif slug == "ppmi":
                 return cls.ppmi
             else:
                 raise ValueError()
