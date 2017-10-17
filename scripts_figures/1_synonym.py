@@ -21,20 +21,53 @@ import sys
 
 from glob import glob
 
+import numpy
 import pandas
+import seaborn
+
+import matplotlib.pyplot as plot
 
 from ..core.utils.logging import log_message, date_format
+from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
 
+def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
+    return df.rename(columns=lambda col_name: col_name.replace(" ", "_").lower())
+
+
 def main():
     figures_dir = Preferences.figures_dir
 
-    data = load_data()
+    df = load_data()
 
-    g = data.groupby(["Test name", "Model", "Embedding size", "Radius", "Distance", "Corpus"])
+    df = ensure_column_safety(df)
+
+    df["model_name"] = df.apply(lambda r: f"{r['corpus']} {r['distance']} {r['model']} {r['embedding_size']}", axis=1)
+
+    distance = DistanceType.cosine.name
+    corpus = "BNC"
+    model= "CBOW"
+    embedding_size = numpy.nan
+    test_name = "TOEFL"
+
+    fdf = df.query(
+        f"corpus == '{corpus}' & "
+        f"distance == '{distance}' & "
+        # f"model == '{model}' & "
+        # f"embedding_size == {embedding_size} & "
+        f"test_name == '{test_name}'"
+    )
+
+    fdf = fdf.sort_values(by=["model_name", "radius"]).reindex()
+
+    fdf = fdf[["model_name", "radius", "score"]]
+
+    seaborn.factorplot(data=fdf, x='radius', y="score", hue="model_name")
+
+    pass
 
 
 def load_data() -> pandas.DataFrame:
