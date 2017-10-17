@@ -218,20 +218,19 @@ class SppData(object):
             logger.info(f"Model predictor '{predictor_name}' already added")
 
         else:
-
             logger.info(f"Adding '{predictor_name}' model predictor")
 
-            # Make sure model is trained
+            # Since we're going to use the model, make sure it's trained
             model.train()
 
             if for_priming_effect:
-                assert self.predictor_exists_with_name(self.predictor_name_for_model(model, distance_type,
-                                                                                     for_priming_effect=False))
-                # Make sure the non-priming model predictor exists already
-                self.add_model_predictor(model, distance_type, for_priming_effect=False)
+                # Make sure the non-priming model predictor exists already, as we'll be referencing it
+                assert self.predictor_exists_with_name(self.predictor_name_for_model(model, distance_type, for_priming_effect=False))
 
-            # In case we one of the words doesn't exist in the corpus, we just want missing data
             def model_distance_or_none(word_pair):
+                """
+                Get the model distance between a pair of words, or None, if one of the words doesn't exist.
+                """
                 word_1, word_2 = word_pair
                 try:
                     return model.distance_between(word_1, word_2, distance_type)
@@ -239,10 +238,14 @@ class SppData(object):
                     logger.warning(er.message)
                     return None
 
-            if for_priming_effect:
-                key_column = "MatchedPrimeWord"
-            else:
-                key_column = "PrimeWord"
+            # If we're computing the priming predictor, we'll find the matched-unrelated word, and
+            # subtract the model distance of that from the model distance for the matched target-prime
+            # pair.
+            #
+            # We're assuming that the matched predictor has already been added, so we can safely join
+            # on the matched prime pair here, since there'll be a PrimeWord-matched predictor there
+            # already.
+            key_column = "MatchedPrimeWord" if for_priming_effect else "PrimeWord"
 
             # Add model distance column to data frame
             model_distance = self.dataframe[
@@ -251,8 +254,9 @@ class SppData(object):
                 model_distance_or_none,
                 axis=1)
 
+            # The priming predictor is the difference in model distance between the related and
+            # matched-unrelated word pairs.
             if for_priming_effect:
-                # The priming predictor is the difference in model distance between the related and matched-unrelated word pairs
                 self.dataframe[predictor_name] = model_distance - self.dataframe[self.predictor_name_for_model(model, distance_type, for_priming_effect=False)]
             else:
                 self.dataframe[predictor_name] = model_distance

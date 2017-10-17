@@ -56,7 +56,6 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
         context_probability = auto()
         conditional_probability = auto()
         probability_ratios = auto()
-        pmi = auto()
         ppmi = auto()
 
         @property
@@ -98,29 +97,27 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             A path-safe representation of the model type
             :return:
             """
-            if self is VectorSemanticModel.ModelType.cbow:
+            if self is DistributionalSemanticModel.ModelType.cbow:
                 return "cbow"
-            elif self is VectorSemanticModel.ModelType.skip_gram:
+            elif self is DistributionalSemanticModel.ModelType.skip_gram:
                 return "skipgram"
-            elif self is VectorSemanticModel.ModelType.ngram_unsummed:
+            elif self is DistributionalSemanticModel.ModelType.ngram_unsummed:
                 return "ngram_unsummed"
-            elif self is VectorSemanticModel.ModelType.ngram:
+            elif self is DistributionalSemanticModel.ModelType.ngram:
                 return "ngram"
-            elif self is VectorSemanticModel.ModelType.log_ngram:
+            elif self is DistributionalSemanticModel.ModelType.log_ngram:
                 return "log_ngram"
-            elif self is VectorSemanticModel.ModelType.ngram_probability:
+            elif self is DistributionalSemanticModel.ModelType.ngram_probability:
                 return "ngram_probability"
-            elif self is VectorSemanticModel.ModelType.token_probability:
+            elif self is DistributionalSemanticModel.ModelType.token_probability:
                 return "token_probability"
-            elif self is VectorSemanticModel.ModelType.context_probability:
+            elif self is DistributionalSemanticModel.ModelType.context_probability:
                 return "context_probability"
-            elif self is VectorSemanticModel.ModelType.conditional_probability:
+            elif self is DistributionalSemanticModel.ModelType.conditional_probability:
                 return "conditional_probability"
-            elif self is VectorSemanticModel.ModelType.probability_ratios:
+            elif self is DistributionalSemanticModel.ModelType.probability_ratios:
                 return "probability_ratios"
-            elif self is VectorSemanticModel.ModelType.pmi:
-                return "pmi"
-            elif self is VectorSemanticModel.ModelType.ppmi:
+            elif self is DistributionalSemanticModel.ModelType.ppmi:
                 return "ppmi"
             else:
                 raise ValueError()
@@ -128,7 +125,7 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
         @property
         def name(self):
             """
-            THe name of the model type
+            The name of the model type
             :return:
             """
             if self is VectorSemanticModel.ModelType.cbow:
@@ -151,10 +148,38 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
                 return "Conditional probability"
             elif self is VectorSemanticModel.ModelType.probability_ratios:
                 return "Probability ratio"
-            elif self is VectorSemanticModel.ModelType.pmi:
-                return "PMI"
             elif self is VectorSemanticModel.ModelType.ppmi:
                 return "PPMI"
+            else:
+                raise ValueError()
+
+        @classmethod
+        def from_slug(cls, slug: str) -> 'DistributionalSemanticModel.ModelType':
+            """
+            Get the model type from the slug.
+            """
+            if slug is "CBOW":
+                return cls.cbow
+            elif slug is "Skip-gram":
+                return cls.skip_gram
+            elif slug is "n-gram (unsummed)":
+                return cls.ngram_unsummed
+            elif slug is "n-gram (summed)":
+                return cls.ngram
+            elif slug is "log n-gram":
+                return cls.log_ngram
+            elif slug is "n-gram probability":
+                return cls.ngram_probability
+            elif slug is "Token probability":
+                return cls.token_probability
+            elif slug is "Context probability":
+                return cls.context_probability
+            elif slug is "Conditional probability":
+                return cls.conditional_probability
+            elif slug is "Probability ratio":
+                return cls.probability_ratios
+            elif slug is "PPMI":
+                return cls.ppmi
             else:
                 raise ValueError()
 
