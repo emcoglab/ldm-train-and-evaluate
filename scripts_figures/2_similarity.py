@@ -36,6 +36,7 @@ def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
     return df.rename(columns=lambda col_name: col_name.replace(" ", "_").lower())
 
 
+# TODO: essentially duplicated code
 def main():
     figures_dir = Preferences.figures_dir
 
@@ -43,10 +44,10 @@ def main():
 
     dataframe = ensure_column_safety(dataframe)
 
-    dataframe["model_name"] = dataframe.apply(lambda r:
-                                              f"{r['corpus']} {r['distance']} {r['model']} {r['embedding_size']}"
+    dataframe["model"] = dataframe.apply(lambda r:
+                                              f"{r['corpus']} {r['distance_type']} {r['model_type']} {r['embedding_size']}"
                                               if not numpy.math.isnan(r['embedding_size'])
-                                              else f"{r['corpus']} {r['distance']} {r['model']}",
+                                              else f"{r['corpus']} {r['distance_type']} {r['model_type']}",
                                               axis=1)
 
     for test_name in ["Simlex-999", "WordSim-353 similarity", "WordSim-353 relatedness", "MEN"]:
@@ -57,29 +58,24 @@ def main():
 
                 filtered_dataframe: pandas.DataFrame = dataframe.copy()
                 filtered_dataframe = filtered_dataframe[filtered_dataframe["corpus"] == corpus]
-                filtered_dataframe = filtered_dataframe[filtered_dataframe["distance"] == distance]
+                filtered_dataframe = filtered_dataframe[filtered_dataframe["distance_type"] == distance]
                 filtered_dataframe = filtered_dataframe[filtered_dataframe["test_name"] == test_name]
 
-                filtered_dataframe = filtered_dataframe.sort_values(by=["model_name", "radius"])
+                filtered_dataframe = filtered_dataframe.sort_values(by=["model", "window_radius"])
                 filtered_dataframe = filtered_dataframe.reset_index(drop=True)
 
                 filtered_dataframe = filtered_dataframe[[
-                    "model_name",
-                    "radius",
+                    "model",
+                    "window_radius",
                     "correlation"]]
 
-                plot = seaborn.factorplot(data=filtered_dataframe, x="radius", y="correlation", hue="model_name")
+                plot = seaborn.factorplot(data=filtered_dataframe, x="window_radius", y="correlation", hue="model")
 
-                plot.set(ylim=(0, 1))
-
-                # Format yticks as percentages
-                vals = plot.ax.get_yticks()
-                plot.ax.set_yticklabels(['{:3f}%'.format(x * 100) for x in vals])
+                plot.set(ylim=(-1, 1))
 
                 plot.savefig(os.path.join(figures_dir, figure_name))
 
 
-# TODO: essentially duplicated code
 def load_data() -> pandas.DataFrame:
     """
     Load a pandas.DataFrame from a collection of CSV fragments.
