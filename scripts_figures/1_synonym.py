@@ -47,7 +47,7 @@ def main():
 
     df["model_name"] = df.apply(lambda r:
                                 f"{r['corpus']} {r['distance']} {r['model']} {r['embedding_size']}"
-                                if r['embedding_size'] != numpy.nan
+                                if not numpy.math.isnan(r['embedding_size'])
                                 else f"{r['corpus']} {r['distance']} {r['model']}",
                                 axis=1)
 
@@ -60,8 +60,8 @@ def main():
     fdf: pandas.DataFrame = df.copy()
     fdf = fdf[fdf["corpus"] == corpus]
     fdf = fdf[fdf["distance"] == distance]
-    fdf = fdf[fdf["model"] == model]
-    fdf = fdf[fdf["embedding_size"] == embedding_size]
+    # fdf = fdf[fdf["model"] == model]
+    # fdf = fdf[fdf["embedding_size"] == embedding_size]
     fdf = fdf[fdf["test_name"] == test_name]
 
     fdf = fdf.sort_values(by=["model_name", "radius"])
@@ -72,18 +72,15 @@ def main():
         "radius",
         "score"]]
 
-    # plot = seaborn.factorplot(data=fdf, x='radius', y="score")
-    #
-    # plot.savefig(os.path.join(figures_dir, "test.png"))
+    plot = seaborn.factorplot(data=fdf, x="radius", y="score", hue="model_name")
 
-    ax = fdf.plot(x="radius", y="score", ylim=[0, 1])
+    plot.set(ylim=(0, 1))
 
-    # Format as percent
-    vals = ax.get_yticks()
-    ax.set_yticklabels(['{:3.2f}%'.format(x * 100) for x in vals])
+    # Format yticks as percentages
+    vals = plot.ax.get_yticks()
+    plot.ax.set_yticklabels(['{:3.2f}%'.format(x * 100) for x in vals])
 
-    # Save figure
-    pplot.savefig(os.path.join(figures_dir, "test.png"))
+    plot.savefig(os.path.join(figures_dir, "test.png"))
 
     pass
 
