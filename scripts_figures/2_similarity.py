@@ -1,6 +1,6 @@
 """
 ===========================
-Figures for synonym tests.
+Figures for similarity judgement tests.
 ===========================
 
 Dr. Cai Wingfield
@@ -49,11 +49,11 @@ def main():
                                               else f"{r['corpus']} {r['distance']} {r['model']}",
                                               axis=1)
 
-    for test_name in ["TOEFL", "ESL", "LBM's new MCQ"]:
+    for test_name in ["Simlex-999", "WordSim-353 similarity", "WordSim-353 relatedness", "MEN"]:
         for distance in [d.name for d in DistanceType]:
             for corpus in ["BNC", "BBC", "UKWAC"]:
 
-                figure_name = f"synonym {test_name} {corpus} {distance}.png"
+                figure_name = f"similarity {test_name} {corpus} {distance}.png"
 
                 filtered_dataframe: pandas.DataFrame = dataframe.copy()
                 filtered_dataframe = filtered_dataframe[filtered_dataframe["corpus"] == corpus]
@@ -66,9 +66,9 @@ def main():
                 filtered_dataframe = filtered_dataframe[[
                     "model_name",
                     "radius",
-                    "score"]]
+                    "correlation"]]
 
-                plot = seaborn.factorplot(data=filtered_dataframe, x="radius", y="score", hue="model_name")
+                plot = seaborn.factorplot(data=filtered_dataframe, x="radius", y="correlation", hue="model_name")
 
                 plot.set(ylim=(0, 1))
 
@@ -79,11 +79,12 @@ def main():
                 plot.savefig(os.path.join(figures_dir, figure_name))
 
 
+# TODO: essentially duplicated code
 def load_data() -> pandas.DataFrame:
     """
     Load a pandas.DataFrame from a collection of CSV fragments.
     """
-    results_dir = Preferences.synonym_results_dir
+    results_dir = Preferences.similarity_results_dir
     separator = ","
 
     def percent_to_float(percent: str) -> float:
@@ -100,7 +101,7 @@ def load_data() -> pandas.DataFrame:
 
     for data_filename in data_filenames:
         partial_df = pandas.read_csv(data_filename, sep=separator, names=column_names,
-                                     converters={'Score': percent_to_float})
+                                     converters={'Correlation': percent_to_float})
         data = data.append(partial_df, ignore_index=True)
 
     return data
