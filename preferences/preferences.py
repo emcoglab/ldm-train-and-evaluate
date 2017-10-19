@@ -155,4 +155,4 @@ class Preferences(object):
 
     # FIGURES
 
-    figures_dir              = "/Users/cai/Box Sync/evaluation/figures/"
+    figures_dir              = "/Volumes/Data/evaluation/figures/"

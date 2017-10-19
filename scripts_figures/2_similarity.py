@@ -69,9 +69,21 @@ def main():
                     "window_radius",
                     "correlation"]]
 
-                plot = seaborn.factorplot(data=filtered_dataframe, x="window_radius", y="correlation", hue="model")
+                plot = seaborn.factorplot(data=filtered_dataframe,
+                                          x="window_radius", y="correlation",
+                                          hue="model",
+                                          size=7, aspect=1.8,
+                                          legend=False)
 
                 plot.set(ylim=(-1, 1))
+
+                # Put the legend out of the figure
+                # resize figure box to -> put the legend out of the figure
+                plot_box = plot.ax.get_position()  # get position of figure
+                plot.ax.set_position([plot_box.x0, plot_box.y0, plot_box.width * 0.75, plot_box.height])  # resize position
+
+                # Put a legend to the right side
+                plot.ax.legend(loc='center right', bbox_to_anchor=(1.35, 0.5), ncol=1)
 
                 plot.savefig(os.path.join(figures_dir, figure_name))
 

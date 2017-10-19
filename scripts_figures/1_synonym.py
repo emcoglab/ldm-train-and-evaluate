@@ -68,13 +68,25 @@ def main():
                     "radius",
                     "score"]]
 
-                plot = seaborn.factorplot(data=filtered_dataframe, x="radius", y="score", hue="model_name")
+                plot = seaborn.factorplot(data=filtered_dataframe,
+                                          x="radius", y="score",
+                                          hue="model_name",
+                                          size=7, aspect=1.8,
+                                          legend=False)
 
                 plot.set(ylim=(0, 1))
 
                 # Format yticks as percentages
                 vals = plot.ax.get_yticks()
-                plot.ax.set_yticklabels(['{:3f}%'.format(x * 100) for x in vals])
+                plot.ax.set_yticklabels(['{:3.0f}%'.format(x * 100) for x in vals])
+
+                # Put the legend out of the figure
+                # resize figure box to -> put the legend out of the figure
+                plot_box = plot.ax.get_position()  # get position of figure
+                plot.ax.set_position([plot_box.x0, plot_box.y0, plot_box.width * 0.75, plot_box.height])  # resize position
+
+                # Put a legend to the right side
+                plot.ax.legend(loc='center right', bbox_to_anchor=(1.35, 0.5), ncol=1)
 
                 plot.savefig(os.path.join(figures_dir, figure_name))
 
