@@ -66,6 +66,7 @@ class CountVectorModel(VectorSemanticModel):
         assert self.is_trained
         scipy.sparse.save_npz(os.path.join(self.save_dir, self._model_filename_with_ext), self._model, compressed=False)
 
+    # BUG: This appears to leak memory if used repeatedly :[
     def _load(self, memory_map: bool = False):
 
         # Use scipy.sparse.csr_matrix for trained models

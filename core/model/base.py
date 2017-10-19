@@ -366,7 +366,7 @@ class VectorSemanticModel(DistributionalSemanticModel, metaclass=ABCMeta):
         """
         return self.nearest_neighbours(word, distance_type, 1)[0]
 
-    def distance_between(self, word_1, word_2, distance_type: DistanceType, truncate_vectors_at_length: int = None):
+    def distance_between(self, word_1, word_2, distance_type: DistanceType, truncate_vectors_at_length: int = None) -> float:
         """
         Returns the distance between the two specified words
         :param word_1:
