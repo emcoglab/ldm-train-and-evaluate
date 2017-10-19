@@ -23,6 +23,7 @@ from operator import itemgetter
 
 import numpy
 import scipy.sparse
+import sys
 
 from ..corpus.corpus import CorpusMetadata, WindowedCorpus
 from ..corpus.distribution import FreqDist
@@ -67,14 +68,51 @@ class CountVectorModel(VectorSemanticModel):
 
     def _load(self, memory_map: bool = False):
 
-        if memory_map:
-            logger.warning(f"Memory mapping not currently supported for Count models")
-
         # Use scipy.sparse.csr_matrix for trained models
-        self._model = scipy.sparse.load_npz(os.path.join(self.save_dir, self._model_filename_with_ext)).tocsr()
+        self._model = scipy.sparse.load_npz(file=os.path.join(self.save_dir, self._model_filename_with_ext),
+                                            mmap_mode="r" if memory_map else None).tocsr()
 
         # Make sure nothing's gone wrong
         assert self.is_trained
+
+    def _load_npz_with_mmap(self, file, memory_map: bool = False):
+        """
+        Copied from scipy.sparse.load_npz, except it allows memory mapping.
+        """
+        if memory_map:
+            with numpy.load(file=file,
+                            allow_pickle=False if numpy.NumpyVersion(numpy.__version__) >= '1.10.0' else True,
+                            mmap_mode="r" if memory_map else None
+                            ) as loaded:
+                try:
+                    matrix_format = loaded['format']
+                except KeyError:
+                    raise ValueError('The file {} does not contain a sparse matrix.'.format(file))
+
+                matrix_format = matrix_format.item()
+
+                if sys.version_info[0] >= 3 and not isinstance(matrix_format, str):
+                    # Play safe with Python 2 vs 3 backward compatibility;
+                    # files saved with Scipy < 1.0.0 may contain unicode or bytes.
+                    matrix_format = matrix_format.decode('ascii')
+
+                try:
+                    cls = getattr(scipy.sparse, '{}_matrix'.format(matrix_format))
+                except AttributeError:
+                    raise ValueError('Unknown matrix format "{}"'.format(matrix_format))
+
+                if matrix_format in ('csc', 'csr', 'bsr'):
+                    return cls((loaded['data'], loaded['indices'], loaded['indptr']), shape=loaded['shape'])
+                elif matrix_format == 'dia':
+                    return cls((loaded['data'], loaded['offsets']), shape=loaded['shape'])
+                elif matrix_format == 'coo':
+                    return cls((loaded['data'], (loaded['row'], loaded['col'])), shape=loaded['shape'])
+                else:
+                    raise NotImplementedError('Load is not implemented for '
+                                              'sparse matrix of format {}.'.format(matrix_format))
+        else:
+            # Use standard load function
+            return scipy.sparse.load_npz(file)
 
     def vector_for_id(self, word_id: int):
         """
@@ -171,7 +209,7 @@ class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
     def _load(self, memory_map: bool = False):
 
         if memory_map:
-            logger.warning(f"Memory mapping not currently supported for Count models")
+            logger.warning(f"Memory mapping not currently supported for Vector models")
 
         self._model = numpy.load(os.path.join(self.save_dir, self._model_filename_with_ext))["arr_0"]
         assert self.is_trained
