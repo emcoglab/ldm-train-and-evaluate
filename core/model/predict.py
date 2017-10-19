@@ -77,8 +77,9 @@ class PredictVectorModel(VectorSemanticModel):
         assert self.is_trained
         self._model.save(os.path.join(self.save_dir, self._model_filename))
 
-    def _load(self):
-        self._model = gensim.models.Word2Vec.load(os.path.join(self.save_dir, self._model_filename))
+    def _load(self, memory_map: bool = False):
+        self._model = gensim.models.Word2Vec.load(fname=os.path.join(self.save_dir, self._model_filename),
+                                                  mmap="r" if memory_map else None)
         assert self.is_trained
 
     @abstractmethod

@@ -263,17 +263,18 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
         """
         return os.path.isfile(os.path.join(self.save_dir, self._model_filename_with_ext))
 
-    def train(self, force_retrain: bool = False):
+    def train(self, force_retrain: bool = False, memory_map: bool = False):
         """
         Trains the model from its corpus, and saves the resultant state to drive.
         Will load existing model instead if possible.
-        :param force_retrain: Retrain the model, even if there is a pre-existing saved state.
+        :param force_retrain: Retrain the model, even if there is a pre-existing saved state. Default False.
+        :param memory_map: Whether to load the model memory-mapped when loading. Default False.
         """
         if self.is_trained and not force_retrain:
             logger.info(f"{self.name} is already trained")
         elif self.could_load and not force_retrain:
             logger.info(f"Loading {self.name} model from {self._model_filename_with_ext}")
-            self._load()
+            self._load(memory_map=memory_map)
         else:
             logger.info(f"Training {self.name}")
             self._retrain()
@@ -288,7 +289,7 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def _load(self):
+    def _load(self, memory_map: bool = False):
         """
         Loads a model.
         """

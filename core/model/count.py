@@ -65,7 +65,11 @@ class CountVectorModel(VectorSemanticModel):
         assert self.is_trained
         scipy.sparse.save_npz(os.path.join(self.save_dir, self._model_filename_with_ext), self._model, compressed=False)
 
-    def _load(self):
+    def _load(self, memory_map: bool = False):
+
+        if memory_map:
+            logger.warning(f"Memory mapping not currently supported for Count models")
+
         # Use scipy.sparse.csr_matrix for trained models
         self._model = scipy.sparse.load_npz(os.path.join(self.save_dir, self._model_filename_with_ext)).tocsr()
 
@@ -164,7 +168,11 @@ class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
         #     https://github.com/numpy/numpy/issues/3858
         numpy.savez(os.path.join(self.save_dir, self._model_filename_with_ext), self._model)
 
-    def _load(self):
+    def _load(self, memory_map: bool = False):
+
+        if memory_map:
+            logger.warning(f"Memory mapping not currently supported for Count models")
+
         self._model = numpy.load(os.path.join(self.save_dir, self._model_filename_with_ext))["arr_0"]
         assert self.is_trained
 

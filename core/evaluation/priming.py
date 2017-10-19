@@ -206,7 +206,8 @@ class SppData(object):
     def add_model_predictor(self,
                             model: VectorSemanticModel,
                             distance_type: DistanceType,
-                            for_priming_effect: bool):
+                            for_priming_effect: bool,
+                            memory_map: bool = False):
         """
         Adds a data column containing predictors from a semantic model.
         """
@@ -221,7 +222,7 @@ class SppData(object):
             logger.info(f"Adding '{predictor_name}' model predictor")
 
             # Since we're going to use the model, make sure it's trained
-            model.train()
+            model.train(memory_map=memory_map)
 
             if for_priming_effect:
                 # Make sure the non-priming model predictor exists already, as we'll be referencing it
