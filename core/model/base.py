@@ -274,6 +274,8 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             logger.info(f"{self.name} is already trained")
         elif self.could_load and not force_retrain:
             logger.info(f"Loading {self.name} model from {self._model_filename_with_ext}")
+            if memory_map:
+                logger.info(f"\twith memory map")
             self._load(memory_map=memory_map)
         else:
             logger.info(f"Training {self.name}")

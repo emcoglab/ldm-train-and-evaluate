@@ -57,7 +57,7 @@ def main():
             for model in count_models:
                 csv_name = model.name + '.csv'
                 if not SimilarityReportCard.saved_with_name(csv_name):
-                    model.train()
+                    model.train(memory_map=True)
                     report_card = SimilarityTester.administer_tests(model, test_battery)
                     report_card.save_csv(csv_name)
 
@@ -73,7 +73,7 @@ def main():
                 for model in predict_models:
                     csv_name = model.name + '.csv'
                     if not SimilarityReportCard.saved_with_name(csv_name):
-                        model.train()
+                        model.train(memory_map=True)
                         report_card = SimilarityTester.administer_tests(model, test_battery)
                         report_card.save_csv(csv_name)
 

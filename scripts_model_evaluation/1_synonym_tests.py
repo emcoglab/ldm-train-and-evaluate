@@ -56,7 +56,7 @@ def main():
             for model in count_models:
                 csv_name = model.name + '.csv'
                 if not SynonymReportCard.saved_with_name(csv_name):
-                    model.train()
+                    model.train(memory_map=True)
                     report_card = SynonymTester.administer_tests(model, test_battery)
                     report_card.save_csv(csv_name)
 
@@ -65,7 +65,7 @@ def main():
             truncate_length = 10_000
             csv_name = model.name + ' (10k).csv'
             if not SynonymReportCard.saved_with_name(csv_name):
-                model.train()
+                model.train(memory_map=True)
                 report_card = SynonymTester.administer_tests(model, test_battery, truncate_length)
                 report_card.save_csv(csv_name)
 
@@ -81,7 +81,7 @@ def main():
                 for model in predict_models:
                     csv_name = model.name + '.csv'
                     if not SynonymReportCard.saved_with_name(csv_name):
-                        model.train()
+                        model.train(memory_map=True)
                         report_card = SynonymTester.administer_tests(model, test_battery)
                         report_card.save_csv(csv_name)
 

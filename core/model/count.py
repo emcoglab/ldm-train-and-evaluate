@@ -69,20 +69,24 @@ class CountVectorModel(VectorSemanticModel):
     def _load(self, memory_map: bool = False):
 
         # Use scipy.sparse.csr_matrix for trained models
-        self._model = scipy.sparse.load_npz(file=os.path.join(self.save_dir, self._model_filename_with_ext),
-                                            mmap_mode="r" if memory_map else None).tocsr()
+        self._model = self._load_npz_with_mmap(
+            file=os.path.join(self.save_dir, self._model_filename_with_ext),
+            memory_map=memory_map
+        ).tocsr()
 
         # Make sure nothing's gone wrong
         assert self.is_trained
 
-    def _load_npz_with_mmap(self, file, memory_map: bool = False):
+    @staticmethod
+    def _load_npz_with_mmap(file, memory_map: bool = False):
         """
         Copied from scipy.sparse.load_npz, except it allows memory mapping.
         """
         if memory_map:
             with numpy.load(file=file,
-                            allow_pickle=False if numpy.NumpyVersion(numpy.__version__) >= '1.10.0' else True,
-                            mmap_mode="r" if memory_map else None
+                            mmap_mode="r" if memory_map else None,
+                            # Works only with Numpy version >= 1.10.0
+                            allow_pickle=False
                             ) as loaded:
                 try:
                     matrix_format = loaded['format']

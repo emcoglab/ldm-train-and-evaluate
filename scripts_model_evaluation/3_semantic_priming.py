@@ -87,8 +87,8 @@ def add_all_model_predictors(spp_data):
 
             for model in count_models:
                 for distance_type in DistanceType:
-                    spp_data.add_model_predictor(model, distance_type, for_priming_effect=False)
-                    spp_data.add_model_predictor(model, distance_type, for_priming_effect=True)
+                    spp_data.add_model_predictor(model, distance_type, for_priming_effect=False, memory_map=True)
+                    spp_data.add_model_predictor(model, distance_type, for_priming_effect=True, memory_map=True)
 
             # PREDICT MODELS
 
@@ -101,8 +101,8 @@ def add_all_model_predictors(spp_data):
 
                 for model in predict_models:
                     for distance_type in DistanceType:
-                        spp_data.add_model_predictor(model, distance_type, for_priming_effect=False)
-                        spp_data.add_model_predictor(model, distance_type, for_priming_effect=True)
+                        spp_data.add_model_predictor(model, distance_type, for_priming_effect=False, memory_map=True)
+                        spp_data.add_model_predictor(model, distance_type, for_priming_effect=True, memory_map=True)
 
 
 def regression_wrapper(spp_data: SppData):
