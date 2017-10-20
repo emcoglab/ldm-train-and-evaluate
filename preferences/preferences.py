@@ -156,3 +156,4 @@ class Preferences(object):
     # FIGURES
 
     figures_dir              = "/Volumes/Data/evaluation/figures/"
+    summary_dir              = "/Volumes/Data/evaluation/summary/"

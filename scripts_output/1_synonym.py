@@ -37,10 +37,8 @@ def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
 
 
 def main():
-    figures_dir = Preferences.figures_dir
 
     dataframe = load_data()
-
     dataframe = ensure_column_safety(dataframe)
 
     dataframe["model_name"] = dataframe.apply(lambda r:
@@ -50,45 +48,56 @@ def main():
                                               axis=1)
 
     for test_name in ["TOEFL", "ESL", "LBM's new MCQ"]:
-        for distance in [d.name for d in DistanceType]:
-            for corpus in ["BNC", "BBC", "UKWAC"]:
 
-                figure_name = f"synonym {test_name} {corpus} {distance}.png"
+        produce_figures(dataframe, test_name)
+        produce_tables(dataframe, test_name)
 
-                filtered_dataframe: pandas.DataFrame = dataframe.copy()
-                filtered_dataframe = filtered_dataframe[filtered_dataframe["corpus"] == corpus]
-                filtered_dataframe = filtered_dataframe[filtered_dataframe["distance"] == distance]
-                filtered_dataframe = filtered_dataframe[filtered_dataframe["test_name"] == test_name]
 
-                filtered_dataframe = filtered_dataframe.sort_values(by=["model_name", "radius"])
-                filtered_dataframe = filtered_dataframe.reset_index(drop=True)
+def produce_tables(dataframe: pandas.DataFrame, test_name: str):
+    summary_dir = Preferences.summary_dir
+    filtered_dataframe: pandas.DataFrame = dataframe.copy()
 
-                filtered_dataframe = filtered_dataframe[[
-                    "model_name",
-                    "radius",
-                    "score"]]
 
-                plot = seaborn.factorplot(data=filtered_dataframe,
-                                          x="radius", y="score",
-                                          hue="model_name",
-                                          size=7, aspect=1.8,
-                                          legend=False)
+def produce_figures(dataframe: pandas.DataFrame, test_name: str):
+    figures_dir = Preferences.figures_dir
+    for distance in [d.name for d in DistanceType]:
+        for corpus in ["BNC", "BBC", "UKWAC"]:
+            filtered_dataframe: pandas.DataFrame = dataframe.copy()
+            filtered_dataframe = filtered_dataframe[filtered_dataframe["corpus"] == corpus]
+            filtered_dataframe = filtered_dataframe[filtered_dataframe["distance"] == distance]
+            filtered_dataframe = filtered_dataframe[filtered_dataframe["test_name"] == test_name]
 
-                plot.set(ylim=(0, 1))
+            filtered_dataframe = filtered_dataframe.sort_values(by=["model_name", "radius"])
+            filtered_dataframe = filtered_dataframe.reset_index(drop=True)
 
-                # Format yticks as percentages
-                vals = plot.ax.get_yticks()
-                plot.ax.set_yticklabels(['{:3.0f}%'.format(x * 100) for x in vals])
+            filtered_dataframe = filtered_dataframe[[
+                "model_name",
+                "radius",
+                "score"]]
 
-                # Put the legend out of the figure
-                # resize figure box to -> put the legend out of the figure
-                plot_box = plot.ax.get_position()  # get position of figure
-                plot.ax.set_position([plot_box.x0, plot_box.y0, plot_box.width * 0.75, plot_box.height])  # resize position
+            plot = seaborn.factorplot(data=filtered_dataframe,
+                                      x="radius", y="score",
+                                      hue="model_name",
+                                      size=7, aspect=1.8,
+                                      legend=False)
 
-                # Put a legend to the right side
-                plot.ax.legend(loc='center right', bbox_to_anchor=(1.35, 0.5), ncol=1)
+            plot.set(ylim=(0, 1))
 
-                plot.savefig(os.path.join(figures_dir, figure_name))
+            # Format yticks as percentages
+            vals = plot.ax.get_yticks()
+            plot.ax.set_yticklabels(['{:3.0f}%'.format(x * 100) for x in vals])
+
+            # Put the legend out of the figure
+            # resize figure box to -> put the legend out of the figure
+            plot_box = plot.ax.get_position()  # get position of figure
+            plot.ax.set_position([plot_box.x0, plot_box.y0, plot_box.width * 0.75, plot_box.height])  # resize position
+
+            # Put a legend to the right side
+            plot.ax.legend(loc='center right', bbox_to_anchor=(1.35, 0.5), ncol=1)
+
+            figure_name = f"synonym {test_name} {corpus} {distance}.png"
+
+            plot.savefig(os.path.join(figures_dir, figure_name))
 
 
 def load_data() -> pandas.DataFrame:
