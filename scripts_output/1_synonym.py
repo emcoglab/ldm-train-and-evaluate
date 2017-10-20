@@ -49,16 +49,17 @@ def main():
 
     for test_name in ["TOEFL", "ESL", "LBM's new MCQ"]:
 
-        produce_figures(dataframe, test_name)
-        produce_tables(dataframe, test_name)
+        figures_score_vs_radius(dataframe, test_name)
+        summary_tables(dataframe, test_name)
 
 
-def produce_tables(dataframe: pandas.DataFrame, test_name: str):
+def summary_tables(dataframe: pandas.DataFrame, test_name: str):
     summary_dir = Preferences.summary_dir
     filtered_dataframe: pandas.DataFrame = dataframe.copy()
 
 
-def produce_figures(dataframe: pandas.DataFrame, test_name: str):
+
+def figures_score_vs_radius(dataframe: pandas.DataFrame, test_name: str):
     figures_dir = Preferences.figures_dir
     for distance in [d.name for d in DistanceType]:
         for corpus in ["BNC", "BBC", "UKWAC"]:
