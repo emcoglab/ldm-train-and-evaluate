@@ -69,6 +69,8 @@ def main():
                 report_card = SynonymTester.administer_tests(model, test_battery, truncate_length)
                 report_card.save_csv(csv_name)
 
+            del count_models
+
             # PREDICT MODELS
 
             for embedding_size in Preferences.predict_embedding_sizes:
@@ -84,6 +86,8 @@ def main():
                         model.train(memory_map=True)
                         report_card = SynonymTester.administer_tests(model, test_battery)
                         report_card.save_csv(csv_name)
+
+                del predict_models
 
 
 if __name__ == "__main__":

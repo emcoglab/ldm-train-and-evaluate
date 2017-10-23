@@ -90,6 +90,8 @@ def add_all_model_predictors(spp_data):
                     spp_data.add_model_predictor(model, distance_type, for_priming_effect=False, memory_map=True)
                     spp_data.add_model_predictor(model, distance_type, for_priming_effect=True, memory_map=True)
 
+            del count_models
+
             # PREDICT MODELS
 
             for embedding_size in Preferences.predict_embedding_sizes:
@@ -103,6 +105,8 @@ def add_all_model_predictors(spp_data):
                     for distance_type in DistanceType:
                         spp_data.add_model_predictor(model, distance_type, for_priming_effect=False, memory_map=True)
                         spp_data.add_model_predictor(model, distance_type, for_priming_effect=True, memory_map=True)
+
+                del predict_models
 
 
 def regression_wrapper(spp_data: SppData):
