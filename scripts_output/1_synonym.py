@@ -101,6 +101,8 @@ def figures_score_vs_radius(dataframe: pandas.DataFrame, test_name: str):
             plot.savefig(os.path.join(figures_dir, figure_name))
 
 
+# TODO: this is madness, this should be a pickled ReportCard which should have the ability to export a csv or a dataframe
+# TODO: Also, ReportCard is basically just a dataframe, and should be replaced by one.
 def load_data() -> pandas.DataFrame:
     """
     Load a pandas.DataFrame from a collection of CSV fragments.

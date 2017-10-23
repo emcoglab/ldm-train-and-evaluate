@@ -36,7 +36,7 @@ class Preferences(object):
         tokenised=CorpusMetadata(
             name="BNC",
             path="/Volumes/Data/corpora/BNC/2 Tokenised/BNC.corpus",
-            freq_dist_path="/Volumes/Data/corpora/BNC/2.1 info/frequency_distribution_BNC",
+            freq_dist_path="/Volumes/Data/vectors/indexes/BNC.freqdist",
             index_path="/Volumes/Data/vectors/indexes/BNC.index"))
     bnc_text_processing_metas = dict(
         raw=CorpusMetadata(
@@ -48,8 +48,8 @@ class Preferences(object):
         tokenised=CorpusMetadata(
             name="BNC-text",
             path="/Volumes/Data/corpora/BNC-text/2 Tokenised/BNC-text.corpus",
-            freq_dist_path="/Volumes/Data/corpora/BNC-text/2.1 info/frequency_distribution_BNC_text",
-            index_path="/Volumes/Data/vectors/indexes/BNC-text.index"))
+            freq_dist_path="/Volumes/Data/vectors/indexes/BNC_text.freqdist",
+            index_path="/Volumes/Data/vectors/indexes/BNC_text.index"))
     bnc_speech_processing_metas = dict(
         raw=CorpusMetadata(
             name="BNC-speech",
@@ -60,8 +60,8 @@ class Preferences(object):
         tokenised=CorpusMetadata(
             name="BNC-speech",
             path="/Volumes/Data/corpora/BNC-speech/2 Tokenised/BNC-speech.corpus",
-            freq_dist_path="/Volumes/Data/corpora/BNC-speech/2.1 info/frequency_distribution_BNC_speech",
-            index_path="/Volumes/Data/vectors/indexes/BNC-speech.index"))
+            freq_dist_path="/Volumes/Data/vectors/indexes/BNC_speech.freqdist",
+            index_path="/Volumes/Data/vectors/indexes/BNC_speech.index"))
     bbc_processing_metas = dict(
         raw=CorpusMetadata(
             name="BBC",
@@ -78,7 +78,7 @@ class Preferences(object):
         tokenised=CorpusMetadata(
             name="BBC",
             path="/Volumes/Data/corpora/BBC/4 Tokenised/BBC.corpus",
-            freq_dist_path="/Volumes/Data/corpora/BBC/4.1 info/frequency_distribution_BBC",
+            freq_dist_path="/Volumes/Data/vectors/indexes/BBC.freqdist",
             index_path="/Volumes/Data/vectors/indexes/BBC.index"))
     ukwac_processing_metas = dict(
         raw=CorpusMetadata(
@@ -93,13 +93,13 @@ class Preferences(object):
         tokenised=CorpusMetadata(
             name="UKWAC",
             path="/Volumes/Data/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
-            freq_dist_path="/Volumes/Data/corpora/UKWAC/3.1 info/frequency_distribution_UKWAC",
+            freq_dist_path="/Volumes/Data/vectors/indexes/UKWAC.freqdist",
             index_path="/Volumes/Data/vectors/indexes/UKWAC.index"))
     toy_processing_metas = dict(
         tokenised=CorpusMetadata(
             name="Toy",
             path="/Volumes/Data/corpora/toy-corpus/toy.corpus",
-            freq_dist_path="/Volumes/Data/corpora/toy-corpus/frequency_distribution_toy",
+            freq_dist_path="/Volumes/Data/vectors/indexes/toy.freqdist",
             index_path="/Volumes/Data/corpora/toy-corpus/toy.index"))
 
     # The final locations of the processed corpora
