@@ -44,6 +44,7 @@ class SimilarityReportCard(ReportCard):
             'Window radius',
             'Distance type',
             'Corpus',
+            'Correlation type',
             'Correlation'
         ]
 
@@ -60,8 +61,10 @@ class SimilarityReportCard(ReportCard):
                      model: VectorSemanticModel,
                      test: 'SimilarityJudgementTest',
                      distance_type: DistanceType,
+                     correlation_type: CorrelationType,
                      correlation: float):
             super().__init__(test.name, model.model_type.name, model, distance_type)
+            self._correlation_type = correlation_type
             self._correlation = correlation
 
         @property
@@ -74,6 +77,7 @@ class SimilarityReportCard(ReportCard):
                 f"{self._window_radius}",
                 self._distance_type.name,
                 self._corpus_name,
+                f"{self._correlation_type.name}",
                 f"{self._correlation}"
             ]
 
@@ -294,7 +298,7 @@ class SimilarityTester(object):
 
         for test in test_battery:
             for distance_type in DistanceType:
-                for correlation in CorrelationType:
+                for correlation_type in CorrelationType:
                     human_judgements: List[SimilarityJudgement] = []
                     model_judgements: List[SimilarityJudgement] = []
                     for human_judgement in test.judgement_list:
@@ -316,21 +320,21 @@ class SimilarityTester(object):
                             distance))
 
                     # Apply correlation
-                    if correlation is CorrelationType.Pearson:
+                    if correlation_type is CorrelationType.Pearson:
                         correlation = numpy.corrcoef(
                             [j.similarity for j in human_judgements],
                             [j.similarity for j in model_judgements])[0][1]
-                    elif correlation is CorrelationType.Spearman:
+                    elif correlation_type is CorrelationType.Spearman:
                         # PyCharm erroneously detects input types for scipy.stats.spearmanr as int rather than ndarray
                         # noinspection PyTypeChecker
                         correlation = scipy.stats.spearmanr(
                             [j.similarity for j in human_judgements],
                             [j.similarity for j in model_judgements]).correlation
                     else:
-                        raise ValueError(correlation)
+                        raise ValueError(correlation_type)
 
                     # Record correlation on report card
                     report_card.add_entry(
-                        SimilarityReportCard.Entry(model, test, distance_type, correlation))
+                        SimilarityReportCard.Entry(model, test, distance_type, correlation_type, correlation))
 
         return report_card
