@@ -25,6 +25,8 @@ import numpy
 import pandas
 import seaborn
 
+from matplotlib import pyplot
+
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
@@ -37,7 +39,6 @@ def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
 
 
 def main():
-
     dataframe = load_data()
     dataframe = ensure_column_safety(dataframe)
 
@@ -48,15 +49,14 @@ def main():
                                               axis=1)
 
     for test_name in ["TOEFL", "ESL", "LBM's new MCQ"]:
-
-        figures_score_vs_radius(dataframe, test_name)
+        # figures_score_vs_radius(dataframe, test_name)
+        figures_embedding_size(dataframe, test_name)
         summary_tables(dataframe, test_name)
 
 
 def summary_tables(dataframe: pandas.DataFrame, test_name: str):
     summary_dir = Preferences.summary_dir
     filtered_dataframe: pandas.DataFrame = dataframe.copy()
-
 
 
 def figures_score_vs_radius(dataframe: pandas.DataFrame, test_name: str):
@@ -99,6 +99,66 @@ def figures_score_vs_radius(dataframe: pandas.DataFrame, test_name: str):
             figure_name = f"synonym {test_name} {corpus} {distance}.png"
 
             plot.savefig(os.path.join(figures_dir, figure_name))
+
+
+def figures_embedding_size(dataframe: pandas.DataFrame, test_name: str):
+
+    figures_dir = Preferences.figures_dir
+    for distance in [d.name for d in DistanceType]:
+        filtered_dataframe: pandas.DataFrame = dataframe.copy()
+        filtered_dataframe = filtered_dataframe[filtered_dataframe["distance"] == distance]
+        filtered_dataframe = filtered_dataframe[filtered_dataframe["test_name"] == test_name]
+
+        # Remove count models by dropping rows with nan in embedding_size column
+        filtered_dataframe = filtered_dataframe.dropna()
+
+        filtered_dataframe = filtered_dataframe[[
+            "corpus",
+            "model",
+            "embedding_size",
+            "radius",
+            "score"]]
+
+        filtered_dataframe = filtered_dataframe.sort_values(by=["corpus", "model", "embedding_size", "radius"])
+        filtered_dataframe = filtered_dataframe.reset_index(drop=True)
+
+        seaborn.set_style("ticks")
+        seaborn.set_context(context="paper", font_scale=1)
+        grid = seaborn.FacetGrid(
+            filtered_dataframe,
+            row="radius", col="corpus", hue="model",
+            margin_titles=True,
+            size=2,
+            ylim=(0, 1),
+            legend_out=True
+        )
+
+        # Chance line
+        grid.map(pyplot.axhline, y=0.25, ls=":", c=".5", label="")
+
+        grid.map(pyplot.plot, "embedding_size", "score", marker="o")
+
+        grid.set(
+            xticks=Preferences.predict_embedding_sizes,
+        )
+
+        ytick_labels = grid.axes[0][0].get_yticklabels()
+        grid.set_yticklabels(['{:3.0f}%'.format(float(label.get_text()) * 100) for label in ytick_labels])
+
+        grid.set_xlabels("Embedding size")
+        grid.set_ylabels("Score")
+
+        grid.add_legend(title="Model", bbox_to_anchor=(1, 1))
+        # pyplot.legend(loc="lower center")
+
+        # Title
+        title = f"{test_name} ({distance})"
+        pyplot.subplots_adjust(top=0.92)
+        grid.fig.suptitle(title)
+
+        figure_name = f"synonym embedding_size {test_name} {distance}.png"
+
+        grid.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
 
 # TODO: this is madness, this should be a pickled ReportCard which should have the ability to export a csv or a dataframe
