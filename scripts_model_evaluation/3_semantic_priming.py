@@ -122,15 +122,11 @@ def regression_wrapper(spp_data: SppData):
         "LDT_200ms_Z",
         "LDT_200ms_Acc",
         "LDT_1200ms_Z",
-        "LDT_1200ms_Acc",
-        "LDT_mean_Z",
-        "LDT_mean_Acc",
+        "LDT_1200ms_Acc"
         "NT_200ms_Z",
         "NT_200ms_Acc",
         "NT_1200ms_Z",
-        "NT_1200ms_Acc",
-        "NT_mean_Z",
-        "NT_mean_Acc"
+        "NT_1200ms_Acc"
     ]
 
     baseline_variable_names = [
@@ -156,15 +152,11 @@ def regression_wrapper(spp_data: SppData):
         "LDT_200ms_Z_Priming",
         "LDT_200ms_Acc_Priming",
         "LDT_1200ms_Z_Priming",
-        "LDT_1200ms_Acc_Priming",
-        "LDT_mean_Z_Priming",
-        "LDT_mean_Acc_Priming",
+        "LDT_1200ms_Acc_Priming"
         "NT_200ms_Z_Priming",
         "NT_200ms_Acc_Priming",
         "NT_1200ms_Z_Priming",
-        "NT_1200ms_Acc_Priming",
-        "NT_mean_Z_Priming",
-        "NT_mean_Acc_Priming"
+        "NT_1200ms_Acc_Priming"
     ]
 
     baseline_variable_priming_names = [
@@ -214,7 +206,11 @@ def run_single_model_regression(all_data: pandas.DataFrame,
         model,
         distance_type,
         baseline_regression.rsquared,
-        model_regression.rsquared)
+        model_regression.rsquared,
+        model_regression.t,
+        model_regression.p,
+        model_regression.df
+    )
 
 
 def run_all_model_regressions(all_data: pandas.DataFrame,

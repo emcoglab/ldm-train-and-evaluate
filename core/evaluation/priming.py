@@ -307,7 +307,10 @@ class SppRegressionResult(object):
                  model: VectorSemanticModel,
                  distance_type: DistanceType,
                  baseline_r2: float,
-                 model_r2: float):
+                 model_r2: float,
+                 model_t: float,
+                 model_p: float,
+                 df: int):
 
         # Dependent variable
         self.dv_name         = dv_name
@@ -325,6 +328,17 @@ class SppRegressionResult(object):
         # R^2 with the inclusion of the model predictors
         self.model_r2        = model_r2
 
+        # t, p
+        self.model_t         = model_t
+        self.model_p         = model_p
+
+        # Degrees of freedom
+        self.df              = df
+
+    @property
+    def model_r2_increase(self) -> float:
+        return self.model_r2 - self.baseline_r2
+
     @classmethod
     def headings(cls) -> List[str]:
         return [
@@ -335,7 +349,11 @@ class SppRegressionResult(object):
             'Distance type',
             'Corpus',
             'Baseline R-squared',
-            'Model R-squared'
+            'Model R-squared',
+            'R-squared increase',
+            't',
+            'p',
+            'df'
         ]
 
     @property
@@ -348,5 +366,9 @@ class SppRegressionResult(object):
             self.distance_type.name,
             self.corpus_name,
             str(self.baseline_r2),
-            str(self.model_r2)
+            str(self.model_r2),
+            str(self.model_r2_increase),
+            str(self.model_t),
+            str(self.model_p),
+            str(self.df)
         ]
