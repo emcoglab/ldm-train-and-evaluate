@@ -41,10 +41,10 @@ def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
 
 
 def main():
-    regression_results_df = load_data()
-    regression_results_df = ensure_column_safety(regression_results_df)
+    synonym_results = load_data()
+    synonym_results = ensure_column_safety(synonym_results)
 
-    regression_results_df["model_name"] = regression_results_df.apply(
+    synonym_results["model_name"] = synonym_results.apply(
         lambda r:
         f"{r['corpus']} {r['distance']} {r['model']} {r['embedding_size']}"
         if not numpy.math.isnan(r['embedding_size'])
@@ -52,11 +52,11 @@ def main():
         axis=1
     )
 
-    # for test_name in TEST_NAMES:
-    #     # figures_score_vs_radius(regression_results_df, test_name)
-    #     figures_embedding_size(regression_results_df, test_name)
+    for test_name in TEST_NAMES:
+        figures_score_vs_radius(synonym_results, test_name)
+        figures_embedding_size(synonym_results, test_name)
 
-    summary_tables(regression_results_df)
+    summary_tables(synonym_results)
 
 
 def summary_tables(regression_results_df: pandas.DataFrame):
