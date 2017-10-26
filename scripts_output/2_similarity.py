@@ -41,10 +41,10 @@ def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
 # TODO: essentially duplicated code
 def main():
 
-    similarity_results = load_data()
-    similarity_results = ensure_column_safety(similarity_results)
+    similarity_results_df = load_data()
+    similarity_results_df = ensure_column_safety(similarity_results_df)
 
-    similarity_results["model"] = similarity_results.apply(
+    similarity_results_df["model"] = similarity_results_df.apply(
         lambda r:
         f"{r['corpus']} {r['distance_type']} {r['model_type']} {r['embedding_size']}"
         if not numpy.math.isnan(r['embedding_size'])
@@ -52,13 +52,13 @@ def main():
         axis=1
     )
 
-    for test_name in TEST_NAMES:
-        figures_score_vs_radius(similarity_results, test_name)
+    # for test_name in TEST_NAMES:
+    #     figures_score_vs_radius(similarity_results_df, test_name)
 
-    summary_tables(similarity_results)
+    summary_tables(similarity_results_df)
 
 
-def summary_tables(similarity_results: pandas.DataFrame):
+def summary_tables(similarity_results_df: pandas.DataFrame):
     summary_dir = Preferences.summary_dir
 
     for correlation_type in [c.name for c in CorrelationType]:
@@ -67,7 +67,7 @@ def summary_tables(similarity_results: pandas.DataFrame):
 
         for test_name in TEST_NAMES:
 
-            filtered_df: pandas.DataFrame = similarity_results.copy()
+            filtered_df: pandas.DataFrame = similarity_results_df.copy()
             filtered_df = filtered_df[filtered_df["test_name"] == test_name]
             filtered_df = filtered_df[filtered_df["correlation_type"] == correlation_type]
 
