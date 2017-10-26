@@ -33,50 +33,71 @@ from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
+TEST_NAMES = ["TOEFL", "ESL", "LBM's new MCQ"]
+
 
 def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
     return df.rename(columns=lambda col_name: col_name.replace(" ", "_").lower())
 
 
 def main():
-    dataframe = load_data()
-    dataframe = ensure_column_safety(dataframe)
+    regression_results_df = load_data()
+    regression_results_df = ensure_column_safety(regression_results_df)
 
-    dataframe["model_name"] = dataframe.apply(lambda r:
-                                              f"{r['corpus']} {r['distance']} {r['model']} {r['embedding_size']}"
-                                              if not numpy.math.isnan(r['embedding_size'])
-                                              else f"{r['corpus']} {r['distance']} {r['model']}",
-                                              axis=1)
+    regression_results_df["model_name"] = regression_results_df.apply(
+        lambda r:
+        f"{r['corpus']} {r['distance']} {r['model']} {r['embedding_size']}"
+        if not numpy.math.isnan(r['embedding_size'])
+        else f"{r['corpus']} {r['distance']} {r['model']}",
+        axis=1
+    )
 
-    for test_name in ["TOEFL", "ESL", "LBM's new MCQ"]:
-        # figures_score_vs_radius(dataframe, test_name)
-        figures_embedding_size(dataframe, test_name)
-        summary_tables(dataframe, test_name)
+    # for test_name in TEST_NAMES:
+    #     # figures_score_vs_radius(regression_results_df, test_name)
+    #     figures_embedding_size(regression_results_df, test_name)
+
+    summary_tables(regression_results_df)
 
 
-def summary_tables(dataframe: pandas.DataFrame, test_name: str):
+def summary_tables(regression_results_df: pandas.DataFrame):
     summary_dir = Preferences.summary_dir
-    filtered_dataframe: pandas.DataFrame = dataframe.copy()
+
+    results_df = pandas.DataFrame()
+
+    for test_name in TEST_NAMES:
+
+        filtered_df: pandas.DataFrame = regression_results_df.copy()
+        filtered_df = filtered_df[filtered_df["test_name"] == test_name]
+
+        best_score = filtered_df["score"].max()
+
+        best_models_df = filtered_df[filtered_df["score"] == best_score]
+
+        results_df = results_df.append(best_models_df)
+
+    results_df = results_df.reset_index(drop=True)
+
+    results_df.to_csv(os.path.join(summary_dir, "synonym_best_models.csv"))
 
 
-def figures_score_vs_radius(dataframe: pandas.DataFrame, test_name: str):
+def figures_score_vs_radius(regression_results_df: pandas.DataFrame, test_name: str):
     figures_dir = Preferences.figures_dir
     for distance in [d.name for d in DistanceType]:
         for corpus in ["BNC", "BBC", "UKWAC"]:
-            filtered_dataframe: pandas.DataFrame = dataframe.copy()
-            filtered_dataframe = filtered_dataframe[filtered_dataframe["corpus"] == corpus]
-            filtered_dataframe = filtered_dataframe[filtered_dataframe["distance"] == distance]
-            filtered_dataframe = filtered_dataframe[filtered_dataframe["test_name"] == test_name]
+            filtered_df: pandas.DataFrame = regression_results_df.copy()
+            filtered_df = filtered_df[filtered_df["corpus"] == corpus]
+            filtered_df = filtered_df[filtered_df["distance"] == distance]
+            filtered_df = filtered_df[filtered_df["test_name"] == test_name]
 
-            filtered_dataframe = filtered_dataframe.sort_values(by=["model_name", "radius"])
-            filtered_dataframe = filtered_dataframe.reset_index(drop=True)
+            filtered_df = filtered_df.sort_values(by=["model_name", "radius"])
+            filtered_df = filtered_df.reset_index(drop=True)
 
-            filtered_dataframe = filtered_dataframe[[
+            filtered_df = filtered_df[[
                 "model_name",
                 "radius",
                 "score"]]
 
-            plot = seaborn.factorplot(data=filtered_dataframe,
+            plot = seaborn.factorplot(data=filtered_df,
                                       x="radius", y="score",
                                       hue="model_name",
                                       size=7, aspect=1.8,
@@ -101,31 +122,31 @@ def figures_score_vs_radius(dataframe: pandas.DataFrame, test_name: str):
             plot.savefig(os.path.join(figures_dir, figure_name))
 
 
-def figures_embedding_size(dataframe: pandas.DataFrame, test_name: str):
+def figures_embedding_size(regression_results_df: pandas.DataFrame, test_name: str):
 
     figures_dir = Preferences.figures_dir
     for distance in [d.name for d in DistanceType]:
-        filtered_dataframe: pandas.DataFrame = dataframe.copy()
-        filtered_dataframe = filtered_dataframe[filtered_dataframe["distance"] == distance]
-        filtered_dataframe = filtered_dataframe[filtered_dataframe["test_name"] == test_name]
+        filtered_df: pandas.DataFrame = regression_results_df.copy()
+        filtered_df = filtered_df[filtered_df["distance"] == distance]
+        filtered_df = filtered_df[filtered_df["test_name"] == test_name]
 
         # Remove count models by dropping rows with nan in embedding_size column
-        filtered_dataframe = filtered_dataframe.dropna()
+        filtered_df = filtered_df.dropna()
 
-        filtered_dataframe = filtered_dataframe[[
+        filtered_df = filtered_df[[
             "corpus",
             "model",
             "embedding_size",
             "radius",
             "score"]]
 
-        filtered_dataframe = filtered_dataframe.sort_values(by=["corpus", "model", "embedding_size", "radius"])
-        filtered_dataframe = filtered_dataframe.reset_index(drop=True)
+        filtered_df = filtered_df.sort_values(by=["corpus", "model", "embedding_size", "radius"])
+        filtered_df = filtered_df.reset_index(drop=True)
 
         seaborn.set_style("ticks")
         seaborn.set_context(context="paper", font_scale=1)
         grid = seaborn.FacetGrid(
-            filtered_dataframe,
+            filtered_df,
             row="radius", col="corpus", hue="model",
             margin_titles=True,
             size=2,
@@ -180,14 +201,14 @@ def load_data() -> pandas.DataFrame:
     with open(os.path.join(results_dir, " header.csv"), mode="r", encoding="utf-8") as header_file:
         column_names = header_file.read().strip().split(separator)
 
-    data = pandas.DataFrame(columns=column_names)
+    results_df = pandas.DataFrame(columns=column_names)
 
     for data_filename in data_filenames:
         partial_df = pandas.read_csv(data_filename, sep=separator, names=column_names,
                                      converters={'Score': percent_to_float})
-        data = data.append(partial_df, ignore_index=True)
+        results_df = results_df.append(partial_df, ignore_index=True)
 
-    return data
+    return results_df
 
 
 if __name__ == "__main__":
