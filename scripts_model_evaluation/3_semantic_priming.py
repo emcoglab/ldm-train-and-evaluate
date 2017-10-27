@@ -122,7 +122,7 @@ def regression_wrapper(spp_data: SppData):
         "LDT_200ms_Z",
         "LDT_200ms_Acc",
         "LDT_1200ms_Z",
-        "LDT_1200ms_Acc"
+        "LDT_1200ms_Acc",
         "NT_200ms_Z",
         "NT_200ms_Acc",
         "NT_1200ms_Z",
@@ -130,15 +130,10 @@ def regression_wrapper(spp_data: SppData):
     ]
 
     baseline_variable_names = [
-        # "PrimeLength",
         "TargetLength",
-        # "elex_prime_LgSUBTLWF",
         "elex_target_LgSUBTLWF",
-        # "elex_prime_OLD",
         "elex_target_OLD",
-        # "elex_prime_PLD",
         "elex_target_PLD",
-        # "elex_prime_NSyll",
         "elex_target_NSyll",
         "PrimeTarget_OrthLD"
     ]
@@ -152,7 +147,7 @@ def regression_wrapper(spp_data: SppData):
         "LDT_200ms_Z_Priming",
         "LDT_200ms_Acc_Priming",
         "LDT_1200ms_Z_Priming",
-        "LDT_1200ms_Acc_Priming"
+        "LDT_1200ms_Acc_Priming",
         "NT_200ms_Z_Priming",
         "NT_200ms_Acc_Priming",
         "NT_1200ms_Z_Priming",
@@ -207,9 +202,9 @@ def run_single_model_regression(all_data: pandas.DataFrame,
         distance_type,
         baseline_regression.rsquared,
         model_regression.rsquared,
-        model_regression.t,
-        model_regression.p,
-        model_regression.df
+        model_regression.tvalues[model_predictor_name],
+        model_regression.pvalues[model_predictor_name],
+        model_regression.df_resid
     )
 
 
