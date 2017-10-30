@@ -79,6 +79,30 @@ class DistanceTests(unittest.TestCase):
 class LevenshteinDistanceTests(unittest.TestCase):
     """Tests for core.utils.maths.levenshtein_distance"""
 
+    def test_old_insertion_cost_is_1(self):
+        self.assertEqual(
+            levenshtein_distance("a", "ab"),
+            1
+        )
+
+    def test_old_deletion_cost_is_1(self):
+        self.assertEqual(
+            levenshtein_distance("ab", "a"),
+            1
+        )
+
+    def test_old_substitution_cost_is_1(self):
+        self.assertEqual(
+            levenshtein_distance("ab", "ac"),
+            1
+        )
+
+    def test_old_transposition_cost_is_2(self):
+        self.assertEqual(
+            levenshtein_distance("ab", "ba"),
+            2
+        )
+
     def test_old_from_string_to_itself_is_0(self):
         s = "a fancy string"
         self.assertEqual(

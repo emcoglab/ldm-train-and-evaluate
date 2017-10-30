@@ -29,8 +29,6 @@ from .testing_materials.metadata import test_corpus_metadata
 
 
 class TestUnsummedNgramModel(unittest.TestCase):
-    """Tests for core.corpus.indexing.TokenIndexDictionary."""
-
     def test_unsummed_ngram_r1_left_values(self):
         model = UnsummedNgramCountModel(test_corpus_metadata,
                                         window_radius=1,
