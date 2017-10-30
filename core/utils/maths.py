@@ -108,6 +108,8 @@ def sparse_max(a, b):
 
     # Where are elements of b bigger than corresponding element of a?
     b_is_bigger = a - b
+    # Pycharm gets type inference wrong here, I'm pretty sure
+    # noinspection PyTypeChecker
     b_is_bigger.data = numpy.where(b_is_bigger.data < 0, 1, 0)
 
     # Return elements of a where a was bigger, and elements of b where b was bigger
