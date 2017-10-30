@@ -175,7 +175,7 @@ class CountVectorModel(VectorSemanticModel):
         return [self.token_indices.id2token(i) for i, dist in nearest_neighbours]
 
     def contains_word(self, word: str) -> bool:
-        if word.lower() in self.token_indices.token2id:
+        if word.lower() in [token.lower() for token in self.token_indices.token2id]:
             return True
         else:
             return False

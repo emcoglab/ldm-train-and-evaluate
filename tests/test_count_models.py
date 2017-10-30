@@ -16,10 +16,12 @@ caiwingfield.net
 """
 
 import unittest
+import math
 
 import numpy
 
 from ..core.utils.constants import Chirality
+from ..core.utils.maths import DistanceType
 from ..core.corpus.corpus import BatchedCorpus
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.model.count import UnsummedNgramCountModel, NgramCountModel, LogNgramModel, ConditionalProbabilityModel, \
@@ -67,6 +69,44 @@ class TestUnsummedNgramModel(unittest.TestCase):
 
 
 class TestSummedNgramModel(unittest.TestCase):
+    def test_summed_ngram_contains_abcd(self):
+        model = NgramCountModel(test_corpus_metadata,
+                                window_radius=1,
+                                token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
+                                    BatchedCorpus(test_corpus_metadata, 3))))
+        model.train(force_retrain=True)
+
+        self.assertTrue(model.contains_word("A"))
+        self.assertTrue(model.contains_word("B"))
+        self.assertTrue(model.contains_word("C"))
+        self.assertTrue(model.contains_word("D"))
+
+    def test_summed_ngram_does_not_contain_e(self):
+        model = NgramCountModel(test_corpus_metadata,
+                                window_radius=1,
+                                token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
+                                    BatchedCorpus(test_corpus_metadata, 3))))
+        model.train(force_retrain=True)
+
+        self.assertFalse(model.contains_word("E"))
+
+    def test_summed_ngram_r1_values(self):
+        model = NgramCountModel(test_corpus_metadata,
+                                window_radius=1,
+                                token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
+                                    BatchedCorpus(test_corpus_metadata, 3))))
+        model.train(force_retrain=True)
+
+        self.assertTrue(numpy.array_equal(
+            model.matrix.todense(),
+            numpy.array([
+                [2, 3, 2, 1],
+                [3, 0, 1, 0],
+                [2, 1, 0, 1],
+                [1, 0, 1, 0]
+            ])
+        ))
+
     def test_summed_ngram_r2_values(self):
         model = NgramCountModel(test_corpus_metadata,
                                 window_radius=2,
@@ -83,6 +123,35 @@ class TestSummedNgramModel(unittest.TestCase):
                 [3, 0, 1, 0]
             ])
         ))
+
+    def test_summed_ngram_r9_values(self):
+        model = NgramCountModel(test_corpus_metadata,
+                                window_radius=9,
+                                token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
+                                    BatchedCorpus(test_corpus_metadata, 3))))
+        model.train(force_retrain=True)
+
+        self.assertTrue(numpy.array_equal(
+            model.matrix.todense(),
+            numpy.array([
+                [12, 12, 8, 4],
+                [12,  6, 6, 3],
+                [ 8,  6, 2, 2],
+                [ 4,  3, 2, 0]
+            ])
+        ))
+
+    def test_summed_ngram_r9_distance(self):
+        model = NgramCountModel(test_corpus_metadata,
+                                window_radius=9,
+                                token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
+                                    BatchedCorpus(test_corpus_metadata, 3))))
+        model.train(force_retrain=True)
+
+        self.assertAlmostEqual(
+            model.distance_between("A", "B", DistanceType.Euclidean),
+            math.sqrt((12-12)**2 + (6-12)**2 + (6-8)**2 + (3-4)**2)
+        )
 
 
 class TestLogNgram(unittest.TestCase):
@@ -108,6 +177,7 @@ class TestLogNgram(unittest.TestCase):
             )
         except AssertionError:
             self.fail("AssertionError raised by numpy.testing.assert_array_almost_equal.")
+
 
 
 class TestConditionalProbability(unittest.TestCase):
