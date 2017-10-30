@@ -51,19 +51,26 @@ class TokenIndexDictionaryTests(unittest.TestCase):
 class FreqDistTests(unittest.TestCase):
     """Tests for core.corpus.indexing.FreqDist."""
 
-    def test_specific_vaules_for_freqdist_from_batched_corpus(self):
+    def test_corpus_contains_specific_items(self):
         fd = FreqDist.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
 
-        self.assertTrue("A" in fd.items())
-        self.assertTrue("B" in fd.items())
-        self.assertTrue("C" in fd.items())
-        self.assertTrue("D" in fd.items())
+        self.assertTrue("A" in fd.elements())
+        self.assertTrue("B" in fd.elements())
+        self.assertTrue("C" in fd.elements())
+        self.assertTrue("D" in fd.elements())
+
+    def test_corpus_has_specific_item_counts(self):
+        fd = FreqDist.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
 
         self.assertEqual(fd["A"], 4)
         self.assertEqual(fd["B"], 3)
         self.assertEqual(fd["C"], 1)
         self.assertEqual(fd["D"], 2)
 
+    def test_corpus_has_10_items(self):
+        fd = FreqDist.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
+
+        self.assertEqual(fd.N(), 10)
 
 
 if __name__ == '__main__':

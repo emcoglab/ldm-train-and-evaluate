@@ -466,6 +466,7 @@ class ConditionalProbabilityModel(CountVectorModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
+                 # TODO: this argument can be removed, replaced by TokenIndexDictionary.from_freqdist(freq_dist)
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.conditional_probability, corpus_meta, window_radius,

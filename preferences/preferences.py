@@ -95,12 +95,6 @@ class Preferences(object):
             path="/Volumes/Data/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
             freq_dist_path="/Volumes/Data/vectors/indexes/UKWAC.freqdist",
             index_path="/Volumes/Data/vectors/indexes/UKWAC.index"))
-    toy_processing_metas = dict(
-        tokenised=CorpusMetadata(
-            name="Toy",
-            path="/Volumes/Data/corpora/toy-corpus/test.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/toy.freqdist",
-            index_path="/Volumes/Data/corpora/toy-corpus/toy.index"))
 
     # The final locations of the processed corpora
     source_corpus_metas = [
