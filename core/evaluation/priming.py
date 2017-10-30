@@ -80,8 +80,18 @@ class SppData(object):
         """
         assert self._all_data is not None
         results_csv_path = os.path.join(Preferences.spp_results_dir, "model_predictors.csv")
-        with open(results_csv_path, mode="w") as spp_file:
+        with open(results_csv_path, mode="w", encoding="utf-8") as spp_file:
             self.dataframe.to_csv(spp_file)
+
+    def export_csv_first_associate_only(self):
+        """
+        Export the current dataframe as a csv, but only rows for the first associate primes.
+        """
+        assert self._all_data is not None
+        results_csv_path = os.path.join(Preferences.spp_results_dir, "model_predictors_first_associate_only.csv")
+        first_assoc_data = self._all_data.query('PrimeType == "first_associate"')
+        with open(results_csv_path, mode="w", encoding="utf-8") as spp_file:
+            first_assoc_data.to_csv(spp_file)
 
     @property
     def _could_load(self) -> bool:
