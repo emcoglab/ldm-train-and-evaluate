@@ -24,5 +24,5 @@ test_corpus_base_dir = os.path.dirname(os.path.realpath(__file__))
 
 test_corpus_metadata = CorpusMetadata(
     name="test_corpus",
-    path=os.path.join(test_corpus_base_dir, "toy.corpus")
+    path=os.path.join(test_corpus_base_dir, "test.corpus")
 )

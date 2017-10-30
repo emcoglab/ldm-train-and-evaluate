@@ -98,7 +98,7 @@ class Preferences(object):
     toy_processing_metas = dict(
         tokenised=CorpusMetadata(
             name="Toy",
-            path="/Volumes/Data/corpora/toy-corpus/toy.corpus",
+            path="/Volumes/Data/corpora/toy-corpus/test.corpus",
             freq_dist_path="/Volumes/Data/vectors/indexes/toy.freqdist",
             index_path="/Volumes/Data/corpora/toy-corpus/toy.index"))
 

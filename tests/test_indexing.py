@@ -21,7 +21,7 @@ from ..core.corpus.corpus import BatchedCorpus
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 
 
-from .test_corpus.metadata import test_corpus_metadata
+from .testing_materials.metadata import test_corpus_metadata
 
 
 class TokenIndexDictionaryTests(unittest.TestCase):
