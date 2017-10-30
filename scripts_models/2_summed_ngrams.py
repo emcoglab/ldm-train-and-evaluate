@@ -18,8 +18,8 @@ caiwingfield.net
 import logging
 import sys
 
+from ..core.corpus.indexing import TokenIndexDictionary
 from ..core.model.count import NgramCountModel
-from ..core.utils.indexing import TokenIndexDictionary
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger()

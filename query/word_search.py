@@ -18,7 +18,7 @@ caiwingfield.net
 
 import argparse
 
-from ..core.corpus.distribution import FreqDist
+from ..core.corpus.indexing import FreqDist
 from ..preferences.preferences import Preferences
 
 

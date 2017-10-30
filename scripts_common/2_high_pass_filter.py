@@ -22,7 +22,7 @@ import sys
 from ..preferences.preferences import Preferences
 from ..core.utils.logging import log_message, date_format
 from ..core.corpus.corpus import CorpusMetadata, StreamedCorpus, BatchedCorpus
-from ..core.corpus.distribution import FreqDist
+from ..core.corpus.indexing import FreqDist
 
 logger = logging.getLogger(__name__)
 

@@ -18,10 +18,10 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.utils.constants import Chirality
-from ..core.utils.indexing import TokenIndexDictionary
-from ..core.utils.logging import log_message, date_format
+from ..core.corpus.indexing import TokenIndexDictionary
 from ..core.model.count import UnsummedNgramCountModel
+from ..core.utils.constants import Chirality
+from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)

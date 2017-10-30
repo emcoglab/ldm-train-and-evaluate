@@ -16,8 +16,15 @@ caiwingfield.net
 """
 
 import json
+import os
+import pickle
+import logging
 
-from ..corpus.distribution import FreqDist
+import nltk
+
+from core.corpus.corpus import BatchedCorpus
+
+logger = logging.getLogger(__name__)
 
 
 class LetterIndexing(object):
@@ -52,6 +59,10 @@ class TokenIndexDictionary(object):
         self.token2id = token2id
         # A dictionary of index-keyed tokens
         self.id2token = dict((v, k) for k, v in token2id.items())
+
+    @property
+    def tokens(self):
+        return [k for k, v in self.token2id.items()]
 
     def __len__(self):
         """
@@ -95,3 +106,44 @@ class TokenIndexDictionary(object):
         """
         with open(filename, mode="r") as file:
             return cls(json.load(file))
+
+
+# noinspection PyAbstractClass
+class FreqDist(nltk.probability.FreqDist):
+    """
+    Extension of nltk.probability.FreqDist with a few useful helper methods.
+    """
+
+    _file_extension = ".freqdist"
+
+    @classmethod
+    def could_load(cls, filename: str) -> bool:
+        if not filename.endswith(FreqDist._file_extension):
+            filename += FreqDist._file_extension
+        return os.path.isfile(filename)
+
+    def save(self, filename: str):
+        if not filename.endswith(FreqDist._file_extension):
+            filename += FreqDist._file_extension
+        with open(filename, mode="wb") as file:
+            pickle.dump(self, file)
+
+    @classmethod
+    def load(cls, filename: str) -> 'FreqDist':
+        if not filename.endswith(FreqDist._file_extension):
+            filename += FreqDist._file_extension
+        with open(filename, mode="rb") as file:
+            return pickle.load(file)
+
+    @classmethod
+    def from_batched_corpus(cls, batched_corpus: BatchedCorpus) -> 'FreqDist':
+        # Initially create an empty FreqDist
+        freq_dist = cls()
+        # Then add to it from each batch of the corpus.
+        # Means we don't have to have the whole corpus in memory at once!
+        token_count = 0
+        for batch in batched_corpus:
+            freq_dist += cls(batch)
+            token_count += batched_corpus.batch_size
+            logger.info(f"\t{token_count:,} tokens counted")
+        return freq_dist

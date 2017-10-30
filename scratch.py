@@ -1,8 +1,6 @@
 from .core.corpus.corpus import StreamedCorpus
-from .core.corpus.distribution import FreqDist
+from .core.corpus.indexing import FreqDist, TokenIndexDictionary
 from .core.model.count import *
-from .core.utils.constants import Chirality
-from .core.utils.indexing import TokenIndexDictionary
 from .preferences.preferences import Preferences
 
 

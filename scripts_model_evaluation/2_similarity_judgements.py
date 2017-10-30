@@ -18,12 +18,11 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.corpus.distribution import FreqDist
+from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.evaluation.similarity import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
     SimilarityTester, SimilarityReportCard
 from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
-from ..core.utils.indexing import TokenIndexDictionary
 from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
 

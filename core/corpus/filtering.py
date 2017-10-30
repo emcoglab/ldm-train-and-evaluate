@@ -19,7 +19,7 @@ import re
 
 from typing import List
 
-from .distribution import FreqDist
+from .indexing import FreqDist
 
 
 def filter_punctuation(unfiltered_corpus: List[str]) -> List[str]:

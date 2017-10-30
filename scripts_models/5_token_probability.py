@@ -18,11 +18,10 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.corpus.distribution import FreqDist
+from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.model.count import TokenProbabilityModel
-from ..core.utils.indexing import TokenIndexDictionary
-from ..preferences.preferences import Preferences
 from ..core.utils.logging import log_message, date_format
+from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 

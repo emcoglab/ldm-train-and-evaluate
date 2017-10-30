@@ -17,13 +17,12 @@ caiwingfield.net
 
 import argparse
 
-from ..core.utils.maths import DistanceType
-from ..core.utils.indexing import TokenIndexDictionary
+from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.model.base import DistributionalSemanticModel
-from ..core.model.predict import CbowModel, SkipGramModel
 from ..core.model.count import LogNgramModel, NgramCountModel, NgramProbabilityModel, TokenProbabilityModel, \
     ContextProbabilityModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
-from ..core.corpus.distribution import FreqDist
+from ..core.model.predict import CbowModel, SkipGramModel
+from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
 
 

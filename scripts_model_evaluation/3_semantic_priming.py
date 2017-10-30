@@ -15,25 +15,22 @@ caiwingfield.net
 ---------------------------
 """
 
-import os
 import logging
+import os
 import sys
-
 from typing import Set, List
 
 import pandas
 import statsmodels.formula.api as sm
 
-from ..core.model.base import VectorSemanticModel
-from ..core.utils.maths import DistanceType, levenshtein_distance
+from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.evaluation.priming import SppData, SppRegressionResult
+from ..core.model.base import VectorSemanticModel
 from ..core.model.count import LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
 from ..core.model.predict import SkipGramModel, CbowModel
-from ..core.utils.indexing import TokenIndexDictionary
-from ..core.corpus.distribution import FreqDist
 from ..core.utils.logging import log_message, date_format
+from ..core.utils.maths import DistanceType, levenshtein_distance
 from ..preferences.preferences import Preferences
-
 
 logger = logging.getLogger(__name__)
 

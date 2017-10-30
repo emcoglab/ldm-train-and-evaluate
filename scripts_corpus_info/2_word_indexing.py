@@ -18,8 +18,7 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.corpus.distribution import FreqDist
-from ..core.utils.indexing import TokenIndexDictionary
+from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
 

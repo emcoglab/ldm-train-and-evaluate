@@ -17,20 +17,19 @@ caiwingfield.net
 
 import logging
 import os
+import sys
 
 from abc import abstractmethod, ABCMeta
 from operator import itemgetter
 
 import numpy
 import scipy.sparse
-import sys
 
 from ..corpus.corpus import CorpusMetadata, WindowedCorpus
-from ..corpus.distribution import FreqDist
+from ..corpus.indexing import TokenIndexDictionary, FreqDist
 from ..model.base import VectorSemanticModel, DistributionalSemanticModel, ScalarSemanticModel
 from ..utils.constants import Chirality
 from ..utils.exceptions import WordNotFoundError
-from ..utils.indexing import TokenIndexDictionary
 from ..utils.maths import DistanceType, distance
 
 logger = logging.getLogger(__name__)

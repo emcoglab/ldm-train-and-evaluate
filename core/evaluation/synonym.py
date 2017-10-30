@@ -25,9 +25,9 @@ from typing import List
 
 from .results import ReportCard
 from ..model.base import VectorSemanticModel
-from ..utils.maths import DistanceType
 from ..utils.exceptions import WordNotFoundError
-from ..utils.indexing import LetterIndexing
+from ..utils.maths import DistanceType
+from ..corpus.indexing import LetterIndexing
 from ...preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
