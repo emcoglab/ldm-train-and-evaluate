@@ -38,21 +38,25 @@ class SppData(object):
     Semantic Priming Project data.
     """
 
-    def __init__(self):
+    def __init__(self,
+                 save_progress: bool = True,
+                 force_reload:  bool = False):
+
+        self._save_progress = save_progress
 
         # self._all_data backs self.dataframe
         # Load data if possible
-        if self._could_load:
+        if self._could_load and not force_reload:
             logger.info("Loading previously saved SPP data")
             self._all_data = self._load()
         else:
             logger.info("Loading SPP data from source xls file")
             self._all_data = self._load_from_source_xls()
 
-        self._add_mean_soa_data()
-
         assert self._all_data is not None
-        self._save()
+
+        if self._save_progress:
+            self._save()
 
     @property
     def dataframe(self) -> pandas.DataFrame:
@@ -121,44 +125,6 @@ class SppData(object):
         prime_target_data["MatchedPrimeWord"] = prime_target_data["MatchedPrimeWord"].str.lower()
 
         return prime_target_data
-
-    def _add_mean_soa_data(self):
-        """
-        Add DVs for SOA means.
-        """
-
-        # Some aux functions
-
-        def pair_mean(value_pair):
-            """
-            Mean of a pair of values.
-            """
-            val_1, val_2 = value_pair
-            return (val_1 + val_2) / 2
-
-        def add_mean_predictor(mean_predictor_name, column_pair):
-            """
-            Add a mean predictor for the specified pair, if it doesn't already exist.
-            """
-            if not self.predictor_exists_with_name(mean_predictor_name):
-                logger.info(f"Adding mean predictor '{mean_predictor_name}' to SPP data")
-                self.dataframe[mean_predictor_name] = self.dataframe[column_pair].apply(pair_mean, axis=1)
-
-        # LDT
-        add_mean_predictor("LDT_mean_Z", ["LDT_200ms_Z", "LDT_1200ms_Z"])
-        add_mean_predictor("LDT_mean_Acc", ["LDT_200ms_Acc", "LDT_1200ms_Acc"])
-
-        # NT
-        add_mean_predictor("NT_mean_Z", ["NT_200ms_Z", "NT_1200ms_Z"])
-        add_mean_predictor("NT_mean_Acc", ["NT_200ms_Acc", "NT_1200ms_Acc"])
-
-        # LDT priming
-        add_mean_predictor("LDT_mean_Z_Priming", ["LDT_200ms_Z_Priming", "LDT_1200ms_Z_Priming"])
-        add_mean_predictor("LDT_mean_Acc_Priming", ["LDT_200ms_Acc_Priming", "LDT_1200ms_Acc_Priming"])
-
-        # NT priming
-        add_mean_predictor("NT_mean_Z_Priming", ["NT_200ms_Z_Priming", "NT_1200ms_Z_Priming"])
-        add_mean_predictor("NT_mean_Acc_Priming", ["NT_200ms_Acc_Priming", "NT_1200ms_Acc_Priming"])
 
     @property
     def vocabulary(self) -> Set[str]:
@@ -273,7 +239,8 @@ class SppData(object):
                 self.dataframe[predictor_name] = model_distance
 
             # Save in current state
-            self._save()
+            if self._save_progress:
+                self._save()
 
     def add_word_keyed_predictor(self, predictor: pandas.DataFrame, key_name: str, predictor_name: str):
         """
@@ -292,7 +259,8 @@ class SppData(object):
         self._all_data = pandas.merge(self.dataframe, predictor, on=key_name, how="left")
 
         # Save in current state
-        self._save()
+        if self._save_progress:
+            self._save()
 
     def add_word_pair_keyed_predictor(self, predictor: pandas.DataFrame, merge_on=None):
         """
@@ -305,7 +273,8 @@ class SppData(object):
         self._all_data = pandas.merge(self.dataframe, predictor, on=merge_on, how="left")
 
         # Save in current state
-        self._save()
+        if self._save_progress:
+            self._save()
 
 
 class SppRegressionResult(object):
