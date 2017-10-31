@@ -19,6 +19,7 @@ import logging
 import os
 import pickle
 import re
+import math
 
 from typing import List, Set
 
@@ -286,7 +287,9 @@ class SppRegressionResult(object):
                  model: VectorSemanticModel,
                  distance_type: DistanceType,
                  baseline_r2: float,
+                 baseline_bic: float,
                  model_r2: float,
+                 model_bic: float,
                  model_t: float,
                  model_p: float,
                  df: int):
@@ -306,6 +309,11 @@ class SppRegressionResult(object):
 
         # R^2 with the inclusion of the model predictors
         self.model_r2        = model_r2
+
+        # Bayes information criteria and Bayes factors
+        self.baseline_bic    = baseline_bic
+        self.model_bic       = model_bic
+        self.b10_approx      = math.exp((baseline_bic - model_bic) / 2)
 
         # t, p
         self.model_t         = model_t
@@ -330,6 +338,9 @@ class SppRegressionResult(object):
             'Baseline R-squared',
             'Model R-squared',
             'R-squared increase',
+            'Baseline BIC',
+            'Model BIC',
+            'B10 approx',
             't',
             'p',
             'df'
@@ -347,6 +358,9 @@ class SppRegressionResult(object):
             str(self.baseline_r2),
             str(self.model_r2),
             str(self.model_r2_increase),
+            str(self.baseline_bic),
+            str(self.model_bic),
+            str(self.b10_approx),
             str(self.model_t),
             str(self.model_p),
             str(self.df)

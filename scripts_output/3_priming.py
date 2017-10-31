@@ -64,10 +64,10 @@ def main():
     # Add rsquared increase column
     spp_results_df["r-squared_increase"] = spp_results_df["model_r-squared"] - spp_results_df["baseline_r-squared"]
 
-    summary_tables(spp_results_df)
+    best_model_table(spp_results_df)
 
 
-def summary_tables(spp_results: pandas.DataFrame):
+def best_model_table(spp_results: pandas.DataFrame):
     summary_dir = Preferences.summary_dir
 
     results_df = pandas.DataFrame()
@@ -77,10 +77,9 @@ def summary_tables(spp_results: pandas.DataFrame):
         filtered_df: pandas.DataFrame = spp_results.copy()
         filtered_df = filtered_df[filtered_df["dependent_variable"] == dv_name]
 
-        # min because correlations are negative
-        best_r2 = filtered_df["r-squared_increase"].max()
+        best_bf = filtered_df["b10_approx"].max()
 
-        best_models_df = filtered_df[filtered_df["r-squared_increase"] == best_r2]
+        best_models_df = filtered_df[filtered_df["b10_approx"] == best_bf]
 
         results_df = results_df.append(best_models_df)
 
