@@ -25,6 +25,8 @@ import numpy
 import pandas
 import seaborn
 
+from matplotlib import pyplot
+
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType, CorrelationType
 from ..preferences.preferences import Preferences
@@ -55,6 +57,11 @@ def main():
     # for test_name in TEST_NAMES:
     #     figures_score_vs_radius(similarity_results_df, test_name)
 
+    for radius in Preferences.window_radii:
+        for distance_type in DistanceType:
+            for correlation_type in CorrelationType:
+                model_performance_bar_graphs(similarity_results_df, window_radius=radius, distance_type=distance_type, correlation_type=correlation_type)
+
     summary_tables(similarity_results_df)
 
 
@@ -81,6 +88,72 @@ def summary_tables(similarity_results_df: pandas.DataFrame):
         results_df = results_df.reset_index(drop=True)
 
         results_df.to_csv(os.path.join(summary_dir, f"similarity_best_models_{correlation_type.lower()}.csv"))
+
+
+def model_performance_bar_graphs(similarity_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType, correlation_type: CorrelationType):
+
+    figures_dir = Preferences.figures_dir
+    seaborn.set_style("ticks")
+
+    filtered_df: pandas.DataFrame = similarity_results_df.copy()
+    filtered_df = filtered_df[filtered_df["window_radius"] == window_radius]
+    filtered_df = filtered_df[filtered_df["distance_type"] == distance_type.name]
+    filtered_df = filtered_df[filtered_df["correlation_type"] == correlation_type.name]
+
+    # Use absolute values of correlation
+    filtered_df["correlation"] = abs(filtered_df["correlation"])
+
+    # Model name doesn't need to include corpus or distance, since those are fixed
+    filtered_df["model_name"] = filtered_df.apply(
+        lambda r:
+        f"{r['model_type']} {r['embedding_size']}"
+        if not numpy.math.isnan(r['embedding_size'])
+        else f"{r['model_type']}",
+        axis=1
+    )
+
+    seaborn.set_context(context="paper", font_scale=1)
+    grid = seaborn.FacetGrid(
+        filtered_df,
+        row="test_name", col="corpus",
+        margin_titles=True,
+        size=2.5,
+        ylim=(0, 1))
+
+    grid.set_xticklabels(rotation=-90)
+
+    # Plot the bars
+    plot = grid.map(seaborn.barplot, "model_name", "correlation", order=[
+        "log n-gram",
+        "Conditional probability",
+        "Probability ratio",
+        "PPMI",
+        "Skip-gram 50",
+        "Skip-gram 100",
+        "Skip-gram 200",
+        "Skip-gram 300",
+        "Skip-gram 500",
+        "CBOW 50",
+        "CBOW 100",
+        "CBOW 200",
+        "CBOW 300",
+        "CBOW 500",
+    ])
+
+    # TODO: this isn't working for some reason
+    # Remove the "corpus = " from the titles
+    # grid.set_titles(col_template='{col_name}', row_template="{row_name}")
+
+    grid.set_ylabels("Correlation")
+
+    pyplot.subplots_adjust(top=0.92)
+    grid.fig.suptitle(f"Model {correlation_type.name} correlations for radius {window_radius} using {distance_type.name} distance")
+
+    figure_name = f"similarity r={window_radius} {distance_type.name} corr={correlation_type.name}.png"
+
+    # I don't know why PyCharm doesn't find this... it works...
+    # noinspection PyUnresolvedReferences
+    plot.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
 
 def figures_score_vs_radius(similarity_results, test_name):
