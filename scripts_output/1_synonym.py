@@ -36,10 +36,6 @@ logger = logging.getLogger(__name__)
 TEST_NAMES = ["TOEFL", "ESL", "LBM's new MCQ"]
 
 
-def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
-    return df.rename(columns=lambda col_name: col_name.replace(" ", "_").lower())
-
-
 def main():
     synonym_results = load_data()
     synonym_results = ensure_column_safety(synonym_results)
@@ -56,7 +52,15 @@ def main():
     #     figures_score_vs_radius(synonym_results, test_name)
     #     figures_embedding_size(synonym_results, test_name)
 
+    for radius in Preferences.window_radii:
+        for distance_type in DistanceType:
+            model_performance_bar_graphs(synonym_results, window_radius=radius, distance_type=distance_type)
+
     summary_tables(synonym_results)
+
+
+def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
+    return df.rename(columns=lambda col_name: col_name.replace(" ", "_").lower())
 
 
 def summary_tables(regression_results_df: pandas.DataFrame):
@@ -78,6 +82,77 @@ def summary_tables(regression_results_df: pandas.DataFrame):
     results_df = results_df.reset_index(drop=True)
 
     results_df.to_csv(os.path.join(summary_dir, "synonym_best_models.csv"))
+
+
+def model_performance_bar_graphs(synonym_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType):
+
+    figures_dir = Preferences.figures_dir
+    seaborn.set_style("ticks")
+
+    filtered_df: pandas.DataFrame = synonym_results_df.copy()
+    filtered_df = filtered_df[filtered_df["radius"] == window_radius]
+    filtered_df = filtered_df[filtered_df["distance"] == distance_type.name]
+
+    # Don't want to show PPMI (10000)
+    filtered_df = filtered_df[filtered_df["model"] != "PPMI (10000)"]
+
+    # Model name doesn't need to include corpus or distance, since those are fixed
+    filtered_df["model_name"] = filtered_df.apply(
+        lambda r:
+        f"{r['model']} {r['embedding_size']}"
+        if not numpy.math.isnan(r['embedding_size'])
+        else f"{r['model']}",
+        axis=1
+    )
+
+    seaborn.set_context(context="paper", font_scale=1)
+    grid = seaborn.FacetGrid(
+        filtered_df,
+        row="test_name", col="corpus",
+        margin_titles=True,
+        size=2.5,
+        ylim=(0, 1))
+
+    grid.set_xticklabels(rotation=-90)
+
+    ytick_labels = grid.axes[0][0].get_yticklabels()
+    grid.set_yticklabels(['{:3.0f}%'.format(float(label.get_text()) * 100) for label in ytick_labels])
+
+    # Plot the bars
+    plot = grid.map(seaborn.barplot, "model_name", "score", order=[
+        "log n-gram",
+        "Conditional probability",
+        "Probability ratio",
+        "PPMI",
+        "Skip-gram 50",
+        "Skip-gram 100",
+        "Skip-gram 200",
+        "Skip-gram 300",
+        "Skip-gram 500",
+        "CBOW 50",
+        "CBOW 100",
+        "CBOW 200",
+        "CBOW 300",
+        "CBOW 500",
+    ])
+
+    # TODO: this isn't working for some reason
+    # Remove the "corpus = " from the titles
+    grid.set_titles(col_template='{col_name}', row_template="{row_name}")
+
+    # Plot the chance line
+    grid.map(pyplot.axhline, y=0.25, linestyle="solid", color="xkcd:bright red")
+
+    grid.set_ylabels("Score")
+
+    pyplot.subplots_adjust(top=0.92)
+    grid.fig.suptitle(f"Model scores for radius {window_radius} using {distance_type.name} distance")
+
+    figure_name = f"synonym r={window_radius} {distance_type.name}.png"
+
+    # I don't know why PyCharm doesn't find this... it works...
+    # noinspection PyUnresolvedReferences
+    plot.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
 
 def figures_score_vs_radius(regression_results_df: pandas.DataFrame, test_name: str):
