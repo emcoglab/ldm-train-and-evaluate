@@ -20,9 +20,13 @@ import os
 import sys
 
 import pandas
+import seaborn
+import numpy
+
+from matplotlib import pyplot
 
 from ..core.utils.logging import log_message, date_format
-from ..core.utils.maths import CorrelationType
+from ..core.utils.maths import CorrelationType, DistanceType
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -65,6 +69,93 @@ def main():
     spp_results_df["r-squared_increase"] = spp_results_df["model_r-squared"] - spp_results_df["baseline_r-squared"]
 
     best_model_table(spp_results_df)
+
+    for radius in Preferences.window_radii:
+        for distance_type in DistanceType:
+            model_performance_bar_graphs(spp_results_df, window_radius=radius, distance_type=distance_type)
+
+
+def model_performance_bar_graphs(spp_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType):
+
+    figures_dir = Preferences.figures_dir
+    seaborn.set_style("ticks")
+
+    filtered_df: pandas.DataFrame = spp_results_df.copy()
+    filtered_df = filtered_df[filtered_df["window_radius"] == window_radius]
+    filtered_df = filtered_df[filtered_df["distance_type"] == distance_type.name]
+
+    # Model name doesn't need to include corpus or distance, since those are fixed
+    filtered_df["model_name"] = filtered_df.apply(
+        lambda r:
+        # TODO: embedding sizes aren't ints for some reason, so we have to force this here 🤦‍
+        f"{r['model_type']} {r['embedding_size']:.0f}"
+        if not numpy.math.isnan(r['embedding_size'])
+        else f"{r['model_type']}",
+        axis=1
+    )
+
+    # Get info about the dv
+    filtered_df["dv_test_type"] = filtered_df.apply(lambda r: "LDT"     if r["dependent_variable"].startswith("LDT") else "NT",   axis=1)
+    filtered_df["dv_measure"]   = filtered_df.apply(lambda r: "Acc"     if "Acc" in r["dependent_variable"]          else "Z-RT", axis=1)
+    filtered_df["dv_soa"]       = filtered_df.apply(lambda r: 200       if "_200ms" in r["dependent_variable"]       else 1200,   axis=1)
+    filtered_df["dv_priming"]   = filtered_df.apply(lambda r: "priming" if "Priming" in r["dependent_variable"]      else "",     axis=1)
+
+    for soa in [200, 1200]:
+        for test_type in ["LDT", "NT"]:
+
+            dv_name = f"{test_type} {soa}ms"
+
+            double_filtered_df = filtered_df.copy()
+
+            double_filtered_df = double_filtered_df[double_filtered_df["dv_test_type"] == test_type]
+            double_filtered_df = double_filtered_df[double_filtered_df["dv_soa"] == soa]
+
+            seaborn.set_context(context="paper", font_scale=1)
+            grid = seaborn.FacetGrid(
+                double_filtered_df,
+                row="dependent_variable", col="corpus",
+                margin_titles=True,
+                size=3)
+
+            grid.set_xticklabels(rotation=-90)
+
+            # Plot the bars
+            plot = grid.map(seaborn.barplot, "model_name", "b10_approx", order=[
+                "log n-gram",
+                "Conditional probability",
+                "Probability ratio",
+                "PPMI",
+                "Skip-gram 50",
+                "Skip-gram 100",
+                "Skip-gram 200",
+                "Skip-gram 300",
+                "Skip-gram 500",
+                "CBOW 50",
+                "CBOW 100",
+                "CBOW 200",
+                "CBOW 300",
+                "CBOW 500",
+            ])
+
+            # Plot the 1-line
+            grid.map(pyplot.axhline, y=1, linestyle="solid", color="xkcd:bright red")
+
+            grid.set(yscale="log")
+
+            # TODO: this isn't working for some reason
+            # Remove the "corpus = " from the titles
+            # grid.set_titles(col_template='{col_name}')
+
+            grid.set_ylabels("BF10")
+
+            pyplot.subplots_adjust(top=0.92)
+            grid.fig.suptitle(f"Priming BF10 for {dv_name} radius {window_radius} using {distance_type.name} distance")
+
+            figure_name = f"priming {dv_name} r={window_radius} {distance_type.name}.png"
+
+            # I don't know why PyCharm doesn't find this... it works...
+            # noinspection PyUnresolvedReferences
+            plot.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
 
 def best_model_table(spp_results: pandas.DataFrame):
