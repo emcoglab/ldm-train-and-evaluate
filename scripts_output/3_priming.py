@@ -75,7 +75,9 @@ def main():
     #         model_performance_bar_graphs(spp_results_df, window_radius=radius, distance_type=distance_type)
 
     for dv_name in DV_NAMES:
-        model_comparison_matrix(spp_results_df, dv_name)
+        for radius in Preferences.window_radii:
+            for corpus_name in ["BNC", "BBC", "UKWAC"]:
+                model_comparison_matrix(spp_results_df, dv_name, radius, corpus_name)
 
 
 def model_performance_bar_graphs(spp_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType):
@@ -161,7 +163,7 @@ def model_performance_bar_graphs(spp_results_df: pandas.DataFrame, window_radius
             plot.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
 
-def model_comparison_matrix(spp_results_df: pandas.DataFrame, dv_name: str):
+def model_comparison_matrix(spp_results_df: pandas.DataFrame, dv_name: str, radius: int, corpus_name: str):
 
     figures_dir = Preferences.figures_dir
 
@@ -169,19 +171,28 @@ def model_comparison_matrix(spp_results_df: pandas.DataFrame, dv_name: str):
 
     filtered_df: pandas.DataFrame = spp_results_df.copy()
     filtered_df = filtered_df[filtered_df["dependent_variable"] == dv_name]
+    filtered_df = filtered_df[filtered_df["window_radius"] == radius]
+    filtered_df = filtered_df[filtered_df["corpus"] == corpus_name]
 
     filtered_df["model_name"] = filtered_df.apply(
         lambda r:
-        f"{r['corpus']} r={r['window_radius']} {r['distance_type']} {r['model_type']} {r['embedding_size']:.0f}"
+        f"{r['distance_type']} {r['model_type']} {r['embedding_size']:.0f}"
         if not numpy.math.isnan(r['embedding_size'])
-        else f"{r['corpus']} r={r['window_radius']} {r['distance_type']} {r['model_type']}",
+        else f"{r['distance_type']} {r['model_type']}",
         axis=1
     )
+
+    # filtered_df = filtered_df.sort_values("distance_type")
 
     # Make the model name the index so it will label the rows and columns of the matrix
     filtered_df = filtered_df.set_index('model_name')
 
+    # filtered_df = filtered_df.sort_values(by=["model_type", "embedding_size", "distance_type"])
+
+    # values - values[:, None] gives col-row
+    # which is equivalent to row > col
     bf_matrix = filtered_df.model_bic.values - filtered_df.model_bic.values[:, None]
+
     bf_matrix = numpy.exp(bf_matrix)
     bf_matrix = numpy.log10(bf_matrix)
     n_rows, n_columns = bf_matrix.shape
@@ -193,16 +204,23 @@ def model_comparison_matrix(spp_results_df: pandas.DataFrame, dv_name: str):
     mask[numpy.triu_indices_from(mask)] = True
 
     # Set up the matplotlib figure
-    f, ax = pyplot.subplots(figsize=(14, 12))
+    seaborn.set_context(context="paper", font_scale=1)
+    f, ax = pyplot.subplots(figsize=(16, 14))
 
     # Draw the heatmap with the mask and correct aspect ratio
     seaborn.heatmap(bf_matrix_df,
                     # mask=mask,
-                    linewidths=0, square=True, cbar_kws={"shrink": .5})
+                    cmap=seaborn.diverging_palette(250, 15, s=75, l=50, center="dark", as_cmap=True),
+                    square=True, cbar_kws={"shrink": .5})
 
-    figure_name = f"priming heatmap {dv_name}.png"
+    figure_name = f"priming heatmap {dv_name} r={radius} {corpus_name}.png"
+    figure_title = f"log(BF(row,col)) for {dv_name} ({corpus_name}, r={radius})"
+
+    ax.set_title(figure_title)
 
     f.savefig(os.path.join(figures_dir, figure_name), dpi=300)
+
+    pyplot.close(f)
 
 
 def best_model_table(spp_results: pandas.DataFrame):
