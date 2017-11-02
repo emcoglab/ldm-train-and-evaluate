@@ -68,11 +68,14 @@ def main():
     # Add rsquared increase column
     spp_results_df["r-squared_increase"] = spp_results_df["model_r-squared"] - spp_results_df["baseline_r-squared"]
 
-    best_model_table(spp_results_df)
+    # best_model_table(spp_results_df)
+    #
+    # for radius in Preferences.window_radii:
+    #     for distance_type in DistanceType:
+    #         model_performance_bar_graphs(spp_results_df, window_radius=radius, distance_type=distance_type)
 
-    for radius in Preferences.window_radii:
-        for distance_type in DistanceType:
-            model_performance_bar_graphs(spp_results_df, window_radius=radius, distance_type=distance_type)
+    for dv_name in DV_NAMES:
+        model_comparison_matrix(spp_results_df, dv_name)
 
 
 def model_performance_bar_graphs(spp_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType):
@@ -156,6 +159,50 @@ def model_performance_bar_graphs(spp_results_df: pandas.DataFrame, window_radius
             # I don't know why PyCharm doesn't find this... it works...
             # noinspection PyUnresolvedReferences
             plot.savefig(os.path.join(figures_dir, figure_name), dpi=300)
+
+
+def model_comparison_matrix(spp_results_df: pandas.DataFrame, dv_name: str):
+
+    figures_dir = Preferences.figures_dir
+
+    seaborn.set(style="white")
+
+    filtered_df: pandas.DataFrame = spp_results_df.copy()
+    filtered_df = filtered_df[filtered_df["dependent_variable"] == dv_name]
+
+    filtered_df["model_name"] = filtered_df.apply(
+        lambda r:
+        f"{r['corpus']} r={r['window_radius']} {r['distance_type']} {r['model_type']} {r['embedding_size']:.0f}"
+        if not numpy.math.isnan(r['embedding_size'])
+        else f"{r['corpus']} r={r['window_radius']} {r['distance_type']} {r['model_type']}",
+        axis=1
+    )
+
+    # Make the model name the index so it will label the rows and columns of the matrix
+    filtered_df = filtered_df.set_index('model_name')
+
+    bf_matrix = filtered_df.model_bic.values - filtered_df.model_bic.values[:, None]
+    bf_matrix = numpy.exp(bf_matrix)
+    bf_matrix = numpy.log10(bf_matrix)
+    n_rows, n_columns = bf_matrix.shape
+
+    bf_matrix_df = pandas.DataFrame(bf_matrix, filtered_df.index, filtered_df.index)
+
+    # Generate a mask for the upper triangle
+    mask = numpy.zeros((n_rows, n_columns), dtype=numpy.bool)
+    mask[numpy.triu_indices_from(mask)] = True
+
+    # Set up the matplotlib figure
+    f, ax = pyplot.subplots(figsize=(14, 12))
+
+    # Draw the heatmap with the mask and correct aspect ratio
+    seaborn.heatmap(bf_matrix_df,
+                    # mask=mask,
+                    linewidths=0, square=True, cbar_kws={"shrink": .5})
+
+    figure_name = f"priming heatmap {dv_name}.png"
+
+    f.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
 
 def best_model_table(spp_results: pandas.DataFrame):
