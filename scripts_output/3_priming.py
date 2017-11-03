@@ -68,16 +68,20 @@ def main():
     # Add rsquared increase column
     spp_results_df["r-squared_increase"] = spp_results_df["model_r-squared"] - spp_results_df["baseline_r-squared"]
 
-    best_model_table(spp_results_df)
-
     for radius in Preferences.window_radii:
         for distance_type in DistanceType:
+            logger.info(
+                f"Making model performance bargraph figures for r={radius}, d={distance_type.name}")
             model_performance_bar_graphs(spp_results_df, window_radius=radius, distance_type=distance_type)
 
     for dv_name in DV_NAMES:
         for radius in Preferences.window_radii:
             for corpus_name in ["BNC", "BBC", "UKWAC"]:
+                logger.info(f"Making heatmaps dv={dv_name}, r={radius}, c={corpus_name}")
                 model_comparison_matrix(spp_results_df, dv_name, radius, corpus_name)
+
+    logger.info(f"Making best-model table")
+    best_model_table(spp_results_df)
 
 
 def model_performance_bar_graphs(spp_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType):

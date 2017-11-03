@@ -55,13 +55,16 @@ def main():
     )
 
     for test_name in TEST_NAMES:
+        logger.info(f"Making score-vs-radius figures for {test_name}")
         figures_score_vs_radius(similarity_results_df, test_name)
 
     for radius in Preferences.window_radii:
         for distance_type in DistanceType:
             for correlation_type in CorrelationType:
+                logger.info(f"Making model performance bargraph figures for r={radius}, d={distance_type.name}, c={correlation_type.name}")
                 model_performance_bar_graphs(similarity_results_df, window_radius=radius, distance_type=distance_type, correlation_type=correlation_type)
 
+    logger.info(f"Making summary tables")
     summary_tables(similarity_results_df)
 
 

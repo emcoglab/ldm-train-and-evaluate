@@ -49,11 +49,14 @@ def main():
     )
 
     for test_name in TEST_NAMES:
+        logger.info(f"Making score-vs-radius figures for {test_name}")
         figures_score_vs_radius(synonym_results, test_name)
+        logger.info(f"Making embedding size figures for {test_name}")
         figures_embedding_size(synonym_results, test_name)
 
     for radius in Preferences.window_radii:
         for distance_type in DistanceType:
+            logger.info(f"Making model bar graph figures for r={radius} and d={distance_type.name}")
             model_performance_bar_graphs(synonym_results, window_radius=radius, distance_type=distance_type)
 
     summary_tables(synonym_results)
