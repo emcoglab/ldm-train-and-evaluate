@@ -276,6 +276,40 @@ class WordsimRelatedness(SimilarityJudgementTest):
         return judgements
 
 
+class ColourAssociations(SimilarityJudgementTest):
+    """
+    Sutton & Altarriba (2016) colour associations.
+    """
+
+    @property
+    def name(self) -> str:
+        return "Colour associations"
+
+    def _load(self):
+        with open(Preferences.colour_association_path, mode="r", encoding="utf-8") as colour_assoc_file:
+            # Skip header line
+            colour_assoc_file.readline()
+            assocs = []
+            for line in colour_assoc_file:
+                parts = line.split(",")
+                assocs.append(SimilarityJudgement(
+                    # word
+                    parts[1],
+                    # colour
+                    parts[2],
+                    # percentage of respondents
+                    float(parts[4])))
+
+        return assocs
+
+
+class ColourAssociationReportCard(SimilarityReportCard):
+
+    @classmethod
+    def results_dir(cls) -> str:
+        return Preferences.colour_assoc_results_dir
+
+
 # Static class
 class SimilarityTester(object):
     """
@@ -284,17 +318,20 @@ class SimilarityTester(object):
 
     @staticmethod
     def administer_tests(model: VectorSemanticModel,
-                         test_battery: List[SimilarityJudgementTest]) -> SimilarityReportCard:
+                         test_battery: List[SimilarityJudgementTest],
+                         report_card_class: type = SimilarityReportCard
+                         ) -> SimilarityReportCard:
         """
         Administers a battery of tests against a model
         :param model: Must be trained.
         :param test_battery:
+        :param report_card_class: Optional class(SimilarityReportCard) to return results in.
         :return:
         """
 
         assert model.is_trained
 
-        report_card = SimilarityReportCard()
+        report_card = report_card_class()
 
         for test in test_battery:
             for distance_type in DistanceType:
@@ -326,7 +363,7 @@ class SimilarityTester(object):
                             [j.similarity for j in model_judgements])[0][1]
                     elif correlation_type is CorrelationType.Spearman:
                         # PyCharm erroneously detects input types for scipy.stats.spearmanr as int rather than ndarray
-                        # noinspection PyTypeChecker
+                        # noinspection PyTypeChecker,PyUnresolvedReferences
                         correlation = scipy.stats.spearmanr(
                             [j.similarity for j in human_judgements],
                             [j.similarity for j in model_judgements]).correlation

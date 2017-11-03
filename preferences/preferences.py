@@ -138,6 +138,9 @@ class Preferences(object):
     spp_path_xls             = os.path.join(test_dir, "SPP/Hutchinson et al. (2013) SPP BrEng & substitutions.xls")  # Semantic priming data: source xls file
     spp_elexicon_csv         = os.path.join(test_dir, "SPP/elexicon/I148613.csv")  # Additional Elexicon predictors csv
 
+    # Colour association
+    colour_association_path  = os.path.join(test_dir, "Colour association/Appendix 1 (cleaned).csv")
+
     # TEST RESULTS
     
     results_dir              = "/Volumes/Data/evaluation/results/"
@@ -146,6 +149,8 @@ class Preferences(object):
     similarity_results_dir   = os.path.join(results_dir, "similarity/")
     spp_results_dir          = os.path.join(results_dir, "SPP/")
     spp_path_pickle          = os.path.join(results_dir, "SPP/Hutchinson et al. (2013) SPP.pickle")  # Semantic priming data: pickled version for faster loading
+
+    colour_assoc_results_dir = os.path.join(results_dir, "colour_association/")
 
     # FIGURES
 
