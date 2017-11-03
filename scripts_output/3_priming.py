@@ -217,6 +217,9 @@ def model_comparison_matrix(spp_results_df: pandas.DataFrame, dv_name: str, radi
                     cmap=seaborn.diverging_palette(250, 15, s=75, l=50, center="dark", as_cmap=True),
                     square=True, cbar_kws={"shrink": .5})
 
+    pyplot.xticks(rotation=-90)
+    pyplot.yticks(rotation=0)
+
     figure_name = f"priming heatmap {dv_name} r={radius} {corpus_name}.png"
     figure_title = f"log(BF(row,col)) for {dv_name} ({corpus_name}, r={radius})"
 
