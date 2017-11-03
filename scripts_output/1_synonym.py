@@ -48,9 +48,9 @@ def main():
         axis=1
     )
 
-    # for test_name in TEST_NAMES:
-    #     figures_score_vs_radius(synonym_results, test_name)
-    #     figures_embedding_size(synonym_results, test_name)
+    for test_name in TEST_NAMES:
+        figures_score_vs_radius(synonym_results, test_name)
+        figures_embedding_size(synonym_results, test_name)
 
     for radius in Preferences.window_radii:
         for distance_type in DistanceType:

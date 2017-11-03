@@ -54,8 +54,8 @@ def main():
         axis=1
     )
 
-    # for test_name in TEST_NAMES:
-    #     figures_score_vs_radius(similarity_results_df, test_name)
+    for test_name in TEST_NAMES:
+        figures_score_vs_radius(similarity_results_df, test_name)
 
     for radius in Preferences.window_radii:
         for distance_type in DistanceType:

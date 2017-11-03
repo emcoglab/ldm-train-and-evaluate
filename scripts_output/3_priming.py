@@ -68,11 +68,11 @@ def main():
     # Add rsquared increase column
     spp_results_df["r-squared_increase"] = spp_results_df["model_r-squared"] - spp_results_df["baseline_r-squared"]
 
-    # best_model_table(spp_results_df)
-    #
-    # for radius in Preferences.window_radii:
-    #     for distance_type in DistanceType:
-    #         model_performance_bar_graphs(spp_results_df, window_radius=radius, distance_type=distance_type)
+    best_model_table(spp_results_df)
+
+    for radius in Preferences.window_radii:
+        for distance_type in DistanceType:
+            model_performance_bar_graphs(spp_results_df, window_radius=radius, distance_type=distance_type)
 
     for dv_name in DV_NAMES:
         for radius in Preferences.window_radii:
