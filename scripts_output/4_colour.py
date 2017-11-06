@@ -27,14 +27,12 @@ import seaborn
 
 from matplotlib import pyplot
 
-from ..core.evaluation.similarity import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity
+from ..core.evaluation.similarity import ColourAssociations
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType, CorrelationType
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
-
-TEST_NAMES = [SimlexSimilarity().name, WordsimSimilarity().name, WordsimRelatedness().name, MenSimilarity().name]
 
 
 def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
@@ -44,10 +42,12 @@ def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
 # TODO: essentially duplicated code
 def main():
 
-    similarity_results_df = load_data()
-    similarity_results_df = ensure_column_safety(similarity_results_df)
+    test_name = ColourAssociations().name
 
-    similarity_results_df["model"] = similarity_results_df.apply(
+    colour_results_df = load_data()
+    colour_results_df = ensure_column_safety(colour_results_df)
+
+    colour_results_df["model"] = colour_results_df.apply(
         lambda r:
         f"{r['corpus']} {r['distance_type']} {r['model_type']} {r['embedding_size']}"
         if not numpy.math.isnan(r['embedding_size'])
@@ -55,51 +55,22 @@ def main():
         axis=1
     )
 
-    for test_name in TEST_NAMES:
-        logger.info(f"Making score-vs-radius figures for {test_name}")
-        figures_score_vs_radius(similarity_results_df, test_name)
+    logger.info(f"Making score-vs-radius figures for {test_name}")
+    figures_score_vs_radius(colour_results_df, test_name)
 
     for radius in Preferences.window_radii:
         for distance_type in DistanceType:
             for correlation_type in CorrelationType:
                 logger.info(f"Making model performance bargraph figures for r={radius}, d={distance_type.name}, c={correlation_type.name}")
-                model_performance_bar_graphs(similarity_results_df, window_radius=radius, distance_type=distance_type, correlation_type=correlation_type)
-
-    logger.info(f"Making summary tables")
-    summary_tables(similarity_results_df)
+                model_performance_bar_graphs(colour_results_df, window_radius=radius, distance_type=distance_type, correlation_type=correlation_type)
 
 
-def summary_tables(similarity_results_df: pandas.DataFrame):
-    summary_dir = Preferences.summary_dir
-
-    for correlation_type in [c.name for c in CorrelationType]:
-
-        results_df = pandas.DataFrame()
-
-        for test_name in TEST_NAMES:
-
-            filtered_df: pandas.DataFrame = similarity_results_df.copy()
-            filtered_df = filtered_df[filtered_df["test_name"] == test_name]
-            filtered_df = filtered_df[filtered_df["correlation_type"] == correlation_type]
-
-            # min because correlations are negative
-            best_correlation = filtered_df["correlation"].min()
-
-            best_models_df = filtered_df[filtered_df["correlation"] == best_correlation]
-
-            results_df = results_df.append(best_models_df)
-
-        results_df = results_df.reset_index(drop=True)
-
-        results_df.to_csv(os.path.join(summary_dir, f"similarity_best_models_{correlation_type.lower()}.csv"))
-
-
-def model_performance_bar_graphs(similarity_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType, correlation_type: CorrelationType):
+def model_performance_bar_graphs(colour_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType, correlation_type: CorrelationType):
 
     figures_dir = Preferences.figures_dir
     seaborn.set_style("ticks")
 
-    filtered_df: pandas.DataFrame = similarity_results_df.copy()
+    filtered_df: pandas.DataFrame = colour_results_df.copy()
     filtered_df = filtered_df[filtered_df["window_radius"] == window_radius]
     filtered_df = filtered_df[filtered_df["distance_type"] == distance_type.name]
     filtered_df = filtered_df[filtered_df["correlation_type"] == correlation_type.name]
@@ -160,27 +131,27 @@ def model_performance_bar_graphs(similarity_results_df: pandas.DataFrame, window
     plot.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
 
-def figures_score_vs_radius(similarity_results, test_name):
+def figures_score_vs_radius(colour_results_df: pandas.DataFrame, test_name: str):
     figures_dir = Preferences.figures_dir
     for distance in [d.name for d in DistanceType]:
         for corpus in ["BNC", "BBC", "UKWAC"]:
             figure_name = f"similarity {test_name} {corpus} {distance}.png"
 
-            filtered_dataframe: pandas.DataFrame = similarity_results.copy()
-            filtered_dataframe = filtered_dataframe[filtered_dataframe["corpus"] == corpus]
-            filtered_dataframe = filtered_dataframe[filtered_dataframe["distance_type"] == distance]
-            filtered_dataframe = filtered_dataframe[filtered_dataframe["test_name"] == test_name]
+            filtered_df: pandas.DataFrame = colour_results_df.copy()
+            filtered_df = filtered_df[filtered_df["corpus"] == corpus]
+            filtered_df = filtered_df[filtered_df["distance_type"] == distance]
+            filtered_df = filtered_df[filtered_df["test_name"] == test_name]
 
-            filtered_dataframe = filtered_dataframe.sort_values(by=["model", "window_radius"])
-            filtered_dataframe = filtered_dataframe.reset_index(drop=True)
+            filtered_df = filtered_df.sort_values(by=["model", "window_radius"])
+            filtered_df = filtered_df.reset_index(drop=True)
 
-            filtered_dataframe = filtered_dataframe[[
+            filtered_df = filtered_df[[
                 "model",
                 "window_radius",
                 "correlation"
             ]]
 
-            plot = seaborn.factorplot(data=filtered_dataframe,
+            plot = seaborn.factorplot(data=filtered_df,
                                       x="window_radius", y="correlation",
                                       hue="model",
                                       size=7, aspect=1.8,
@@ -203,7 +174,7 @@ def load_data() -> pandas.DataFrame:
     """
     Load a pandas.DataFrame from a collection of CSV fragments.
     """
-    results_dir = Preferences.similarity_results_dir
+    results_dir = Preferences.colour_assoc_results_dir
     separator = ","
 
     header_filename = os.path.join(results_dir, " header.csv")

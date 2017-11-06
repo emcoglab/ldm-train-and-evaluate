@@ -291,7 +291,7 @@ class EslTest(SynonymTest):
         return questions
 
 
-class McqTest(SynonymTest):
+class LbmMcqTest(SynonymTest):
     """
     MCQ test from Levy, Bullinaria and McCormick (2017).
     """

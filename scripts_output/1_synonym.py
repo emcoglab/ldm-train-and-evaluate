@@ -27,13 +27,14 @@ import seaborn
 
 from matplotlib import pyplot
 
+from ..core.evaluation.synonym import ToeflTest, LbmMcqTest, EslTest
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
-TEST_NAMES = ["TOEFL", "ESL", "LBM's new MCQ"]
+TEST_NAMES = [ToeflTest().name, EslTest().name, LbmMcqTest().name]
 
 
 def main():

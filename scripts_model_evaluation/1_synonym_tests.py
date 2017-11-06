@@ -19,7 +19,7 @@ import logging
 import sys
 
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
-from ..core.evaluation.synonym import ToeflTest, EslTest, McqTest, SynonymTester, SynonymReportCard
+from ..core.evaluation.synonym import ToeflTest, EslTest, LbmMcqTest, SynonymTester, SynonymReportCard
 from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..core.utils.logging import log_message, date_format
@@ -33,7 +33,7 @@ def main():
     test_battery = [
         ToeflTest(),
         EslTest(),
-        McqTest()
+        LbmMcqTest()
     ]
 
     for corpus_metadata in Preferences.source_corpus_metas:
