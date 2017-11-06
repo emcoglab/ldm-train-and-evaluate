@@ -19,8 +19,7 @@ import logging
 import sys
 
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
-from ..core.evaluation.similarity import SimilarityTester, ColourAssociations, \
-    ColourAssociationReportCard
+from ..core.evaluation.similarity import ColourAssociations, ColourAssociationReportCard, ColourAssociationTester
 from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..core.utils.logging import log_message, date_format
@@ -54,7 +53,7 @@ def main():
                 csv_name = model.name + '.csv'
                 if not ColourAssociationReportCard.saved_with_name(csv_name):
                     model.train(memory_map=True)
-                    report_card: ColourAssociationReportCard = SimilarityTester.administer_tests(model, test_battery)
+                    report_card: ColourAssociationReportCard = ColourAssociationTester.administer_tests(model, test_battery)
                     report_card.save_csv(csv_name)
 
             del count_models
@@ -72,7 +71,7 @@ def main():
                     csv_name = model.name + '.csv'
                     if not ColourAssociationReportCard.saved_with_name(csv_name):
                         model.train(memory_map=True)
-                        report_card = SimilarityTester.administer_tests(model, test_battery)
+                        report_card = ColourAssociationTester.administer_tests(model, test_battery)
                         report_card.save_csv(csv_name)
 
                 del predict_models

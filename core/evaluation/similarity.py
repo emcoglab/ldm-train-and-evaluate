@@ -313,25 +313,26 @@ class ColourAssociationReportCard(SimilarityReportCard):
 # Static class
 class SimilarityTester(object):
     """
-    Administers a synonym test against a model.
+    Administers a similarity test against a model.
     """
+
+    report_card_class = SimilarityReportCard
+    report_card_entry_class = SimilarityReportCard.Entry
 
     @staticmethod
     def administer_tests(model: VectorSemanticModel,
-                         test_battery: List[SimilarityJudgementTest],
-                         report_card_class: type = SimilarityReportCard
+                         test_battery: List[SimilarityJudgementTest]
                          ) -> SimilarityReportCard:
         """
         Administers a battery of tests against a model
         :param model: Must be trained.
         :param test_battery:
-        :param report_card_class: Optional class(SimilarityReportCard) to return results in.
         :return:
         """
 
         assert model.is_trained
 
-        report_card = report_card_class()
+        report_card = SimilarityTester.report_card_class()
 
         for test in test_battery:
             for distance_type in DistanceType:
@@ -372,6 +373,15 @@ class SimilarityTester(object):
 
                     # Record correlation on report card
                     report_card.add_entry(
-                        SimilarityReportCard.Entry(model, test, distance_type, correlation_type, correlation))
+                        SimilarityTester.report_card_entry_class(model, test, distance_type, correlation_type, correlation))
 
         return report_card
+
+
+class ColourAssociationTester(SimilarityTester):
+    """
+    Administers a synonym test against a model.
+    """
+
+    report_card_class = ColourAssociationReportCard
+    report_card_entry_class = ColourAssociationReportCard.Entry
