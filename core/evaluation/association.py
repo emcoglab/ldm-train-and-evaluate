@@ -23,7 +23,8 @@ from typing import List
 import numpy
 import scipy.stats
 
-from .results import ReportCard
+from core.model.predict import PredictVectorModel
+from .results import EvaluationResults
 from ..model.base import VectorSemanticModel
 from ..utils.exceptions import WordNotFoundError
 from ..utils.maths import DistanceType, CorrelationType
@@ -32,52 +33,12 @@ from ...preferences.preferences import Preferences
 logger = logging.getLogger(__name__)
 
 
-class AssociationReportCard(ReportCard):
-    @classmethod
-    def headings(cls) -> List[str]:
-        return [
-            'Test name',
-            'Model type',
-            'Embedding size',
-            'Window radius',
-            'Distance type',
-            'Corpus',
-            'Correlation type',
-            'Correlation'
-        ]
-
-    @classmethod
-    def results_dir(cls) -> str:
-        return Preferences.association_results_dir
-
-    class Entry(ReportCard.Entry):
-        """
-        Result of a similarity test.
-        """
-
-        def __init__(self,
-                     model: VectorSemanticModel,
-                     test: 'WordAssociationTest',
-                     distance_type: DistanceType,
-                     correlation_type: CorrelationType,
-                     correlation: float):
-            super().__init__(test.name, model.model_type.name, model, distance_type)
-            self._correlation_type = correlation_type
-            self._correlation = correlation
-
-        @property
-        def fields(self) -> List[str]:
-            return [
-                self._test_name,
-                self._model_type_name,
-                # Only PredictModels have an embedding size
-                f"{self._embedding_size}" if self._embedding_size is not None else "",
-                f"{self._window_radius}",
-                self._distance_type.name,
-                self._corpus_name,
-                f"{self._correlation_type.name}",
-                f"{self._correlation}"
-            ]
+class AssociationResults(EvaluationResults):
+    def __init__(self):
+        super().__init__(
+            results_column_names=["Correlation type", "Correlation"],
+            save_dir=Preferences.association_results_dir
+        )
 
 
 class WordAssociation(object):
@@ -134,62 +95,58 @@ class AssociationTester(object):
     """
 
     @staticmethod
-    def administer_tests(model: VectorSemanticModel,
-                         test_battery: List[WordAssociationTest]
-                         ) -> AssociationReportCard:
+    def administer_test(
+            test: WordAssociationTest,
+            model: VectorSemanticModel,
+            distance_type: DistanceType
+            ) -> AssociationResults:
         """
         Administers a battery of tests against a model
         :param model: Must be trained.
-        :param test_battery:
-        :return:
         """
 
         assert model.is_trained
 
-        report_card = AssociationReportCard()
+        results = AssociationResults()
 
-        for test in test_battery:
-            for distance_type in DistanceType:
-                for correlation_type in CorrelationType:
-                    human_judgements: List[WordAssociation] = []
-                    model_judgements: List[WordAssociation] = []
-                    for human_judgement in test.association_list:
-                        try:
-                            distance = model.distance_between(
-                                human_judgement.word_1,
-                                human_judgement.word_2,
-                                distance_type)
-                        except WordNotFoundError as er:
-                            # If we can't find one of the words in the corpus, just ignore it.
-                            logger.warning(er.message)
-                            continue
+        for correlation_type in CorrelationType:
+            human_judgements: List[WordAssociation] = []
+            model_judgements: List[WordAssociation] = []
+            for human_judgement in test.association_list:
+                try:
+                    distance = model.distance_between(
+                        human_judgement.word_1,
+                        human_judgement.word_2,
+                        distance_type)
+                except WordNotFoundError as er:
+                    # If we can't find one of the words in the corpus, just ignore it.
+                    logger.warning(er.message)
+                    continue
 
-                        # If both words were found in the model, add them to the test list
-                        human_judgements.append(human_judgement)
-                        model_judgements.append(WordAssociation(
-                            human_judgement.word_1,
-                            human_judgement.word_2,
-                            distance))
+                # If both words were found in the model, add them to the test list
+                human_judgements.append(human_judgement)
+                model_judgements.append(WordAssociation(
+                    human_judgement.word_1,
+                    human_judgement.word_2,
+                    distance))
 
-                    # Apply correlation
-                    if correlation_type is CorrelationType.Pearson:
-                        correlation = numpy.corrcoef(
-                            [j.association_strength for j in human_judgements],
-                            [j.association_strength for j in model_judgements])[0][1]
-                    elif correlation_type is CorrelationType.Spearman:
-                        # PyCharm erroneously detects input types for scipy.stats.spearmanr as int rather than ndarray
-                        # noinspection PyTypeChecker,PyUnresolvedReferences
-                        correlation = scipy.stats.spearmanr(
-                            [j.association_strength for j in human_judgements],
-                            [j.association_strength for j in model_judgements]).correlation
-                    else:
-                        raise ValueError(correlation_type)
+            # Apply correlation
+            if correlation_type is CorrelationType.Pearson:
+                correlation = numpy.corrcoef(
+                    [j.association_strength for j in human_judgements],
+                    [j.association_strength for j in model_judgements])[0][1]
+            elif correlation_type is CorrelationType.Spearman:
+                # PyCharm erroneously detects input types for scipy.stats.spearmanr as int rather than ndarray
+                # noinspection PyTypeChecker,PyUnresolvedReferences
+                correlation = scipy.stats.spearmanr(
+                    [j.association_strength for j in human_judgements],
+                    [j.association_strength for j in model_judgements]).correlation
+            else:
+                raise ValueError(correlation_type)
 
-                    # Record correlation on report card
-                    report_card.add_entry(
-                        AssociationReportCard.Entry(model, test, distance_type, correlation_type, correlation))
+            results.add_result(test.name, model, distance_type, {"Correlation type": correlation_type.name, "Correlation": correlation})
 
-        return report_card
+        return results
 
 
 class SimlexSimilarity(WordAssociationTest):

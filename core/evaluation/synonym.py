@@ -23,7 +23,7 @@ from abc import ABCMeta, abstractmethod
 from copy import copy
 from typing import List
 
-from .results import ReportCard
+from .results import EvaluationResults
 from ..model.base import VectorSemanticModel
 from ..utils.exceptions import WordNotFoundError
 from ..utils.maths import DistanceType
@@ -33,49 +33,12 @@ from ...preferences.preferences import Preferences
 logger = logging.getLogger(__name__)
 
 
-class SynonymReportCard(ReportCard):
+class SynonymResults(EvaluationResults):
     def __init__(self):
-        super().__init__()
-
-    @classmethod
-    def results_dir(cls) -> str:
-        return Preferences.synonym_results_dir
-
-    @classmethod
-    def headings(cls) -> List[str]:
-        return [
-            "Test name",
-            "Model",
-            "Embedding size",
-            "Radius",
-            "Distance",
-            "Corpus",
-            "Score"
-        ]
-
-    class Entry(ReportCard.Entry):
-        def __init__(self,
-                     test: 'SynonymTest',
-                     model: VectorSemanticModel,
-                     distance_type: DistanceType,
-                     answer_paper: 'AnswerPaper',
-                     # ugh
-                     append_to_model_name: str = ""):
-            super().__init__(test.name, model.model_type.name + append_to_model_name, model, distance_type)
-            self._answer_paper = answer_paper
-
-        @property
-        def fields(self):
-            return [
-                self._test_name,
-                self._model_type_name,
-                # Only PredictModels have an embedding size
-                f"{self._embedding_size}" if self._embedding_size is not None else "",
-                f"{self._window_radius}",
-                self._distance_type.name,
-                self._corpus_name,
-                f"{self._answer_paper.score}%"
-            ]
+        super().__init__(
+            results_column_names=["Score"],
+            save_dir=Preferences.synonym_results_dir
+        )
 
 
 class SynonymTestQuestion(object):
@@ -138,9 +101,17 @@ class AnswerPaper(object):
     @property
     def score(self) -> float:
         """
+        The fraction of correct answers.
+        """
+        return sum([int(answer.is_correct) for answer in self.answers]) / len(self.answers)
+
+    # TODO: delete this when not used
+    @property
+    def score_percent(self) -> float:
+        """
         The percentage of correct answers.
         """
-        return 100 * sum([int(answer.is_correct) for answer in self.answers]) / len(self.answers)
+        return 100 * self.score
 
     def save_text_transcript(self, transcript_path: str):
         """
@@ -152,7 +123,7 @@ class AnswerPaper(object):
 
         with open(transcript_path, mode="w", encoding="utf-8") as transcript_file:
             transcript_file.write("-----------------------\n")
-            transcript_file.write(f"Overall score: {self.score}%\n")
+            transcript_file.write(f"Overall score: {self.score_percent}%\n")
             transcript_file.write("-----------------------\n")
             for answer in self.answers:
                 transcript_file.write(str(answer) + "\n")
@@ -324,42 +295,38 @@ class LbmMcqTest(SynonymTest):
 # Static class
 class SynonymTester(object):
     """
-    Administers a synonym test against a model.
+    Administers synonym tests against models.
     """
 
     @staticmethod
-    def administer_tests(model: VectorSemanticModel,
-                         test_battery: List[SynonymTest],
-                         truncate_vectors_at_length: int = None
-                         ) -> SynonymReportCard:
+    def administer_test(
+            test: SynonymTest,
+            model: VectorSemanticModel,
+            distance_type: DistanceType,
+            truncate_vectors_at_length: int = None
+            ) -> EvaluationResults:
         """
-        Administers a battery of tests against a model
+        Administers a test against a model
         :param model: Must be trained.
-        :param test_battery:
-        :param truncate_vectors_at_length:
-        :return:
         """
 
         assert model.is_trained
 
-        report_card = SynonymReportCard()
+        results = SynonymResults()
 
-        for distance_type in DistanceType:
+        answers = []
+        for question in test.question_list:
+            answer = SynonymTester.attempt_question(question, model, distance_type, truncate_vectors_at_length)
 
-            for test in test_battery:
-                answers = []
-                for question in test.question_list:
-                    answer = SynonymTester.attempt_question(question, model, distance_type, truncate_vectors_at_length)
+            answers.append(answer)
 
-                    answers.append(answer)
+        answer_paper = AnswerPaper(answers)
 
-                answer_paper = AnswerPaper(answers)
+        results.add_result(
+            test.name, model, distance_type, {"Score": answer_paper.score},
+            append_to_model_name="" if truncate_vectors_at_length is None else f" ({truncate_vectors_at_length})")
 
-                append_to_model_name = "" if truncate_vectors_at_length is None else f" ({truncate_vectors_at_length})"
-                report_card.add_entry(
-                    SynonymReportCard.Entry(test, model, distance_type, answer_paper, append_to_model_name))
-
-        return report_card
+        return results
 
     @staticmethod
     def attempt_question(question: SynonymTestQuestion, model: VectorSemanticModel, distance_type: DistanceType,

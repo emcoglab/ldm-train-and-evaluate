@@ -20,9 +20,10 @@ import sys
 
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
-    AssociationTester, AssociationReportCard, ColourAssociation, ThematicAssociation
+    AssociationTester, ColourAssociation, ThematicAssociation, AssociationResults
 from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
+from ..core.utils.maths import DistanceType
 from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
 
@@ -38,6 +39,8 @@ def main():
         ColourAssociation(),
         ThematicAssociation()
     ]
+
+    results = AssociationResults()
 
     for corpus_metadata in Preferences.source_corpus_metas:
 
@@ -56,11 +59,12 @@ def main():
             ]
 
             for model in count_models:
-                csv_name = model.name + '.csv'
-                if not AssociationReportCard.saved_with_name(csv_name):
-                    model.train(memory_map=True)
-                    report_card = AssociationTester.administer_tests(model, test_battery)
-                    report_card.save_csv(csv_name)
+                for test in test_battery:
+                    for distance_type in DistanceType:
+                        if not results.results_exist_for(test.name, model, distance_type):
+                            model.train(memory_map=True)
+                            results.extend_with_results(AssociationTester.administer_test(test, model, distance_type))
+                            results.save()
 
             del count_models
 
@@ -74,11 +78,13 @@ def main():
                 ]
 
                 for model in predict_models:
-                    csv_name = model.name + '.csv'
-                    if not AssociationReportCard.saved_with_name(csv_name):
-                        model.train(memory_map=True)
-                        report_card = AssociationTester.administer_tests(model, test_battery)
-                        report_card.save_csv(csv_name)
+                    for test in test_battery:
+                        for distance_type in DistanceType:
+                            if not results.results_exist_for(test.name, model, distance_type):
+                                model.train(memory_map=True)
+                                results.extend_with_results(
+                                    AssociationTester.administer_test(test, model, distance_type))
+                                results.save()
 
                 del predict_models
 

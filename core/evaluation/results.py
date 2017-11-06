@@ -16,121 +16,136 @@ caiwingfield.net
 """
 
 import os
+import pickle
 
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 from typing import List
+
+import pandas
 
 from ..model.base import VectorSemanticModel
 from ..model.predict import PredictVectorModel
 from ..utils.maths import DistanceType
 
 
-class ReportCard(object, metaclass=ABCMeta):
+class EvaluationResults(object, meta=ABCMeta):
     """
-    Description of the results of a battery of tests.
+    The results of a model evaluation.
     """
 
+    model_index_column_names = [
+       "Test name",
+       "Model type",
+       "Embedding size",
+       "Radius",
+       "Distance type",
+       "Corpus"
+    ]
+
+    def __init__(self,
+                 results_column_names: List[str],
+                 save_dir: str):
+
+        self._save_path = os.path.join(save_dir, "evaluation_results")
+        self._pickle_path = self._save_path + ".pickle"
+        self._csv_path = self._save_path + ".csv"
+
+        column_names = self.model_index_column_names + results_column_names
+
+        self.data: pandas.DataFrame = None
+        if self._previously_saved():
+            self.data = self._load()
+            assert set(self.column_names) == set(column_names)
+        else:
+            self.data = pandas.DataFrame(columns=column_names)
+        assert self.data is not None
+
+    @property
+    def column_names(self):
+        """
+        The column names in the results table.
+        """
+        return self.data.columns.values
+
+    def add_result(self,
+                   test_name: str,
+                   model: VectorSemanticModel,
+                   distance_type: DistanceType,
+                   # a dictionary whose keys are the same as the results_column_names
+                   result: dict,
+                   append_to_model_name: str = None):
+        """
+        Add a single result.
+        """
+        # Add model keys to result row
+        result["Test name"] = test_name
+        # TODO: this is also gross
+        result["Model type"] = model.model_type.name + (append_to_model_name if append_to_model_name is not None else "")
+        result["Embedding size"] = model.embedding_size if isinstance(model, PredictVectorModel) else None
+        result["Radius"] = model.window_radius
+        result["Distance type"] = distance_type.name
+        result["Corpus"] = model.corpus_meta.name
+
+        assert set(result.keys()) == set(self.column_names)
+
+        # TODO: This is possibly inefficient
+        self.data = self.data.append(result, ignore_index=True)
+
+    def extend_with_results(self, other: 'EvaluationResults'):
+        """
+        Adds a batch of results.
+        """
+        assert set(self.column_names) == set(other.column_names)
+        self.data = self.data.append(other.data, ignore_index=True)
+
     @classmethod
-    @abstractmethod
-    def results_dir(cls) -> str:
+    def results_exist_for(cls,
+                          test_name: str,
+                          model: VectorSemanticModel,
+                          distance_type: DistanceType,
+                          truncate_vectors_at_length: int = None) -> bool:
         """
-        Where the results should be saved.
+        Do results exist for this model?
         """
-        raise NotImplementedError()
+        instance = cls()
+        return instance.data[
+                   (instance.data["Test name"] == test_name) &
+                   # TODO: this is gross
+                   (instance.data["Model type"] == (model.model_type.name + (f" ({truncate_vectors_at_length})" if truncate_vectors_at_length is not None else ""))) &
+                   ((instance.data["Embedding size"] == model.embedding_size) if isinstance(model, PredictVectorModel) else True) &
+                   (instance.data["Radius"] == model.window_radius) &
+                   (instance.data["Distance type"] == distance_type.name) &
+                   (instance.data["Corpus"] == model.corpus_meta.name)
+               ].count() > 0
 
-    @classmethod
-    @abstractmethod
-    def headings(cls) -> List[str]:
+    def save(self):
         """
-        An ordered list of the headings for each piece of data on the report card.
+        Save (and overwrite) data.
         """
-        raise NotImplementedError()
+        assert self.data is not None
+        with open(self._pickle_path, mode="wb") as data_file:
+            pickle.dump(self.data, data_file)
+        self._export_csv()
 
-    def __init__(self):
-        self.entries: List['ReportCard.Entry'] = []
+    def _previously_saved(self) -> bool:
+        return os.path.isfile(self._pickle_path)
 
-    def __iadd__(self, other: 'ReportCard'):
-        for entry in other.entries:
-            self.add_entry(entry)
-
-    def __add__(self, other: 'ReportCard'):
-        new = ReportCard()
-        for entry in self.entries:
-            new.add_entry(entry)
-        for entry in other.entries:
-            new.add_entry(entry)
-        return new
-
-    def add_entry(self, entry: 'ReportCard.Entry'):
+    def _load(self) -> pandas.DataFrame:
         """
-        Adds an entry to the report card.
+        Load previously saved data.
         """
-        self.entries.append(entry)
+        with open(self._pickle_path, mode="rb") as data_file:
+            return pickle.load(data_file)
 
-    def save_headers(self, separator: str = ","):
+    def _export_csv(self):
         """
-        Saves a CSV file containing headers, if it doesn't already exist.
+        Export results as a csv.
         """
+        with open(self._csv_path, mode="w", encoding="utf-8") as spp_file:
+            self.data.to_csv(spp_file)
 
-        # TODO: this file name needs to be know elsewhere...
-        csv_filename = " header.csv"
-
-        csv_path = os.path.join(self.results_dir(), csv_filename)
-
-        # Skip it if it exists
-        if os.path.isfile(csv_path):
-            return
-
-        with open(csv_path, mode="w", encoding="utf-8") as csv_file:
-
-            # Write headings
-            csv_file.write(separator.join(self.headings()) + "\n")
-
-    @classmethod
-    def saved_with_name(cls, csv_filename: str) -> bool:
+    def import_csv(self):
         """
-        Has a report card been saved with this name?
+        Load from a CSV (only use if the pickle gets lost or corrupted somehow.
         """
-        return os.path.isfile(
-            os.path.join(cls.results_dir(), csv_filename))
-
-    def save_csv(self, csv_filename: str, separator: str = ","):
-        """
-        Writes records to a CSV, overwriting if it exists.
-        :param csv_filename:
-        :param separator:
-        """
-        # Validate filename
-        if not csv_filename.endswith(".csv"):
-            csv_filename += ".csv"
-
-        csv_path = os.path.join(self.results_dir(), csv_filename)
-
-        with open(csv_path, mode="w", encoding="utf-8") as csv_file:
-            for entry in self.entries:
-                csv_file.write(separator.join(entry.fields) + "\n")
-
-        # Make sure the headers are saved too
-        self.save_headers()
-
-    class Entry(object, metaclass=ABCMeta):
-        """
-        Description of the results of a single test.
-        """
-
-        def __init__(self,
-                     test_name: str,
-                     model_type_name: str,
-                     model: VectorSemanticModel,
-                     distance_type: DistanceType):
-            self._distance_type = distance_type
-            self._model_type_name = model_type_name
-            self._window_radius = model.window_radius
-            self._corpus_name = model.corpus_meta.name
-            self._embedding_size = model.embedding_size if isinstance(model, PredictVectorModel) else None
-            self._test_name = test_name
-
-        @property
-        @abstractmethod
-        def fields(self) -> List[str]:
-            raise NotImplementedError()
+        self.data = pandas.read_csv(self._csv_path)

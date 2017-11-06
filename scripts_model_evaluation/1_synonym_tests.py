@@ -19,9 +19,10 @@ import logging
 import sys
 
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
-from ..core.evaluation.synonym import ToeflTest, EslTest, LbmMcqTest, SynonymTester, SynonymReportCard
+from ..core.evaluation.synonym import ToeflTest, EslTest, LbmMcqTest, SynonymTester, SynonymResults
 from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
+from ..core.utils.maths import DistanceType
 from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
 
@@ -35,6 +36,8 @@ def main():
         EslTest(),
         LbmMcqTest()
     ]
+
+    results = SynonymResults()
 
     for corpus_metadata in Preferences.source_corpus_metas:
 
@@ -53,22 +56,27 @@ def main():
             ]
 
             for model in count_models:
-                csv_name = model.name + '.csv'
-                if not SynonymReportCard.saved_with_name(csv_name):
-                    model.train(memory_map=True)
-                    report_card = SynonymTester.administer_tests(model, test_battery)
-                    report_card.save_csv(csv_name)
+                for test in test_battery:
+                    for distance_type in DistanceType:
+                        # TODO: horrifically inefficient: we load existing results each time
+                        if not SynonymResults.results_exist_for(test.name, model, distance_type):
+                            model.train(memory_map=True)
+                            results.extend_with_results(SynonymTester.administer_test(test, model, distance_type))
+                            results.save()
+
+            # TODO: is this where the memory leak is?
+            # TODO: if references linger for models in count_models, just deleting the list may not free up memory
+            del count_models
 
             # PPMI (TRUNCATED, for replication of B&L 2007)
             model = PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
             truncate_length = 10_000
-            csv_name = model.name + ' (10k).csv'
-            if not SynonymReportCard.saved_with_name(csv_name):
-                model.train(memory_map=True)
-                report_card = SynonymTester.administer_tests(model, test_battery, truncate_length)
-                report_card.save_csv(csv_name)
-
-            del count_models
+            for test in test_battery:
+                for distance_type in DistanceType:
+                    if not results.results_exist_for(test.name, model, distance_type, truncate_length):
+                        model.train(memory_map=True)
+                        results.extend_with_results(SynonymTester.administer_test(test, model, distance_type, truncate_length))
+                        results.save()
 
             # PREDICT MODELS
 
@@ -80,11 +88,12 @@ def main():
                 ]
 
                 for model in predict_models:
-                    csv_name = model.name + '.csv'
-                    if not SynonymReportCard.saved_with_name(csv_name):
-                        model.train(memory_map=True)
-                        report_card = SynonymTester.administer_tests(model, test_battery)
-                        report_card.save_csv(csv_name)
+                    for test in test_battery:
+                        for distance_type in DistanceType:
+                            if not results.results_exist_for(test.name, model, distance_type, truncate_length):
+                                model.train(memory_map=True)
+                                results.extend_with_results(SynonymTester.administer_test(test, model, distance_type))
+                                results.save()
 
                 del predict_models
 
