@@ -27,7 +27,7 @@ import seaborn
 
 from matplotlib import pyplot
 
-from core.evaluation.norms import ColourAssociations
+from ..core.evaluation.association import ColourAssociation
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType, CorrelationType
 from ..preferences.preferences import Preferences
@@ -42,7 +42,7 @@ def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
 # TODO: essentially duplicated code
 def main():
 
-    test_name = ColourAssociations().name
+    test_name = ColourAssociation().name
 
     colour_results_df = load_data()
     colour_results_df = ensure_column_safety(colour_results_df)

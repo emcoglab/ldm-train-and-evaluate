@@ -23,7 +23,7 @@ from abc import ABCMeta, abstractmethod
 from copy import copy
 from typing import List
 
-from .results import EvaluationResults
+from ..evaluation.results import EvaluationResults
 from ..model.base import VectorSemanticModel
 from ..utils.exceptions import WordNotFoundError
 from ..utils.maths import DistanceType
@@ -105,14 +105,6 @@ class AnswerPaper(object):
         """
         return sum([int(answer.is_correct) for answer in self.answers]) / len(self.answers)
 
-    # TODO: delete this when not used
-    @property
-    def score_percent(self) -> float:
-        """
-        The percentage of correct answers.
-        """
-        return 100 * self.score
-
     def save_text_transcript(self, transcript_path: str):
         """
         Saves a text transcript of the results of the test.
@@ -123,7 +115,7 @@ class AnswerPaper(object):
 
         with open(transcript_path, mode="w", encoding="utf-8") as transcript_file:
             transcript_file.write("-----------------------\n")
-            transcript_file.write(f"Overall score: {self.score_percent}%\n")
+            transcript_file.write(f"Overall score: {100 * self.score}%\n")
             transcript_file.write("-----------------------\n")
             for answer in self.answers:
                 transcript_file.write(str(answer) + "\n")

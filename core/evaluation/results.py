@@ -28,7 +28,7 @@ from ..model.predict import PredictVectorModel
 from ..utils.maths import DistanceType
 
 
-class EvaluationResults(object, meta=ABCMeta):
+class EvaluationResults(metaclass=ABCMeta):
     """
     The results of a model evaluation.
     """

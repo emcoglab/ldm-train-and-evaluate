@@ -23,8 +23,7 @@ from typing import List
 import numpy
 import scipy.stats
 
-from core.model.predict import PredictVectorModel
-from .results import EvaluationResults
+from ..evaluation.results import EvaluationResults
 from ..model.base import VectorSemanticModel
 from ..utils.exceptions import WordNotFoundError
 from ..utils.maths import DistanceType, CorrelationType
