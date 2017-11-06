@@ -335,5 +335,23 @@ class ThematicAssociation(WordAssociationTest):
         return "Thematic associations"
 
     def _load(self):
-        # TODO
-        raise NotImplementedError()
+        with open(Preferences.thematic_association_path, mode="r", encoding="utf-8") as thematic_assoc_file:
+            # Skip header line
+            thematic_assoc_file.readline()
+            assocs = []
+            for line in thematic_assoc_file:
+                parts = line.split(",")
+
+                word = parts[0].lower()
+                response = parts[1].lower()
+                number_of_respondents_weighted = float(parts[6])
+
+                # Some responses have alternatives listed in brackets
+                if "(" in response:
+                    # Take only part of response before the alternatives
+                    response = response.split("(")[0].strip()
+
+                assocs.append(WordAssociation(
+                    word,
+                    response,
+                    number_of_respondents_weighted))
