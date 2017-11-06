@@ -19,15 +19,13 @@ import logging
 import os
 import sys
 
-from glob import glob
-
 import numpy
 import pandas
 import seaborn
 
 from matplotlib import pyplot
 
-from ..core.evaluation.synonym import ToeflTest, LbmMcqTest, EslTest
+from ..core.evaluation.synonym import ToeflTest, LbmMcqTest, EslTest, SynonymResults
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
@@ -38,10 +36,10 @@ TEST_NAMES = [ToeflTest().name, EslTest().name, LbmMcqTest().name]
 
 
 def main():
-    synonym_results = load_data()
-    synonym_results = ensure_column_safety(synonym_results)
+    results_df = SynonymResults().data
+    results_df = ensure_column_safety(results_df)
 
-    synonym_results["model_name"] = synonym_results.apply(
+    results_df["model_name"] = results_df.apply(
         lambda r:
         f"{r['corpus']} {r['distance']} {r['model']} {r['embedding_size']}"
         if not numpy.math.isnan(r['embedding_size'])
@@ -51,22 +49,23 @@ def main():
 
     for test_name in TEST_NAMES:
         logger.info(f"Making score-vs-radius figures for {test_name}")
-        figures_score_vs_radius(synonym_results, test_name)
+        figures_score_vs_radius(results_df, test_name)
         logger.info(f"Making embedding size figures for {test_name}")
-        figures_embedding_size(synonym_results, test_name)
+        figures_embedding_size(results_df, test_name)
 
     for radius in Preferences.window_radii:
         for distance_type in DistanceType:
             logger.info(f"Making model bar graph figures for r={radius} and d={distance_type.name}")
-            model_performance_bar_graphs(synonym_results, window_radius=radius, distance_type=distance_type)
+            model_performance_bar_graphs(results_df, window_radius=radius, distance_type=distance_type)
 
-    summary_tables(synonym_results)
+    summary_tables(results_df)
 
 
 def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
     return df.rename(columns=lambda col_name: col_name.replace(" ", "_").lower())
 
 
+# TODO: essentially duplicated code
 def summary_tables(regression_results_df: pandas.DataFrame):
     summary_dir = Preferences.summary_dir
 
@@ -259,35 +258,6 @@ def figures_embedding_size(regression_results_df: pandas.DataFrame, test_name: s
         figure_name = f"synonym embedding_size {test_name} {distance}.png"
 
         grid.savefig(os.path.join(figures_dir, figure_name), dpi=300)
-
-
-# TODO: this is madness, this should be a pickled ReportCard which should have the ability to export a csv or a dataframe
-# TODO: Also, ReportCard is basically just a dataframe, and should be replaced by one.
-def load_data() -> pandas.DataFrame:
-    """
-    Load a pandas.DataFrame from a collection of CSV fragments.
-    """
-    results_dir = Preferences.synonym_results_dir
-    separator = ","
-
-    def percent_to_float(percent: str) -> float:
-        return float(percent.strip("%")) / 100
-
-    header_filename = os.path.join(results_dir, " header.csv")
-    data_filenames = glob(os.path.join(results_dir, "*.csv"))
-    data_filenames.remove(header_filename)
-
-    with open(os.path.join(results_dir, " header.csv"), mode="r", encoding="utf-8") as header_file:
-        column_names = header_file.read().strip().split(separator)
-
-    results_df = pandas.DataFrame(columns=column_names)
-
-    for data_filename in data_filenames:
-        partial_df = pandas.read_csv(data_filename, sep=separator, names=column_names,
-                                     converters={'Score': percent_to_float})
-        results_df = results_df.append(partial_df, ignore_index=True)
-
-    return results_df
 
 
 if __name__ == "__main__":

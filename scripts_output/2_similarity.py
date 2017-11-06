@@ -19,15 +19,14 @@ import logging
 import os
 import sys
 
-from glob import glob
-
 import numpy
 import pandas
 import seaborn
 
 from matplotlib import pyplot
 
-from ..core.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity
+from ..core.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
+    AssociationResults
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType, CorrelationType
 from ..preferences.preferences import Preferences
@@ -41,13 +40,13 @@ def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
     return df.rename(columns=lambda col_name: col_name.replace(" ", "_").lower())
 
 
-# TODO: essentially duplicated code
 def main():
 
-    similarity_results_df = load_data()
-    similarity_results_df = ensure_column_safety(similarity_results_df)
+    results_df = AssociationResults().data
+    results_df = ensure_column_safety(results_df)
 
-    similarity_results_df["model"] = similarity_results_df.apply(
+    # TODO: could add this to results
+    results_df["model"] = results_df.apply(
         lambda r:
         f"{r['corpus']} {r['distance_type']} {r['model_type']} {r['embedding_size']}"
         if not numpy.math.isnan(r['embedding_size'])
@@ -57,18 +56,19 @@ def main():
 
     for test_name in TEST_NAMES:
         logger.info(f"Making score-vs-radius figures for {test_name}")
-        figures_score_vs_radius(similarity_results_df, test_name)
+        figures_score_vs_radius(results_df, test_name)
 
     for radius in Preferences.window_radii:
         for distance_type in DistanceType:
             for correlation_type in CorrelationType:
                 logger.info(f"Making model performance bargraph figures for r={radius}, d={distance_type.name}, c={correlation_type.name}")
-                model_performance_bar_graphs(similarity_results_df, window_radius=radius, distance_type=distance_type, correlation_type=correlation_type)
+                model_performance_bar_graphs(results_df, window_radius=radius, distance_type=distance_type, correlation_type=correlation_type)
 
     logger.info(f"Making summary tables")
-    summary_tables(similarity_results_df)
+    summary_tables(results_df)
 
 
+# TODO: essentially duplicated code
 def summary_tables(similarity_results_df: pandas.DataFrame):
     summary_dir = Preferences.summary_dir
 
@@ -197,29 +197,6 @@ def figures_score_vs_radius(similarity_results, test_name):
             plot.ax.legend(loc='center right', bbox_to_anchor=(1.35, 0.5), ncol=1)
 
             plot.savefig(os.path.join(figures_dir, figure_name))
-
-
-def load_data() -> pandas.DataFrame:
-    """
-    Load a pandas.DataFrame from a collection of CSV fragments.
-    """
-    results_dir = Preferences.association_results_dir
-    separator = ","
-
-    header_filename = os.path.join(results_dir, " header.csv")
-    data_filenames = glob(os.path.join(results_dir, "*.csv"))
-    data_filenames.remove(header_filename)
-
-    with open(os.path.join(results_dir, " header.csv"), mode="r", encoding="utf-8") as header_file:
-        column_names = header_file.read().strip().split(separator)
-
-    data = pandas.DataFrame(columns=column_names)
-
-    for data_filename in data_filenames:
-        partial_df = pandas.read_csv(data_filename, sep=separator, names=column_names)
-        data = data.append(partial_df, ignore_index=True)
-
-    return data
 
 
 if __name__ == "__main__":
