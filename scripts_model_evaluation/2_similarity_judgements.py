@@ -19,8 +19,8 @@ import logging
 import sys
 
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
-from ..core.evaluation.similarity import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
-    SimilarityTester, SimilarityReportCard
+from ..core.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
+    AssociationTester, AssociationReportCard, ColourAssociation, ThematicAssociation
 from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..core.utils.logging import log_message, date_format
@@ -34,7 +34,9 @@ def main():
         SimlexSimilarity(),
         WordsimSimilarity(),
         WordsimRelatedness(),
-        MenSimilarity()
+        MenSimilarity(),
+        ColourAssociation(),
+        ThematicAssociation()
     ]
 
     for corpus_metadata in Preferences.source_corpus_metas:
@@ -55,9 +57,9 @@ def main():
 
             for model in count_models:
                 csv_name = model.name + '.csv'
-                if not SimilarityReportCard.saved_with_name(csv_name):
+                if not AssociationReportCard.saved_with_name(csv_name):
                     model.train(memory_map=True)
-                    report_card = SimilarityTester.administer_tests(model, test_battery)
+                    report_card = AssociationTester.administer_tests(model, test_battery)
                     report_card.save_csv(csv_name)
 
             del count_models
@@ -73,9 +75,9 @@ def main():
 
                 for model in predict_models:
                     csv_name = model.name + '.csv'
-                    if not SimilarityReportCard.saved_with_name(csv_name):
+                    if not AssociationReportCard.saved_with_name(csv_name):
                         model.train(memory_map=True)
-                        report_card = SimilarityTester.administer_tests(model, test_battery)
+                        report_card = AssociationTester.administer_tests(model, test_battery)
                         report_card.save_csv(csv_name)
 
                 del predict_models

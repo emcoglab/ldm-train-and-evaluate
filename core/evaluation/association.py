@@ -1,6 +1,6 @@
 """
 ===========================
-Testing against human similarity judgements.
+Testing against word association data.
 ===========================
 
 Dr. Cai Wingfield
@@ -15,9 +15,8 @@ caiwingfield.net
 ---------------------------
 """
 
-import re
 import logging
-
+import re
 from abc import ABCMeta, abstractmethod
 from typing import List
 
@@ -26,15 +25,14 @@ import scipy.stats
 
 from .results import ReportCard
 from ..model.base import VectorSemanticModel
-from ..utils.maths import DistanceType, CorrelationType
 from ..utils.exceptions import WordNotFoundError
+from ..utils.maths import DistanceType, CorrelationType
 from ...preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
 
-class SimilarityReportCard(ReportCard):
-
+class AssociationReportCard(ReportCard):
     @classmethod
     def headings(cls) -> List[str]:
         return [
@@ -50,7 +48,7 @@ class SimilarityReportCard(ReportCard):
 
     @classmethod
     def results_dir(cls) -> str:
-        return Preferences.similarity_results_dir
+        return Preferences.association_results_dir
 
     class Entry(ReportCard.Entry):
         """
@@ -59,7 +57,7 @@ class SimilarityReportCard(ReportCard):
 
         def __init__(self,
                      model: VectorSemanticModel,
-                     test: 'SimilarityJudgementTest',
+                     test: 'WordAssociationTest',
                      distance_type: DistanceType,
                      correlation_type: CorrelationType,
                      correlation: float):
@@ -82,36 +80,36 @@ class SimilarityReportCard(ReportCard):
             ]
 
 
-class SimilarityJudgement(object):
+class WordAssociation(object):
     """
-    A judgement of the similarity between two words
+    A judgement of the similarity between two words.
     """
 
-    def __init__(self, word_1: str, word_2: str, similarity: float):
+    def __init__(self, word_1: str, word_2: str, association_strength: float):
         self.word_1 = word_1
         self.word_2 = word_2
-        self.similarity = similarity
+        self.association_strength = association_strength
 
 
-class SimilarityJudgementTest(metaclass=ABCMeta):
+class WordAssociationTest(metaclass=ABCMeta):
     """
-    A test against human similarity judgements of word pairs.
+    A test against word-association data.
     """
 
     def __init__(self):
         # Backs self.judgement_list
-        self._judgement_list: List[SimilarityJudgement] = None
+        self._association_list: List[WordAssociation] = None
 
     @property
-    def judgement_list(self) -> List[SimilarityJudgement]:
+    def association_list(self) -> List[WordAssociation]:
         """
-        The list of judgements.
+        The list of associations.
         """
         # Lazy load
-        if self._judgement_list is None:
-            self._judgement_list = self._load()
-        assert self._judgement_list is not None
-        return self._judgement_list
+        if self._association_list is None:
+            self._association_list = self._load()
+        assert self._association_list is not None
+        return self._association_list
 
     @property
     @abstractmethod
@@ -122,11 +120,79 @@ class SimilarityJudgementTest(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def _load(self) -> List[SimilarityJudgement]:
+    def _load(self) -> List[WordAssociation]:
+        """
+        Load from source.
+        """
         raise NotImplementedError()
 
 
-class SimlexSimilarity(SimilarityJudgementTest):
+# Static class
+class AssociationTester(object):
+    """
+    Administers a word-association test against a model.
+    """
+
+    @staticmethod
+    def administer_tests(model: VectorSemanticModel,
+                         test_battery: List[WordAssociationTest]
+                         ) -> AssociationReportCard:
+        """
+        Administers a battery of tests against a model
+        :param model: Must be trained.
+        :param test_battery:
+        :return:
+        """
+
+        assert model.is_trained
+
+        report_card = AssociationReportCard()
+
+        for test in test_battery:
+            for distance_type in DistanceType:
+                for correlation_type in CorrelationType:
+                    human_judgements: List[WordAssociation] = []
+                    model_judgements: List[WordAssociation] = []
+                    for human_judgement in test.association_list:
+                        try:
+                            distance = model.distance_between(
+                                human_judgement.word_1,
+                                human_judgement.word_2,
+                                distance_type)
+                        except WordNotFoundError as er:
+                            # If we can't find one of the words in the corpus, just ignore it.
+                            logger.warning(er.message)
+                            continue
+
+                        # If both words were found in the model, add them to the test list
+                        human_judgements.append(human_judgement)
+                        model_judgements.append(WordAssociation(
+                            human_judgement.word_1,
+                            human_judgement.word_2,
+                            distance))
+
+                    # Apply correlation
+                    if correlation_type is CorrelationType.Pearson:
+                        correlation = numpy.corrcoef(
+                            [j.association_strength for j in human_judgements],
+                            [j.association_strength for j in model_judgements])[0][1]
+                    elif correlation_type is CorrelationType.Spearman:
+                        # PyCharm erroneously detects input types for scipy.stats.spearmanr as int rather than ndarray
+                        # noinspection PyTypeChecker,PyUnresolvedReferences
+                        correlation = scipy.stats.spearmanr(
+                            [j.association_strength for j in human_judgements],
+                            [j.association_strength for j in model_judgements]).correlation
+                    else:
+                        raise ValueError(correlation_type)
+
+                    # Record correlation on report card
+                    report_card.add_entry(
+                        AssociationReportCard.Entry(model, test, distance_type, correlation_type, correlation))
+
+        return report_card
+
+
+class SimlexSimilarity(WordAssociationTest):
     """
     Simlex-999 judgements.
     """
@@ -135,7 +201,7 @@ class SimlexSimilarity(SimilarityJudgementTest):
     def name(self) -> str:
         return "Simlex-999"
 
-    def _load(self) -> List[SimilarityJudgement]:
+    def _load(self) -> List[WordAssociation]:
 
         entry_re = re.compile(r"^"
                               r"(?P<word_1>[a-z]+)"  # The first concept in the pair.
@@ -163,19 +229,19 @@ class SimlexSimilarity(SimilarityJudgementTest):
             # Skip header line
             simlex_file.readline()
 
-            judgements = []
+            associations = []
             for line in simlex_file:
                 entry_match = re.match(entry_re, line)
                 if entry_match:
-                    judgements.append(SimilarityJudgement(
+                    associations.append(WordAssociation(
                         entry_match.group("word_1"),
                         entry_match.group("word_2"),
                         float(entry_match.group("simlex_999"))))
 
-        return judgements
+        return associations
 
 
-class MenSimilarity(SimilarityJudgementTest):
+class MenSimilarity(WordAssociationTest):
     """
     MEN similarity judgements.
     From: Bruni, E., Tran, NK., Baroni, M. "Multimodal Distributional Semantics". J. AI Research. 49:1--47 (2014).
@@ -185,7 +251,7 @@ class MenSimilarity(SimilarityJudgementTest):
     def name(self) -> str:
         return "MEN"
 
-    def _load(self) -> List[SimilarityJudgement]:
+    def _load(self) -> List[WordAssociation]:
 
         entry_re = re.compile(r"^"
                               r"(?P<word_1>[a-z]+)"  # The first concept in the pair.
@@ -200,7 +266,7 @@ class MenSimilarity(SimilarityJudgementTest):
             for line in men_file:
                 entry_match = re.match(entry_re, line)
                 if entry_match:
-                    judgements.append(SimilarityJudgement(
+                    judgements.append(WordAssociation(
                         entry_match.group("word_1"),
                         entry_match.group("word_2"),
                         float(entry_match.group("association"))))
@@ -208,7 +274,7 @@ class MenSimilarity(SimilarityJudgementTest):
         return judgements
 
 
-class WordsimSimilarity(SimilarityJudgementTest):
+class WordsimSimilarity(WordAssociationTest):
     """
     WordSim-353 similarity judgements.
     """
@@ -234,7 +300,7 @@ class WordsimSimilarity(SimilarityJudgementTest):
             for line in wordsim_file:
                 entry_match = re.match(entry_re, line)
                 if entry_match:
-                    judgements.append(SimilarityJudgement(
+                    judgements.append(WordAssociation(
                         entry_match.group("word_1"),
                         entry_match.group("word_2"),
                         float(entry_match.group("similarity"))))
@@ -242,7 +308,7 @@ class WordsimSimilarity(SimilarityJudgementTest):
         return judgements
 
 
-class WordsimRelatedness(SimilarityJudgementTest):
+class WordsimRelatedness(WordAssociationTest):
     """
     WordSim-353 relatedness judgements.
     """
@@ -268,7 +334,7 @@ class WordsimRelatedness(SimilarityJudgementTest):
             for line in wordsim_file:
                 entry_match = re.match(entry_re, line)
                 if entry_match:
-                    judgements.append(SimilarityJudgement(
+                    judgements.append(WordAssociation(
                         entry_match.group("word_1"),
                         entry_match.group("word_2"),
                         float(entry_match.group("relatedness"))))
@@ -276,7 +342,7 @@ class WordsimRelatedness(SimilarityJudgementTest):
         return judgements
 
 
-class ColourAssociations(SimilarityJudgementTest):
+class ColourAssociation(WordAssociationTest):
     """
     Sutton & Altarriba (2016) colour associations.
     """
@@ -285,14 +351,14 @@ class ColourAssociations(SimilarityJudgementTest):
     def name(self) -> str:
         return "Colour associations"
 
-    def _load(self):
+    def _load(self) -> List[WordAssociation]:
         with open(Preferences.colour_association_path, mode="r", encoding="utf-8") as colour_assoc_file:
             # Skip header line
             colour_assoc_file.readline()
             assocs = []
             for line in colour_assoc_file:
                 parts = line.split(",")
-                assocs.append(SimilarityJudgement(
+                assocs.append(WordAssociation(
                     # word
                     parts[1],
                     # colour
@@ -303,85 +369,15 @@ class ColourAssociations(SimilarityJudgementTest):
         return assocs
 
 
-class ColourAssociationReportCard(SimilarityReportCard):
-
-    @classmethod
-    def results_dir(cls) -> str:
-        return Preferences.colour_assoc_results_dir
-
-
-# Static class
-class SimilarityTester(object):
+class ThematicAssociation(WordAssociationTest):
     """
-    Administers a similarity test against a model.
+    Jouravlev & McRae (2015) thematic associations.
     """
 
-    report_card_class = SimilarityReportCard
-    report_card_entry_class = SimilarityReportCard.Entry
+    @property
+    def name(self) -> str:
+        return "Thematic associations"
 
-    @staticmethod
-    def administer_tests(model: VectorSemanticModel,
-                         test_battery: List[SimilarityJudgementTest]
-                         ) -> SimilarityReportCard:
-        """
-        Administers a battery of tests against a model
-        :param model: Must be trained.
-        :param test_battery:
-        :return:
-        """
-
-        assert model.is_trained
-
-        report_card = SimilarityTester.report_card_class()
-
-        for test in test_battery:
-            for distance_type in DistanceType:
-                for correlation_type in CorrelationType:
-                    human_judgements: List[SimilarityJudgement] = []
-                    model_judgements: List[SimilarityJudgement] = []
-                    for human_judgement in test.judgement_list:
-                        try:
-                            distance = model.distance_between(
-                                human_judgement.word_1,
-                                human_judgement.word_2,
-                                distance_type)
-                        except WordNotFoundError as er:
-                            # If we can't find one of the words in the corpus, just ignore it.
-                            logger.warning(er.message)
-                            continue
-
-                        # If both words were found in the model, add them to the test list
-                        human_judgements.append(human_judgement)
-                        model_judgements.append(SimilarityJudgement(
-                            human_judgement.word_1,
-                            human_judgement.word_2,
-                            distance))
-
-                    # Apply correlation
-                    if correlation_type is CorrelationType.Pearson:
-                        correlation = numpy.corrcoef(
-                            [j.similarity for j in human_judgements],
-                            [j.similarity for j in model_judgements])[0][1]
-                    elif correlation_type is CorrelationType.Spearman:
-                        # PyCharm erroneously detects input types for scipy.stats.spearmanr as int rather than ndarray
-                        # noinspection PyTypeChecker,PyUnresolvedReferences
-                        correlation = scipy.stats.spearmanr(
-                            [j.similarity for j in human_judgements],
-                            [j.similarity for j in model_judgements]).correlation
-                    else:
-                        raise ValueError(correlation_type)
-
-                    # Record correlation on report card
-                    report_card.add_entry(
-                        SimilarityTester.report_card_entry_class(model, test, distance_type, correlation_type, correlation))
-
-        return report_card
-
-
-class ColourAssociationTester(SimilarityTester):
-    """
-    Administers a synonym test against a model.
-    """
-
-    report_card_class = ColourAssociationReportCard
-    report_card_entry_class = ColourAssociationReportCard.Entry
+    def _load(self):
+        # TODO
+        raise NotImplementedError()

@@ -116,43 +116,44 @@ class Preferences(object):
     predict_embedding_sizes = [50, 100, 200, 300, 500]
 
     # The base directory for the models to be saved
-    model_dir                = "/Volumes/Data/vectors/"
+    model_dir                 = "/Volumes/Data/vectors/"
 
     # TESTS
 
-    test_dir                 = "/Volumes/Data/evaluation/tests/"
+    test_dir                  = "/Volumes/Data/evaluation/tests/"
 
     # Synonym tests
-    toefl_question_path      = os.path.join(test_dir, "TOEFL_BrEng_&_substitutions/toefl.qst")
-    toefl_answer_path        = os.path.join(test_dir, "TOEFL_BrEng_&_substitutions/toefl.ans")
-    esl_test_path            = os.path.join(test_dir, "ESL_BrEng/esl.txt")
-    mcq_test_path            = os.path.join(test_dir, "LBM vocab MCQ/newMCQ.txt")
+    toefl_question_path       = os.path.join(test_dir, "TOEFL_BrEng_&_substitutions/toefl.qst")
+    toefl_answer_path         = os.path.join(test_dir, "TOEFL_BrEng_&_substitutions/toefl.ans")
+    esl_test_path             = os.path.join(test_dir, "ESL_BrEng/esl.txt")
+    mcq_test_path             = os.path.join(test_dir, "LBM vocab MCQ/newMCQ.txt")
 
-    # Word similarity judgement tests
-    simlex_path              = os.path.join(test_dir, "SimLex-999 BrEng/SimLex-999.txt")
-    wordsim_similarity_path  = os.path.join(test_dir, "WordSim353/wordsim_similarity_goldstandard.txt")
-    wordsim_relatedness_path = os.path.join(test_dir, "WordSim353/wordsim_relatedness_goldstandard.txt")
-    men_path                 = os.path.join(test_dir, "MEN BrEng/MEN_dataset_natural_form_full")
+    # Word association tests
+    # similarity/relatedness judgements
+    simlex_path               = os.path.join(test_dir, "SimLex-999 BrEng/SimLex-999.txt")
+    wordsim_similarity_path   = os.path.join(test_dir, "WordSim353/wordsim_similarity_goldstandard.txt")
+    wordsim_relatedness_path  = os.path.join(test_dir, "WordSim353/wordsim_relatedness_goldstandard.txt")
+    men_path                  = os.path.join(test_dir, "MEN BrEng/MEN_dataset_natural_form_full")
+    # word association production
+    colour_association_path   = os.path.join(test_dir, "Colour association/Appendix 1 (cleaned).csv")
+    thematic_association_path = os.path.join(test_dir, "Thematic relatedness/13428_2015_679_MOESM2_ESM.xlsx")
 
     # Semantic priming data
-    spp_path_xls             = os.path.join(test_dir, "SPP/Hutchinson et al. (2013) SPP BrEng & substitutions.xls")  # Semantic priming data: source xls file
-    spp_elexicon_csv         = os.path.join(test_dir, "SPP/elexicon/I148613.csv")  # Additional Elexicon predictors csv
+    spp_path_xls              = os.path.join(test_dir, "SPP/Hutchinson et al. (2013) SPP BrEng & substitutions.xls")  # Semantic priming data: source xls file
+    spp_elexicon_csv          = os.path.join(test_dir, "SPP/elexicon/I148613.csv")  # Additional Elexicon predictors csv
 
-    # Colour association
-    colour_association_path  = os.path.join(test_dir, "Colour association/Appendix 1 (cleaned).csv")
+    # Norms
 
     # TEST RESULTS
     
-    results_dir              = "/Volumes/Data/evaluation/results/"
+    results_dir               = "/Volumes/Data/evaluation/results/"
 
-    synonym_results_dir      = os.path.join(results_dir, "synonyms/")
-    similarity_results_dir   = os.path.join(results_dir, "similarity/")
-    spp_results_dir          = os.path.join(results_dir, "SPP/")
-    spp_path_pickle          = os.path.join(results_dir, "SPP/Hutchinson et al. (2013) SPP.pickle")  # Semantic priming data: pickled version for faster loading
-
-    colour_assoc_results_dir = os.path.join(results_dir, "colour_association/")
+    synonym_results_dir       = os.path.join(results_dir, "synonyms/")
+    association_results_dir   = os.path.join(results_dir, "association/")
+    spp_results_dir           = os.path.join(results_dir, "SPP/")
+    spp_path_pickle           = os.path.join(results_dir, "SPP/Hutchinson et al. (2013) SPP.pickle")  # Semantic priming data: pickled version for faster loading
 
     # FIGURES
 
-    figures_dir              = "/Volumes/Data/evaluation/figures/"
-    summary_dir              = "/Volumes/Data/evaluation/summary/"
+    figures_dir               = "/Volumes/Data/evaluation/figures/"
+    summary_dir               = "/Volumes/Data/evaluation/summary/"

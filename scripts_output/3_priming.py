@@ -19,14 +19,14 @@ import logging
 import os
 import sys
 
+import numpy
 import pandas
 import seaborn
-import numpy
 
 from matplotlib import pyplot
 
 from ..core.utils.logging import log_message, date_format
-from ..core.utils.maths import CorrelationType, DistanceType
+from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)

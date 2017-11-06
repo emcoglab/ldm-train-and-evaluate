@@ -27,7 +27,7 @@ import seaborn
 
 from matplotlib import pyplot
 
-from ..core.evaluation.similarity import ColourAssociations
+from core.evaluation.norms import ColourAssociations
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType, CorrelationType
 from ..preferences.preferences import Preferences
@@ -174,7 +174,7 @@ def load_data() -> pandas.DataFrame:
     """
     Load a pandas.DataFrame from a collection of CSV fragments.
     """
-    results_dir = Preferences.colour_assoc_results_dir
+    results_dir = Preferences.association_results_dir
     separator = ","
 
     header_filename = os.path.join(results_dir, " header.csv")

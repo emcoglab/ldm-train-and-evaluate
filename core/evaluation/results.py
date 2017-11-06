@@ -47,7 +47,7 @@ class ReportCard(object, metaclass=ABCMeta):
         raise NotImplementedError()
 
     def __init__(self):
-        self.entries: List[ReportCard.Entry] = []
+        self.entries: List['ReportCard.Entry'] = []
 
     def __iadd__(self, other: 'ReportCard'):
         for entry in other.entries:
