@@ -38,6 +38,7 @@ def main():
     ]
 
     results = SynonymResults()
+    results.load()
 
     for corpus_metadata in Preferences.source_corpus_metas:
 

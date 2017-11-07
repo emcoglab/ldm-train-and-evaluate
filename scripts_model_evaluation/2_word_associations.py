@@ -37,10 +37,11 @@ def main():
         WordsimRelatedness(),
         MenSimilarity(),
         ColourAssociation(),
-        ThematicAssociation()
+        # ThematicAssociation()
     ]
 
     results = AssociationResults()
+    results.load()
 
     for corpus_metadata in Preferences.source_corpus_metas:
 

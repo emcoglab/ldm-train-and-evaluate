@@ -14,9 +14,9 @@ caiwingfield.net
 2017
 ---------------------------
 """
-
 import os
 import pickle
+import logging
 
 from abc import ABCMeta
 from typing import List
@@ -26,6 +26,9 @@ import pandas
 from ..model.base import VectorSemanticModel
 from ..model.predict import PredictVectorModel
 from ..utils.maths import DistanceType
+
+
+logger = logging.getLogger(__name__)
 
 
 class EvaluationResults(metaclass=ABCMeta):
@@ -52,13 +55,7 @@ class EvaluationResults(metaclass=ABCMeta):
 
         column_names = self.model_index_column_names + results_column_names
 
-        self.data: pandas.DataFrame = None
-        if self._previously_saved():
-            self.data = self._load()
-            assert set(self.column_names) == set(column_names)
-        else:
-            self.data = pandas.DataFrame(columns=column_names)
-        assert self.data is not None
+        self.data: pandas.DataFrame = pandas.DataFrame(columns=column_names)
 
     @property
     def column_names(self):
@@ -98,8 +95,7 @@ class EvaluationResults(metaclass=ABCMeta):
         assert set(self.column_names) == set(other.column_names)
         self.data = self.data.append(other.data, ignore_index=True)
 
-    @classmethod
-    def results_exist_for(cls,
+    def results_exist_for(self,
                           test_name: str,
                           model: VectorSemanticModel,
                           distance_type: DistanceType,
@@ -107,16 +103,15 @@ class EvaluationResults(metaclass=ABCMeta):
         """
         Do results exist for this model?
         """
-        instance = cls()
-        return instance.data[
-                   (instance.data["Test name"] == test_name) &
+        return self.data[
+                   (self.data["Test name"] == test_name) &
                    # TODO: this is gross
-                   (instance.data["Model type"] == (model.model_type.name + (f" ({truncate_vectors_at_length})" if truncate_vectors_at_length is not None else ""))) &
-                   ((instance.data["Embedding size"] == model.embedding_size) if isinstance(model, PredictVectorModel) else True) &
-                   (instance.data["Radius"] == model.window_radius) &
-                   (instance.data["Distance type"] == distance_type.name) &
-                   (instance.data["Corpus"] == model.corpus_meta.name)
-               ].count() > 0
+                   (self.data["Model type"] == (model.model_type.name + (f" ({truncate_vectors_at_length})" if truncate_vectors_at_length is not None else ""))) &
+                   ((self.data["Embedding size"] == model.embedding_size) if isinstance(model, PredictVectorModel) else pandas.isnull(self.data["Embedding size"])) &
+                   (self.data["Radius"] == model.window_radius) &
+                   (self.data["Distance type"] == distance_type.name) &
+                   (self.data["Corpus"] == model.corpus_meta.name)
+               ].shape[0] > 0
 
     def save(self):
         """
@@ -127,25 +122,44 @@ class EvaluationResults(metaclass=ABCMeta):
             pickle.dump(self.data, data_file)
         self._export_csv()
 
-    def _previously_saved(self) -> bool:
+    def _previously_saved_pickle(self) -> bool:
         return os.path.isfile(self._pickle_path)
 
-    def _load(self) -> pandas.DataFrame:
+    def _previously_saved_csv(self) -> bool:
+        return os.path.isfile(self._csv_path)
+
+    def load(self):
         """
         Load previously saved data.
         """
-        with open(self._pickle_path, mode="rb") as data_file:
-            return pickle.load(data_file)
+        old_column_names = self.data.columns.values
+        if self._previously_saved_pickle():
+            with open(self._pickle_path, mode="rb") as data_file:
+                self.data = pickle.load(data_file)
+            assert set(self.column_names) == set(old_column_names)
+        elif self._previously_saved_csv():
+            logger.warning(f"Previous binary {self._pickle_path} not found.")
+            logger.info(f"Importing from csv.")
+            self.import_csv()
+            assert set(self.column_names) == set(old_column_names)
+            logger.info(f"Restoring binary save.")
+            self.save()
+        else:
+            logger.warning(f"Previous binary {self._pickle_path} not found.")
+            logger.warning(f"Previous csv {self._csv_path} not found.")
+            logger.warning(f"Nothing loaded!")
 
     def _export_csv(self):
         """
         Export results as a csv.
         """
         with open(self._csv_path, mode="w", encoding="utf-8") as spp_file:
-            self.data.to_csv(spp_file)
+            # We don't want to save the index, as it's not especially meaningful, and makes life harder when trying to
+            # restore the binary version from the csv (the index column would be imported and then need to be dropped).
+            self.data.to_csv(spp_file, index=False)
 
     def import_csv(self):
         """
-        Load from a CSV (only use if the pickle gets lost or corrupted somehow.
+        Load from a CSV (use if the pickle gets lost or corrupted somehow.
         """
         self.data = pandas.read_csv(self._csv_path)
