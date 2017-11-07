@@ -237,6 +237,10 @@ def run_all_model_regressions(all_data: pandas.DataFrame,
                         result = run_single_model_regression(all_data, distance_type, dv_name, model, baseline_variable_names, for_priming_effect)
                         results.append(result)
 
+                # release memory
+                model.untrain()
+            del count_models
+
             # Predict models
 
             for embedding_size in Preferences.predict_embedding_sizes:
@@ -251,6 +255,10 @@ def run_all_model_regressions(all_data: pandas.DataFrame,
                         for dv_name in dependent_variable_names:
                             result = run_single_model_regression(all_data, distance_type, dv_name, model, baseline_variable_names, for_priming_effect)
                             results.append(result)
+
+                    # release memory
+                    model.untrain()
+                del predict_models
     return results
 
 

@@ -65,8 +65,8 @@ def main():
                             results.extend_with_results(SynonymTester.administer_test(test, model, distance_type))
                             results.save()
 
-            # TODO: is this where the memory leak is?
-            # TODO: if references linger for models in count_models, just deleting the list may not free up memory
+                # release memory
+                model.untrain()
             del count_models
 
             # PPMI (TRUNCATED, for replication of B&L 2007)
@@ -78,6 +78,9 @@ def main():
                         model.train(memory_map=True)
                         results.extend_with_results(SynonymTester.administer_test(test, model, distance_type, truncate_length))
                         results.save()
+
+            # release memory
+            model.untrain()
 
             # PREDICT MODELS
 
@@ -96,6 +99,8 @@ def main():
                                 results.extend_with_results(SynonymTester.administer_test(test, model, distance_type))
                                 results.save()
 
+                    # release memory
+                    model.untrain()
                 del predict_models
 
 

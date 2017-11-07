@@ -284,6 +284,13 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             self._save()
 
     @abstractmethod
+    def untrain(self):
+        """
+        Returns this model to its untrained state, so its memory is released.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
     def _retrain(self):
         """
         Retrains a model from scratch.
@@ -333,6 +340,10 @@ class VectorSemanticModel(DistributionalSemanticModel, metaclass=ABCMeta):
     @property
     def is_trained(self) -> bool:
         return self._model is not None
+
+    def untrain(self):
+        self._model = None
+        assert not self.is_trained
 
     @property
     def name(self) -> str:
@@ -406,6 +417,10 @@ class ScalarSemanticModel(DistributionalSemanticModel, metaclass=ABCMeta):
     @property
     def is_trained(self) -> bool:
         return self._model is not None
+
+    def untrain(self):
+        self._model = None
+        assert not self.is_trained
 
     @property
     def name(self) -> str:

@@ -66,7 +66,8 @@ def main():
                             model.train(memory_map=True)
                             results.extend_with_results(AssociationTester.administer_test(test, model, distance_type))
                             results.save()
-
+                # release memory
+                model.untrain()
             del count_models
 
             # PREDICT MODELS
@@ -87,6 +88,8 @@ def main():
                                     AssociationTester.administer_test(test, model, distance_type))
                                 results.save()
 
+                    # release memory
+                    model.untrain()
                 del predict_models
 
 
