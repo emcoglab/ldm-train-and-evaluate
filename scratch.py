@@ -23,7 +23,9 @@ def convert_synonyms():
         column_names = header_file.read().strip().split(separator)
     results_df = pandas.DataFrame(columns=column_names)
     for data_filename in data_filenames:
-        partial_df = pandas.read_csv(data_filename, sep=separator, names=column_names)
+        partial_df = pandas.read_csv(data_filename, sep=separator, names=column_names,
+                                     # Convert percent strings to floats
+                                     converters={"Score": lambda val: float(val.strip("%"))/100})
         results_df = results_df.append(partial_df, ignore_index=True)
     new_results = SynonymResults()
     new_results.data = results_df
