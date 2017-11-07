@@ -100,7 +100,7 @@ def model_performance_bar_graphs(similarity_results_df: pandas.DataFrame, window
     seaborn.set_style("ticks")
 
     filtered_df: pandas.DataFrame = similarity_results_df.copy()
-    filtered_df = filtered_df[filtered_df["window_radius"] == window_radius]
+    filtered_df = filtered_df[filtered_df["radius"] == window_radius]
     filtered_df = filtered_df[filtered_df["distance_type"] == distance_type.name]
     filtered_df = filtered_df[filtered_df["correlation_type"] == correlation_type.name]
 
@@ -171,17 +171,17 @@ def figures_score_vs_radius(similarity_results, test_name):
             filtered_dataframe = filtered_dataframe[filtered_dataframe["distance_type"] == distance]
             filtered_dataframe = filtered_dataframe[filtered_dataframe["test_name"] == test_name]
 
-            filtered_dataframe = filtered_dataframe.sort_values(by=["model", "window_radius"])
+            filtered_dataframe = filtered_dataframe.sort_values(by=["model", "radius"])
             filtered_dataframe = filtered_dataframe.reset_index(drop=True)
 
             filtered_dataframe = filtered_dataframe[[
                 "model",
-                "window_radius",
+                "radius",
                 "correlation"
             ]]
 
             plot = seaborn.factorplot(data=filtered_dataframe,
-                                      x="window_radius", y="correlation",
+                                      x="radius", y="correlation",
                                       hue="model",
                                       size=7, aspect=1.8,
                                       legend=False)

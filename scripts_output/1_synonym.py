@@ -41,9 +41,9 @@ def main():
 
     results_df["model_name"] = results_df.apply(
         lambda r:
-        f"{r['corpus']} {r['distance']} {r['model']} {r['embedding_size']}"
+        f"{r['corpus']} {r['distance_type']} {r['model_type']} {r['embedding_size']}"
         if not numpy.math.isnan(r['embedding_size'])
-        else f"{r['corpus']} {r['distance']} {r['model']}",
+        else f"{r['corpus']} {r['distance_type']} {r['model_type']}",
         axis=1
     )
 
@@ -94,17 +94,17 @@ def model_performance_bar_graphs(synonym_results_df: pandas.DataFrame, window_ra
 
     filtered_df: pandas.DataFrame = synonym_results_df.copy()
     filtered_df = filtered_df[filtered_df["radius"] == window_radius]
-    filtered_df = filtered_df[filtered_df["distance"] == distance_type.name]
+    filtered_df = filtered_df[filtered_df["distance_type"] == distance_type.name]
 
     # Don't want to show PPMI (10000)
-    filtered_df = filtered_df[filtered_df["model"] != "PPMI (10000)"]
+    filtered_df = filtered_df[filtered_df["model_type"] != "PPMI (10000)"]
 
     # Model name doesn't need to include corpus or distance, since those are fixed
     filtered_df["model_name"] = filtered_df.apply(
         lambda r:
-        f"{r['model']} {r['embedding_size']}"
+        f"{r['model_type']} {r['embedding_size']}"
         if not numpy.math.isnan(r['embedding_size'])
-        else f"{r['model']}",
+        else f"{r['model_type']}",
         axis=1
     )
 
@@ -160,11 +160,11 @@ def model_performance_bar_graphs(synonym_results_df: pandas.DataFrame, window_ra
 
 def figures_score_vs_radius(regression_results_df: pandas.DataFrame, test_name: str):
     figures_dir = Preferences.figures_dir
-    for distance in [d.name for d in DistanceType]:
+    for distance_type in [d.name for d in DistanceType]:
         for corpus in ["BNC", "BBC", "UKWAC"]:
             filtered_df: pandas.DataFrame = regression_results_df.copy()
             filtered_df = filtered_df[filtered_df["corpus"] == corpus]
-            filtered_df = filtered_df[filtered_df["distance"] == distance]
+            filtered_df = filtered_df[filtered_df["distance_type"] == distance_type]
             filtered_df = filtered_df[filtered_df["test_name"] == test_name]
 
             filtered_df = filtered_df.sort_values(by=["model_name", "radius"])
@@ -195,7 +195,7 @@ def figures_score_vs_radius(regression_results_df: pandas.DataFrame, test_name: 
             # Put a legend to the right side
             plot.ax.legend(loc='center right', bbox_to_anchor=(1.35, 0.5), ncol=1)
 
-            figure_name = f"synonym {test_name} {corpus} {distance}.png"
+            figure_name = f"synonym {test_name} {corpus} {distance_type}.png"
 
             plot.savefig(os.path.join(figures_dir, figure_name))
 
@@ -205,7 +205,7 @@ def figures_embedding_size(regression_results_df: pandas.DataFrame, test_name: s
     figures_dir = Preferences.figures_dir
     for distance in [d.name for d in DistanceType]:
         filtered_df: pandas.DataFrame = regression_results_df.copy()
-        filtered_df = filtered_df[filtered_df["distance"] == distance]
+        filtered_df = filtered_df[filtered_df["distance_type"] == distance]
         filtered_df = filtered_df[filtered_df["test_name"] == test_name]
 
         # Remove count models by dropping rows with nan in embedding_size column
@@ -213,29 +213,29 @@ def figures_embedding_size(regression_results_df: pandas.DataFrame, test_name: s
 
         filtered_df = filtered_df[[
             "corpus",
-            "model",
+            "model_type",
             "embedding_size",
             "radius",
             "score"]]
 
-        filtered_df = filtered_df.sort_values(by=["corpus", "model", "embedding_size", "radius"])
+        filtered_df = filtered_df.sort_values(by=["corpus", "model_type", "embedding_size", "radius"])
         filtered_df = filtered_df.reset_index(drop=True)
 
         seaborn.set_style("ticks")
         seaborn.set_context(context="paper", font_scale=1)
         grid = seaborn.FacetGrid(
             filtered_df,
-            row="radius", col="corpus", hue="model",
+            row="radius", col="corpus", hue="model_type",
             margin_titles=True,
             size=2,
             ylim=(0, 1),
             legend_out=True
         )
 
+        grid.map(pyplot.plot, "embedding_size", "score", marker="o")
+
         # Chance line
         grid.map(pyplot.axhline, y=0.25, ls=":", c=".5", label="")
-
-        grid.map(pyplot.plot, "embedding_size", "score", marker="o")
 
         grid.set(
             xticks=Preferences.predict_embedding_sizes,
