@@ -157,6 +157,8 @@ def model_performance_bar_graphs(synonym_results_df: pandas.DataFrame, window_ra
     # noinspection PyUnresolvedReferences
     plot.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
+    pyplot.close(grid.fig)
+
 
 def figures_score_vs_radius(regression_results_df: pandas.DataFrame, test_name: str):
     figures_dir = Preferences.figures_dir
@@ -198,6 +200,8 @@ def figures_score_vs_radius(regression_results_df: pandas.DataFrame, test_name: 
             figure_name = f"synonym {test_name} {corpus} {distance_type}.png"
 
             plot.savefig(os.path.join(figures_dir, figure_name))
+
+            pyplot.close(plot.fig)
 
 
 def figures_embedding_size(regression_results_df: pandas.DataFrame, test_name: str):
@@ -258,6 +262,8 @@ def figures_embedding_size(regression_results_df: pandas.DataFrame, test_name: s
         figure_name = f"synonym embedding_size {test_name} {distance}.png"
 
         grid.savefig(os.path.join(figures_dir, figure_name), dpi=300)
+
+        pyplot.close(grid.fig)
 
 
 if __name__ == "__main__":

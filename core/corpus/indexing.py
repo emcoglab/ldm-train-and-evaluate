@@ -22,7 +22,7 @@ import logging
 
 import nltk
 
-from core.corpus.corpus import BatchedCorpus
+from ..corpus.corpus import BatchedCorpus
 
 logger = logging.getLogger(__name__)
 

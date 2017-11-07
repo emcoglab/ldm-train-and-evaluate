@@ -316,9 +316,9 @@ class ColourAssociation(WordAssociationTest):
                 parts = line.split(",")
                 assocs.append(WordAssociation(
                     # word
-                    parts[1],
+                    parts[1].lower(),
                     # colour
-                    parts[2],
+                    parts[2].lower(),
                     # percentage of respondents
                     float(parts[4])))
 

@@ -159,6 +159,8 @@ def model_performance_bar_graphs(similarity_results_df: pandas.DataFrame, window
     # noinspection PyUnresolvedReferences
     plot.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
+    pyplot.close(grid.fig)
+
 
 def figures_score_vs_radius(similarity_results, test_name):
     figures_dir = Preferences.figures_dir
@@ -197,6 +199,8 @@ def figures_score_vs_radius(similarity_results, test_name):
             plot.ax.legend(loc='center right', bbox_to_anchor=(1.35, 0.5), ncol=1)
 
             plot.savefig(os.path.join(figures_dir, figure_name))
+
+            pyplot.close(plot.fig)
 
 
 if __name__ == "__main__":

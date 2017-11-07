@@ -12,6 +12,10 @@ def main():
     convert_synonyms()
     convert_associations()
 
+# This has a bug where csvs are saved into the same directory they are searched for in,
+# so if run twice it will do weird things the second time.
+# But it's one-use code, so I'm not going to fix it.
+
 
 def convert_synonyms():
     results_dir = Preferences.synonym_results_dir
