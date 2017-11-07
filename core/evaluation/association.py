@@ -351,7 +351,13 @@ class ThematicAssociation(WordAssociationTest):
                     # Take only part of response before the alternatives
                     response = response.split("(")[0].strip()
 
+                # This is a csv, so we may need to strip off some residual quotes
+                word = word.strip("\"' ")
+                response = response.strip("\"' ")
+
                 assocs.append(WordAssociation(
                     word,
                     response,
                     number_of_respondents_weighted))
+
+        return assocs
