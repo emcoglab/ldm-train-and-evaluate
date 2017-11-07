@@ -110,10 +110,12 @@ def model_performance_bar_graphs(spp_results_df: pandas.DataFrame, window_radius
     filtered_df["dv_test_type"] = filtered_df.apply(lambda r: "LDT"     if r["dependent_variable"].startswith("LDT") else "NT",   axis=1)
     filtered_df["dv_measure"]   = filtered_df.apply(lambda r: "Acc"     if "Acc" in r["dependent_variable"]          else "Z-RT", axis=1)
     filtered_df["dv_soa"]       = filtered_df.apply(lambda r: 200       if "_200ms" in r["dependent_variable"]       else 1200,   axis=1)
-    filtered_df["dv_priming"]   = filtered_df.apply(lambda r: "priming" if "Priming" in r["dependent_variable"]      else "",     axis=1)
+    filtered_df["dv_priming"]   = filtered_df.apply(lambda r: True      if "Priming" in r["dependent_variable"]      else False,  axis=1)
 
     for soa in [200, 1200]:
         for test_type in ["LDT", "NT"]:
+
+            # include z-rt/acc and priming/non-priming distinctions in graphs
 
             dv_name = f"{test_type} {soa}ms"
 
