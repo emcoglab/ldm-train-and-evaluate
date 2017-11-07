@@ -54,6 +54,8 @@ DV_NAMES = [
     "NT_1200ms_Acc_Priming"
 ]
 
+figures_base_dir = os.path.join(Preferences.figures_dir, "priming")
+
 
 def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
     return df.rename(columns=lambda col_name: col_name.replace(" ", "_").lower())
@@ -86,7 +88,8 @@ def main():
 
 def model_performance_bar_graphs(spp_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType):
 
-    figures_dir = Preferences.figures_dir
+    figures_dir = os.path.join(figures_base_dir, "model performance bar graphs")
+
     seaborn.set_style("ticks")
 
     filtered_df: pandas.DataFrame = spp_results_df.copy()
@@ -169,7 +172,7 @@ def model_performance_bar_graphs(spp_results_df: pandas.DataFrame, window_radius
 
 def model_comparison_matrix(spp_results_df: pandas.DataFrame, dv_name: str, radius: int, corpus_name: str):
 
-    figures_dir = Preferences.figures_dir
+    figures_dir = os.path.join(figures_base_dir, "heatmaps all models")
 
     seaborn.set(style="white")
 

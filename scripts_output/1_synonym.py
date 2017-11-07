@@ -34,6 +34,8 @@ logger = logging.getLogger(__name__)
 
 TEST_NAMES = [ToeflTest().name, EslTest().name, LbmMcqTest().name]
 
+figures_base_dir = os.path.join(Preferences.figures_dir, "synonym")
+
 
 def main():
     results_df = SynonymResults().data
@@ -89,7 +91,8 @@ def summary_tables(regression_results_df: pandas.DataFrame):
 
 def model_performance_bar_graphs(synonym_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType):
 
-    figures_dir = Preferences.figures_dir
+    figures_dir = os.path.join(figures_base_dir, "model performance bar graphs")
+
     seaborn.set_style("ticks")
 
     filtered_df: pandas.DataFrame = synonym_results_df.copy()
@@ -161,7 +164,9 @@ def model_performance_bar_graphs(synonym_results_df: pandas.DataFrame, window_ra
 
 
 def figures_score_vs_radius(regression_results_df: pandas.DataFrame, test_name: str):
-    figures_dir = Preferences.figures_dir
+
+    figures_dir = os.path.join(figures_base_dir, "effects of radius")
+
     for distance_type in [d.name for d in DistanceType]:
         for corpus in ["BNC", "BBC", "UKWAC"]:
             filtered_df: pandas.DataFrame = regression_results_df.copy()
@@ -206,7 +211,8 @@ def figures_score_vs_radius(regression_results_df: pandas.DataFrame, test_name: 
 
 def figures_embedding_size(regression_results_df: pandas.DataFrame, test_name: str):
 
-    figures_dir = Preferences.figures_dir
+    figures_dir = os.path.join(figures_base_dir, "effects of embedding size")
+
     for distance in [d.name for d in DistanceType]:
         filtered_df: pandas.DataFrame = regression_results_df.copy()
         filtered_df = filtered_df[filtered_df["distance_type"] == distance]

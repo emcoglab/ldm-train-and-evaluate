@@ -35,6 +35,8 @@ logger = logging.getLogger(__name__)
 
 TEST_NAMES = [SimlexSimilarity().name, WordsimSimilarity().name, WordsimRelatedness().name, MenSimilarity().name]
 
+figures_base_dir = os.path.join(Preferences.figures_dir, "similarity")
+
 
 def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
     return df.rename(columns=lambda col_name: col_name.replace(" ", "_").lower())
@@ -70,6 +72,7 @@ def main():
 
 # TODO: essentially duplicated code
 def summary_tables(similarity_results_df: pandas.DataFrame):
+
     summary_dir = Preferences.summary_dir
 
     for correlation_type in [c.name for c in CorrelationType]:
@@ -96,7 +99,8 @@ def summary_tables(similarity_results_df: pandas.DataFrame):
 
 def model_performance_bar_graphs(similarity_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType, correlation_type: CorrelationType):
 
-    figures_dir = Preferences.figures_dir
+    figures_dir = os.path.join(figures_base_dir, "model performance bar graphs")
+
     seaborn.set_style("ticks")
 
     filtered_df: pandas.DataFrame = similarity_results_df.copy()
@@ -163,7 +167,9 @@ def model_performance_bar_graphs(similarity_results_df: pandas.DataFrame, window
 
 
 def figures_score_vs_radius(similarity_results, test_name):
-    figures_dir = Preferences.figures_dir
+
+    figures_dir = os.path.join(figures_base_dir, "effects of radius")
+
     for distance in [d.name for d in DistanceType]:
         for corpus in ["BNC", "BBC", "UKWAC"]:
             figure_name = f"similarity {test_name} {corpus} {distance}.png"

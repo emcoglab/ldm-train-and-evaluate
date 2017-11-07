@@ -34,6 +34,8 @@ logger = logging.getLogger(__name__)
 
 TEST_NAMES = [ColourAssociation().name, ThematicAssociation().name]
 
+figures_base_dir = os.path.join(Preferences.figures_dir, "norms")
+
 
 def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
     return df.rename(columns=lambda col_name: col_name.replace(" ", "_").lower())
@@ -65,7 +67,8 @@ def main():
 
 def model_performance_bar_graphs(colour_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType, correlation_type: CorrelationType):
 
-    figures_dir = Preferences.figures_dir
+    figures_dir = os.path.join(figures_base_dir, "model performance bar graphs")
+
     seaborn.set_style("ticks")
 
     filtered_df: pandas.DataFrame = colour_results_df.copy()
@@ -130,7 +133,9 @@ def model_performance_bar_graphs(colour_results_df: pandas.DataFrame, window_rad
 
 
 def figures_score_vs_radius(colour_results_df: pandas.DataFrame, test_name: str):
-    figures_dir = Preferences.figures_dir
+
+    figures_dir = os.path.join(figures_base_dir, "effects of radius")
+
     for distance in [d.name for d in DistanceType]:
         for corpus in ["BNC", "BBC", "UKWAC"]:
             figure_name = f"norms {test_name} {corpus} {distance}.png"
