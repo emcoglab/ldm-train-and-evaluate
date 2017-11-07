@@ -128,9 +128,10 @@ class EvaluationResults(metaclass=ABCMeta):
     def _previously_saved_csv(self) -> bool:
         return os.path.isfile(self._csv_path)
 
-    def load(self):
+    def load(self) -> 'EvaluationResults':
         """
         Load previously saved data.
+        Returns self for method chaining.
         """
         old_column_names = self.data.columns.values
         if self._previously_saved_pickle():
@@ -148,6 +149,8 @@ class EvaluationResults(metaclass=ABCMeta):
             logger.warning(f"Previous binary {self._pickle_path} not found.")
             logger.warning(f"Previous csv {self._csv_path} not found.")
             logger.warning(f"Nothing loaded!")
+
+        return self
 
     def _export_csv(self):
         """

@@ -44,7 +44,7 @@ def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
 
 def main():
 
-    results_df = AssociationResults().data
+    results_df = AssociationResults().load().data
     results_df = ensure_column_safety(results_df)
 
     # TODO: could add this to results

@@ -37,8 +37,9 @@ TEST_NAMES = [ToeflTest().name, EslTest().name, LbmMcqTest().name]
 figures_base_dir = os.path.join(Preferences.figures_dir, "synonym")
 
 
+# TODO: essentially duplicated code
 def main():
-    results_df = SynonymResults().data
+    results_df = SynonymResults().load().data
     results_df = ensure_column_safety(results_df)
 
     results_df["model_name"] = results_df.apply(
@@ -60,15 +61,12 @@ def main():
             logger.info(f"Making model bar graph figures for r={radius} and d={distance_type.name}")
             model_performance_bar_graphs(results_df, window_radius=radius, distance_type=distance_type)
 
-    summary_tables(results_df)
+    # Summary tables
+    table_top_n_models(results_df)
+    table_top_n_models(results_df, 5)
 
 
-def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
-    return df.rename(columns=lambda col_name: col_name.replace(" ", "_").lower())
-
-
-# TODO: essentially duplicated code
-def summary_tables(regression_results_df: pandas.DataFrame):
+def table_top_n_models(regression_results_df: pandas.DataFrame, n: int):
     summary_dir = Preferences.summary_dir
 
     results_df = pandas.DataFrame()
@@ -78,15 +76,11 @@ def summary_tables(regression_results_df: pandas.DataFrame):
         filtered_df: pandas.DataFrame = regression_results_df.copy()
         filtered_df = filtered_df[filtered_df["test_name"] == test_name]
 
-        best_score = filtered_df["score"].max()
+        top_models = filtered_df.sort_values("score", ascending=False).reset_index(drop=True).head(n)
 
-        best_models_df = filtered_df[filtered_df["score"] == best_score]
+        results_df = results_df.append(top_models)
 
-        results_df = results_df.append(best_models_df)
-
-    results_df = results_df.reset_index(drop=True)
-
-    results_df.to_csv(os.path.join(summary_dir, "synonym_best_models.csv"))
+    results_df.to_csv(os.path.join(summary_dir, f"synonym_top_{n}_models.csv"), index=False)
 
 
 def model_performance_bar_graphs(synonym_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType):
@@ -270,6 +264,10 @@ def figures_embedding_size(regression_results_df: pandas.DataFrame, test_name: s
         grid.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
         pyplot.close(grid.fig)
+
+
+def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
+    return df.rename(columns=lambda col_name: col_name.replace(" ", "_").lower())
 
 
 if __name__ == "__main__":

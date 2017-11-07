@@ -43,7 +43,7 @@ def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
 
 def main():
 
-    results_df = AssociationResults().data
+    results_df = AssociationResults().load().data
     results_df = ensure_column_safety(results_df)
 
     results_df["model"] = results_df.apply(
