@@ -69,7 +69,7 @@ def main():
         logger.info(f"Making top-5 model tables overall for {distance_type.name}")
         table_top_n_models(results_df, 5, distance_type)
 
-    percent_corr_cos_distributions(results_df)
+    cos_vs_cor_scores(results_df)
 
 
 def table_top_n_models(regression_results_df: pandas.DataFrame, top_n: int, distance_type: DistanceType = None):
@@ -281,13 +281,13 @@ def figures_embedding_size(regression_results_df: pandas.DataFrame, test_name: s
         pyplot.close(grid.fig)
 
 
-def percent_corr_cos_distributions(results_df: pandas.DataFrame):
+def cos_vs_cor_scores(results_df: pandas.DataFrame):
 
-    figures_dir = os.path.join(figures_base_dir, "score histograms")
+    figures_dir = os.path.join(figures_base_dir, "effects of distance")
     seaborn.set(style="white", palette="muted", color_codes=True)
 
+    distribution = []
     for test_name in TEST_NAMES:
-        distribution = []
 
         filtered_df: pandas.DataFrame = results_df.copy()
         filtered_df = filtered_df[filtered_df["test_name"] == test_name]
@@ -313,29 +313,31 @@ def percent_corr_cos_distributions(results_df: pandas.DataFrame):
             score_cos = list(cos_df["score"])[0]
             score_corr = list(corr_df["score"])[0]
 
-            score_cos_corr = score_cos - score_corr
+            distribution.append([test_name, score_cos, score_corr])
 
-            distribution.append(score_cos_corr)
+    dist_df = pandas.DataFrame(distribution, columns=["Test name", "Cosine score", "Correlation score"])
 
-        seaborn.set_context(context="paper", font_scale=1)
-        plot = seaborn.distplot(distribution, kde=False, color="b")
+    seaborn.set_context(context="paper", font_scale=1)
 
-        xlims = plot.axes.get_xlim()
-        plot.axes.set_xlim(
-            -max(math.fabs(xlims[0]), math.fabs(xlims[1])),
-            max(math.fabs(xlims[0]), math.fabs(xlims[1]))
-        )
+    grid = seaborn.FacetGrid(data=dist_df, col="Test name", col_wrap=2, size=5)
+    grid.set(xlim=(0, 1), ylim=(0, 1))
 
-        # Format xicks as percentages
-        vals = plot.axes.get_xticks()
-        plot.axes.set_xticklabels(['{:3.0f}%'.format(x * 100) for x in vals])
+    grid.map(pyplot.scatter, "Cosine score", "Correlation score")
 
-        plot.set_xlabel("score difference (cosine - correlation)")
-        plot.set_title(f"Distribution of score differences (cos - corr) for {test_name}")
+    for ax in grid.axes.flat:
+        ax.plot((0, 1), (0, 1), c="r", ls="-")
 
-        plot.figure.savefig(os.path.join(figures_dir, f"synonym score diff dist {test_name}.png"), dpi=300)
+    # Format xicks as percentages
+    xtick_labels = grid.axes[0].get_xticklabels()
+    grid.set_xticklabels(['{:3.0f}%'.format(float(label.get_text()) * 100) for label in xtick_labels])
+    ytick_labels = grid.axes[0].get_yticklabels()
+    grid.set_yticklabels(['{:3.0f}%'.format(float(label.get_text()) * 100) for label in ytick_labels])
 
-        pyplot.close(plot.figure)
+    pyplot.subplots_adjust(top=0.92)
+    grid.fig.suptitle(f"Synonyms: correlation- & cosine-distance scores")
+
+    grid.savefig(os.path.join(figures_dir, f"synonym scores cos-vs-cor.png"), dpi=300)
+    pyplot.close(grid.fig)
 
 
 def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:

@@ -73,7 +73,7 @@ def main():
         logger.info(f"Making top-5 model tables overall for {distance_type.name}")
         table_top_n_models(results_df, 5, distance_type)
 
-    fit_corr_cos_distributions(results_df)
+    cos_vs_cor_scores(results_df)
 
 
 def table_top_n_models(regression_results_df: pandas.DataFrame,
@@ -218,59 +218,62 @@ def figures_score_vs_radius(similarity_results, test_name):
             pyplot.close(plot.fig)
 
 
-def fit_corr_cos_distributions(results_df: pandas.DataFrame):
+def cos_vs_cor_scores(results_df: pandas.DataFrame):
 
-    figures_dir = os.path.join(figures_base_dir, "correlation histograms")
+    figures_dir = os.path.join(figures_base_dir, "effects of distance")
     seaborn.set(style="white", palette="muted", color_codes=True)
 
+    distribution = []
     for test_name in TEST_NAMES:
-        distribution = []
+        for correlation_type in CorrelationType:
 
-        filtered_df: pandas.DataFrame = results_df.copy()
-        filtered_df = filtered_df[filtered_df["test_name"] == test_name]
+            filtered_df: pandas.DataFrame = results_df.copy()
+            filtered_df = filtered_df[filtered_df["test_name"] == test_name]
+            filtered_df = filtered_df[filtered_df["correlation_type"] == correlation_type.name]
 
-        filtered_df["model_name"] = filtered_df.apply(
-            lambda r:
-            f"{r['model_type']} {r['embedding_size']:.0f} r={r['radius']} {r['corpus']}"
-            if r['embedding_size'] is not None
-            else f"{r['model_type']} r={r['radius']} {r['corpus']}",
-            axis=1
-        )
+            filtered_df["model_name"] = filtered_df.apply(
+                lambda r:
+                f"{r['model_type']} {r['embedding_size']:.0f} r={r['radius']} {r['corpus']}"
+                if r['embedding_size'] is not None
+                else f"{r['model_type']} r={r['radius']} {r['corpus']}",
+                axis=1
+            )
 
-        for model_name in set(filtered_df["model_name"]):
-            cos_df: pandas.DataFrame = filtered_df.copy()
-            cos_df = cos_df[cos_df["model_name"] == model_name]
-            cos_df = cos_df[cos_df["distance_type"] == "cosine"]
-            cos_df = cos_df[cos_df["correlation_type"] == "Pearson"]
+            for model_name in set(filtered_df["model_name"]):
+                cos_df: pandas.DataFrame = filtered_df.copy()
+                cos_df = cos_df[cos_df["model_name"] == model_name]
+                cos_df = cos_df[cos_df["distance_type"] == "cosine"]
 
-            corr_df: pandas.DataFrame = filtered_df.copy()
-            corr_df = corr_df[corr_df["model_name"] == model_name]
-            corr_df = corr_df[corr_df["distance_type"] == "correlation"]
-            corr_df = corr_df[corr_df["correlation_type"] == "Pearson"]
+                corr_df: pandas.DataFrame = filtered_df.copy()
+                corr_df = corr_df[corr_df["model_name"] == model_name]
+                corr_df = corr_df[corr_df["distance_type"] == "correlation"]
 
-            # barf
-            score_cos = list(cos_df["correlation"])[0]
-            score_corr = list(corr_df["correlation"])[0]
+                # barf
+                score_cos = math.fabs(list(cos_df["correlation"])[0])
+                score_corr = math.fabs(list(corr_df["correlation"])[0])
 
-            score_cos_corr = math.fabs(score_cos) - math.fabs(score_corr)
+                distribution.append([test_name, correlation_type.name, score_cos, score_corr])
 
-            distribution.append(score_cos_corr)
+    dist_df = pandas.DataFrame(distribution, columns=["Test name", "Correlation type", "Cosine score", "Correlation score"])
 
-        seaborn.set_context(context="paper", font_scale=1)
-        plot = seaborn.distplot(distribution, kde=False, color="b")
+    seaborn.set_context(context="paper", font_scale=1)
 
-        xlims = plot.axes.get_xlim()
-        plot.axes.set_xlim(
-            -max(math.fabs(xlims[0]), math.fabs(xlims[1])),
-            max(math.fabs(xlims[0]), math.fabs(xlims[1]))
-        )
+    grid = seaborn.FacetGrid(data=dist_df,
+                             row="Test name", col="Correlation type",
+                             size=2, aspect=1,
+                             margin_titles=True,
+                             xlim=(-1, 1), ylim=(-1, 1))
 
-        plot.set_xlabel("|Pearson correlation| difference (cosine - correlation)")
-        plot.set_title(f"Distribution of |Pearson correlation| differences (cos - corr) for {test_name}")
+    grid.map(pyplot.scatter, "Cosine score", "Correlation score")
 
-        plot.figure.savefig(os.path.join(figures_dir, f"similarity pearson diff dist {test_name}.png"), dpi=300)
+    for ax in grid.axes.flat:
+        ax.plot((-1, 1), (-1, 1), c="r", ls="-")
 
-        pyplot.close(plot.figure)
+    pyplot.subplots_adjust(top=0.92)
+    grid.fig.suptitle(f"Similarity judgements: correlation- & cosine-distance scores")
+
+    grid.savefig(os.path.join(figures_dir, f"similarity scores cos-vs-cor.png"), dpi=300)
+    pyplot.close(grid.fig)
 
 
 if __name__ == "__main__":
