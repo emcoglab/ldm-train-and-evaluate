@@ -260,14 +260,14 @@ def cos_vs_cor_scores(results_df: pandas.DataFrame):
 
     grid = seaborn.FacetGrid(data=dist_df,
                              row="Test name", col="Correlation type",
-                             size=2, aspect=1,
+                             size=5, aspect=1,
                              margin_titles=True,
-                             xlim=(-1, 1), ylim=(-1, 1))
+                             xlim=(0, 1), ylim=(0, 1))
 
     grid.map(pyplot.scatter, "Cosine score", "Correlation score")
 
     for ax in grid.axes.flat:
-        ax.plot((-1, 1), (-1, 1), c="r", ls="-")
+        ax.plot((0, 1), (0, 1), c="r", ls="-")
 
     pyplot.subplots_adjust(top=0.92)
     grid.fig.suptitle(f"Similarity judgements: correlation- & cosine-distance scores")
