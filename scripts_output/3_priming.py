@@ -18,6 +18,7 @@ caiwingfield.net
 import logging
 import os
 import sys
+import math
 
 import numpy
 import pandas
@@ -32,26 +33,26 @@ from ..preferences.preferences import Preferences
 logger = logging.getLogger(__name__)
 
 DV_NAMES = [
-    # LDT
+
     "LDT_200ms_Z",
     "LDT_200ms_Acc",
-    "LDT_1200ms_Z",
-    "LDT_1200ms_Acc",
-    # NT
-    "NT_200ms_Z",
-    "NT_200ms_Acc",
-    "NT_1200ms_Z",
-    "NT_1200ms_Acc",
-    # LDT priming
+    # "LDT_1200ms_Z",
+    # "LDT_1200ms_Acc",
+
     "LDT_200ms_Z_Priming",
     "LDT_200ms_Acc_Priming",
-    "LDT_1200ms_Z_Priming",
-    "LDT_1200ms_Acc_Priming",
-    # NT priming
+    # "LDT_1200ms_Z_Priming",
+    # "LDT_1200ms_Acc_Priming",
+
+    "NT_200ms_Z",
+    "NT_200ms_Acc",
+    # "NT_1200ms_Z",
+    # "NT_1200ms_Acc",
+
     "NT_200ms_Z_Priming",
     "NT_200ms_Acc_Priming",
-    "NT_1200ms_Z_Priming",
-    "NT_1200ms_Acc_Priming"
+    # "NT_1200ms_Z_Priming",
+    # "NT_1200ms_Acc_Priming"
 ]
 
 figures_base_dir = os.path.join(Preferences.figures_dir, "priming")
@@ -64,26 +65,111 @@ def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
 # TODO: essentially duplicated code
 def main():
 
-    spp_results_df = load_data()
-    spp_results_df = ensure_column_safety(spp_results_df)
+    results_df = load_data()
+    results_df = ensure_column_safety(results_df)
 
     # Add rsquared increase column
-    spp_results_df["r-squared_increase"] = spp_results_df["model_r-squared"] - spp_results_df["baseline_r-squared"]
+    results_df["r-squared_increase"] = results_df["model_r-squared"] - results_df["baseline_r-squared"]
 
     for radius in Preferences.window_radii:
         for distance_type in DistanceType:
             logger.info(
                 f"Making model performance bargraph figures for r={radius}, d={distance_type.name}")
-            model_performance_bar_graphs(spp_results_df, window_radius=radius, distance_type=distance_type)
+            model_performance_bar_graphs(results_df, window_radius=radius, distance_type=distance_type)
 
     for dv_name in DV_NAMES:
         for radius in Preferences.window_radii:
             for corpus_name in ["BNC", "BBC", "UKWAC"]:
                 logger.info(f"Making heatmaps dv={dv_name}, r={radius}, c={corpus_name}")
-                model_comparison_matrix(spp_results_df, dv_name, radius, corpus_name)
+                model_comparison_matrix(results_df, dv_name, radius, corpus_name)
 
-    logger.info(f"Making best-model table")
-    best_model_table(spp_results_df)
+    # Summary tables
+    logger.info("Making top-5 model tables overall")
+    table_top_n_models(results_df, 5)
+    for distance_type in DistanceType:
+        logger.info(f"Making top-5 model tables overall for {distance_type.name}")
+        table_top_n_models(results_df, 5, distance_type)
+
+    b_corr_cos_distributions(results_df)
+
+
+def table_top_n_models(regression_results_df: pandas.DataFrame, top_n: int, distance_type: DistanceType = None):
+
+    summary_dir = Preferences.summary_dir
+
+    results_df = pandas.DataFrame()
+
+    for dv_name in DV_NAMES:
+
+        filtered_df: pandas.DataFrame = regression_results_df.copy()
+        filtered_df = filtered_df[filtered_df["dependent_variable"] == dv_name]
+
+        if distance_type is not None:
+            filtered_df = filtered_df[filtered_df["distance_type"] == distance_type.name]
+
+        top_models = filtered_df.sort_values("b10_approx", ascending=False).reset_index(drop=True).head(top_n)
+
+        results_df = results_df.append(top_models)
+
+    if distance_type is None:
+        file_name = f"priming_top_{top_n}_models.csv"
+    else:
+        file_name = f"priming_top_{top_n}_models_{distance_type.name}.csv"
+
+    results_df.to_csv(os.path.join(summary_dir, file_name), index=False)
+
+
+def b_corr_cos_distributions(regression_results_df: pandas.DataFrame):
+
+    figures_dir = os.path.join(figures_base_dir, "bf histograms")
+    seaborn.set(style="white", palette="muted", color_codes=True)
+
+    for dv_name in DV_NAMES:
+        distribution = []
+
+        filtered_df: pandas.DataFrame = regression_results_df.copy()
+        filtered_df = filtered_df[filtered_df["dependent_variable"] == dv_name]
+
+        filtered_df["model_name"] = filtered_df.apply(
+            lambda r:
+            f"{r['model_type']} {r['embedding_size']:.0f} r={r['window_radius']} {r['corpus']}"
+            if r['embedding_size'] is not None
+            else f"{r['model_type']} r={r['window_radius']} {r['corpus']}",
+            axis=1
+        )
+
+        for model_name in set(filtered_df["model_name"]):
+            cos_df: pandas.DataFrame = filtered_df.copy()
+            cos_df = cos_df[cos_df["model_name"] == model_name]
+            cos_df = cos_df[cos_df["distance_type"] == "cosine"]
+
+            corr_df: pandas.DataFrame = filtered_df.copy()
+            corr_df = corr_df[corr_df["model_name"] == model_name]
+            corr_df = corr_df[corr_df["distance_type"] == "correlation"]
+
+            # barf
+            bf_cos = list(cos_df["b10_approx"])[0]
+            bf_corr = list(corr_df["b10_approx"])[0]
+
+            bf_cos_cor = bf_cos / bf_corr
+
+            distribution.append(math.log10(bf_cos_cor))
+
+        seaborn.set_context(context="paper", font_scale=1)
+        plot = seaborn.distplot(distribution, kde=False, color="b")
+
+        xlims = plot.axes.get_xlim()
+        plot.axes.set_xlim(
+            -max(math.fabs(xlims[0]), math.fabs(xlims[1])),
+            max(math.fabs(xlims[0]), math.fabs(xlims[1]))
+        )
+
+        plot.set_xlabel("log BF (cos, corr)")
+        plot.set_title(f"Distribution of log BF (cos > corr) for {dv_name}")
+
+        plot.figure.savefig(os.path.join(figures_dir, f"priming bf dist {dv_name}.png"), dpi=300)
+
+        pyplot.close(plot.figure)
 
 
 def model_performance_bar_graphs(spp_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType):
@@ -101,7 +187,7 @@ def model_performance_bar_graphs(spp_results_df: pandas.DataFrame, window_radius
         lambda r:
         # TODO: embedding sizes aren't ints for some reason, so we have to force this here 🤦‍
         f"{r['model_type']} {r['embedding_size']:.0f}"
-        if not numpy.math.isnan(r['embedding_size'])
+        if r['embedding_size'] is not None
         else f"{r['model_type']}",
         axis=1
     )
@@ -233,27 +319,6 @@ def model_comparison_matrix(spp_results_df: pandas.DataFrame, dv_name: str, radi
     f.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
     pyplot.close(f)
-
-
-def best_model_table(spp_results: pandas.DataFrame):
-    summary_dir = Preferences.summary_dir
-
-    results_df = pandas.DataFrame()
-
-    for dv_name in DV_NAMES:
-
-        filtered_df: pandas.DataFrame = spp_results.copy()
-        filtered_df = filtered_df[filtered_df["dependent_variable"] == dv_name]
-
-        best_bf = filtered_df["b10_approx"].max()
-
-        best_models_df = filtered_df[filtered_df["b10_approx"] == best_bf]
-
-        results_df = results_df.append(best_models_df)
-
-    results_df = results_df.reset_index(drop=True)
-
-    results_df.to_csv(os.path.join(summary_dir, f"priming_best_models.csv"))
 
 
 def load_data() -> pandas.DataFrame:

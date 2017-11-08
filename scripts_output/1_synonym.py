@@ -18,6 +18,7 @@ caiwingfield.net
 import logging
 import os
 import sys
+import math
 
 import numpy
 import pandas
@@ -45,7 +46,7 @@ def main():
     results_df["model_name"] = results_df.apply(
         lambda r:
         f"{r['corpus']} {r['distance_type']} {r['model_type']} {r['embedding_size']}"
-        if not numpy.math.isnan(r['embedding_size'])
+        if r['embedding_size'] is not None
         else f"{r['corpus']} {r['distance_type']} {r['model_type']}",
         axis=1
     )
@@ -62,11 +63,17 @@ def main():
             model_performance_bar_graphs(results_df, window_radius=radius, distance_type=distance_type)
 
     # Summary tables
-    table_top_n_models(results_df)
+    logger.info("Making top-5 model tables overall")
     table_top_n_models(results_df, 5)
+    for distance_type in DistanceType:
+        logger.info(f"Making top-5 model tables overall for {distance_type.name}")
+        table_top_n_models(results_df, 5, distance_type)
+
+    percent_corr_cos_distributions(results_df)
 
 
-def table_top_n_models(regression_results_df: pandas.DataFrame, n: int):
+def table_top_n_models(regression_results_df: pandas.DataFrame, top_n: int, distance_type: DistanceType = None):
+
     summary_dir = Preferences.summary_dir
 
     results_df = pandas.DataFrame()
@@ -76,11 +83,19 @@ def table_top_n_models(regression_results_df: pandas.DataFrame, n: int):
         filtered_df: pandas.DataFrame = regression_results_df.copy()
         filtered_df = filtered_df[filtered_df["test_name"] == test_name]
 
-        top_models = filtered_df.sort_values("score", ascending=False).reset_index(drop=True).head(n)
+        if distance_type is not None:
+            filtered_df = filtered_df[filtered_df["distance_type"] == distance_type.name]
+
+        top_models = filtered_df.sort_values("score", ascending=False).reset_index(drop=True).head(top_n)
 
         results_df = results_df.append(top_models)
 
-    results_df.to_csv(os.path.join(summary_dir, f"synonym_top_{n}_models.csv"), index=False)
+    if distance_type is None:
+        file_name = f"synonym_top_{top_n}_models.csv"
+    else:
+        file_name = f"synonym_top_{top_n}_models_{distance_type.name}.csv"
+
+    results_df.to_csv(os.path.join(summary_dir, file_name), index=False)
 
 
 def model_performance_bar_graphs(synonym_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType):
@@ -264,6 +279,63 @@ def figures_embedding_size(regression_results_df: pandas.DataFrame, test_name: s
         grid.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
         pyplot.close(grid.fig)
+
+
+def percent_corr_cos_distributions(results_df: pandas.DataFrame):
+
+    figures_dir = os.path.join(figures_base_dir, "score histograms")
+    seaborn.set(style="white", palette="muted", color_codes=True)
+
+    for test_name in TEST_NAMES:
+        distribution = []
+
+        filtered_df: pandas.DataFrame = results_df.copy()
+        filtered_df = filtered_df[filtered_df["test_name"] == test_name]
+
+        filtered_df["model_name"] = filtered_df.apply(
+            lambda r:
+            f"{r['model_type']} {r['embedding_size']:.0f} r={r['radius']} {r['corpus']}"
+            if r['embedding_size'] is not None
+            else f"{r['model_type']} r={r['radius']} {r['corpus']}",
+            axis=1
+        )
+
+        for model_name in set(filtered_df["model_name"]):
+            cos_df: pandas.DataFrame = filtered_df.copy()
+            cos_df = cos_df[cos_df["model_name"] == model_name]
+            cos_df = cos_df[cos_df["distance_type"] == "cosine"]
+
+            corr_df: pandas.DataFrame = filtered_df.copy()
+            corr_df = corr_df[corr_df["model_name"] == model_name]
+            corr_df = corr_df[corr_df["distance_type"] == "correlation"]
+
+            # barf
+            score_cos = list(cos_df["score"])[0]
+            score_corr = list(corr_df["score"])[0]
+
+            score_cos_corr = score_cos - score_corr
+
+            distribution.append(score_cos_corr)
+
+        seaborn.set_context(context="paper", font_scale=1)
+        plot = seaborn.distplot(distribution, kde=False, color="b")
+
+        xlims = plot.axes.get_xlim()
+        plot.axes.set_xlim(
+            -max(math.fabs(xlims[0]), math.fabs(xlims[1])),
+            max(math.fabs(xlims[0]), math.fabs(xlims[1]))
+        )
+
+        # Format xicks as percentages
+        vals = plot.axes.get_xticks()
+        plot.axes.set_xticklabels(['{:3.0f}%'.format(x * 100) for x in vals])
+
+        plot.set_xlabel("score difference (cosine - correlation)")
+        plot.set_title(f"Distribution of score differences (cos - corr) for {test_name}")
+
+        plot.figure.savefig(os.path.join(figures_dir, f"synonym score diff dist {test_name}.png"), dpi=300)
+
+        pyplot.close(plot.figure)
 
 
 def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
