@@ -272,6 +272,36 @@ def parameter_value_comparison(results_df: DataFrame):
     all_results_df = DataFrame(results_all_dvs, columns=["DV name", "Parameter", "Value", "Number of times winner"])
     all_results_df.to_csv(os.path.join(summary_dir, "priming parameter wins.csv"), index=False)
 
+    # Heatmaps
+
+    radius_df = all_results_df[all_results_df["Parameter"] == "radius"].copy()
+    radius_df.drop("Parameter", axis=1, inplace=True)
+    radius_df.rename(columns={"Value": "Radius"}, inplace=True)
+    radius_df = radius_df.pivot(index="DV name", columns="Radius", values="Number of times winner")
+
+    plot = seaborn.heatmap(radius_df, square=True)
+    pyplot.yticks(rotation=0)
+
+    figure_name = f"priming RADIUS heatmap.png"
+
+    plot.figure.savefig(os.path.join(figures_dir, figure_name), dpi=300)
+
+    pyplot.close(plot.figure)
+
+    embedding_df = all_results_df[all_results_df["Parameter"] == "embedding size"].copy()
+    embedding_df.drop("Parameter", axis=1, inplace=True)
+    embedding_df.rename(columns={"Value": "Embedding size"}, inplace=True)
+    embedding_df = embedding_df.pivot(index="DV name", columns="Embedding size", values="Number of times winner")
+
+    plot = seaborn.heatmap(embedding_df, square=True)
+    pyplot.yticks(rotation=0)
+
+    figure_name = f"priming EMBED heatmap.png"
+
+    plot.figure.savefig(os.path.join(figures_dir, figure_name), dpi=300)
+
+    pyplot.close(plot.figure)
+
 
 def b_corr_cos_distributions(results_df: DataFrame):
 
