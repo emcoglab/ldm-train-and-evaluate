@@ -93,7 +93,7 @@ def main():
 
     b_corr_cos_distributions(results_df)
 
-    table_parameter_settings_wins(results_df)
+    parameter_value_comparison(results_df)
 
 
 def table_top_n_models(regression_results_df: DataFrame, top_n: int, distance_type: DistanceType = None):
@@ -122,15 +122,13 @@ def table_top_n_models(regression_results_df: DataFrame, top_n: int, distance_ty
     results_df.to_csv(os.path.join(summary_dir, file_name), index=False)
     
     
-def table_parameter_settings_wins(results_df: DataFrame):
+def parameter_value_comparison(results_df: DataFrame):
     summary_dir = Preferences.summary_dir
     figures_dir = os.path.join(figures_base_dir, "parameter comparisons")
 
     results_all_dvs = []
 
     for dv_name in DV_NAMES:
-
-        results_this_dv = []
 
         this_dv_df = results_df[results_df["dependent_variable"] == dv_name].copy()
 
@@ -155,33 +153,37 @@ def table_parameter_settings_wins(results_df: DataFrame):
             # add bfs for winning radius to results
             radius_dist[all_radii_df["window_radius"][0]].append(all_radii_df["b10_approx"][0]/all_radii_df["b10_approx"][1])
 
+        radius_results_this_dv = []
+
         for radius in Preferences.window_radii:
 
             # Add to results
 
-            results_this_dv.append(
+            radius_results_this_dv.append(
                 # value  number of wins
                 [radius, len(radius_dist[radius])]
             )
 
             # Make figure
 
-            seaborn.set_context(context="paper", font_scale=1)
-            plot = seaborn.distplot(radius_dist[radius], kde=False, color="b")
+            if len(radius_dist[radius]) > 1:
 
-            plot.axes.set_xlim(1, None)
+                seaborn.set_context(context="paper", font_scale=1)
+                plot = seaborn.distplot(radius_dist[radius], kde=False, color="b")
 
-            plot.set_xlabel("BF")
-            plot.set_title(f"BFs for winning RADIUS={radius} versus next competitor for {dv_name}")
+                plot.axes.set_xlim(1, None)
 
-            plot.figure.savefig(os.path.join(figures_dir, f"priming RADIUS={radius} bf dist {dv_name}.png"), dpi=300)
+                plot.set_xlabel("BF")
+                plot.set_title(f"BFs for winning RADIUS={radius} versus next competitor for {dv_name}")
 
-            pyplot.close(plot.figure)
+                plot.figure.savefig(os.path.join(figures_dir, f"priming RADIUS={radius} bf dist {dv_name}.png"), dpi=300)
 
-        for result in results_this_dv:
+                pyplot.close(plot.figure)
+
+        for result in radius_results_this_dv:
             results_all_dvs.append([dv_name, "radius"] + result)
 
-        results_this_dv_df = DataFrame(results_this_dv, columns=["Radius", "Number of times winner"])
+        results_this_dv_df = DataFrame(radius_results_this_dv, columns=["Radius", "Number of times winner"])
 
         seaborn.set_context(context="paper", font_scale=1)
         plot = seaborn.barplot(x=results_this_dv_df["Radius"], y=results_this_dv_df["Number of times winner"])
@@ -194,6 +196,78 @@ def table_parameter_settings_wins(results_df: DataFrame):
         pyplot.close(plot.figure)
 
         # END RADIUS
+
+        # EMBEDDING SIZE
+
+        # Distributions of winning-radius-vs-next-best bfs
+        embedding_size_dist = defaultdict(list)
+
+        # model name, not including embedding size
+        this_dv_df = results_df[results_df["dependent_variable"] == dv_name].copy()
+        this_dv_df["model_name"] = this_dv_df.apply(
+            lambda r:
+            f"{r['model_type']} r={r['window_radius']} {r['distance_type']} {r['corpus']}",
+            axis=1
+        )
+
+        # don't care about models without embedding sizes
+        # TODO: store count/predict in regression results
+        this_dv_df = this_dv_df[pandas.notnull(this_dv_df["embedding_size"])]
+
+        # make embedding sizes ints
+        # TODO: fix this at source
+        this_dv_df["embedding_size"] = this_dv_df.apply(lambda r: int(r['embedding_size']), axis=1)
+
+        for model_name in this_dv_df["model_name"].unique():
+            all_embed_df = this_dv_df[this_dv_df["model_name"] == model_name]
+            all_embed_df = all_embed_df.sort_values("b10_approx", ascending=False).reset_index(drop=True)
+
+            # add bfs for winning radius to results
+            embedding_size_dist[all_embed_df["embedding_size"][0]].append(all_embed_df["b10_approx"][0]/all_embed_df["b10_approx"][1])
+
+        embedding_results_this_dv = []
+
+        for embedding_size in Preferences.predict_embedding_sizes:
+
+            # Add to results
+
+            embedding_results_this_dv.append(
+                # value          number of wins
+                [embedding_size, len(embedding_size_dist[embedding_size])]
+            )
+
+            # Make figure
+
+            if len(embedding_size_dist[embedding_size]) > 1:
+
+                seaborn.set_context(context="paper", font_scale=1)
+                plot = seaborn.distplot(embedding_size_dist[embedding_size], kde=False, color="b")
+
+                plot.axes.set_xlim(1, None)
+
+                plot.set_xlabel("BF")
+                plot.set_title(f"BFs for winning EMBED={embedding_size} versus next competitor for {dv_name}")
+
+                plot.figure.savefig(os.path.join(figures_dir, f"priming EMBED={embedding_size} bf dist {dv_name}.png"), dpi=300)
+
+                pyplot.close(plot.figure)
+
+        for result in embedding_results_this_dv:
+            results_all_dvs.append([dv_name, "embedding size"] + result)
+
+        results_this_dv_df = DataFrame(embedding_results_this_dv, columns=["Embedding size", "Number of times winner"])
+
+        seaborn.set_context(context="paper", font_scale=1)
+        plot = seaborn.barplot(x=results_this_dv_df["Embedding size"], y=results_this_dv_df["Number of times winner"])
+
+        plot.set_xlabel("Embedding size")
+        plot.set_title(f"Number of times each embedding size is the best for {dv_name}")
+
+        plot.figure.savefig(os.path.join(figures_dir, f"priming EMBED bf dist {dv_name}.png"), dpi=300)
+
+        pyplot.close(plot.figure)
+
+        # END EMBEDDING SIZE
 
     all_results_df = DataFrame(results_all_dvs, columns=["DV name", "Parameter", "Value", "Number of times winner"])
     all_results_df.to_csv(os.path.join(summary_dir, "priming parameter wins.csv"), index=False)
