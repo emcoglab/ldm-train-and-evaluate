@@ -19,11 +19,12 @@ import logging
 import os
 import sys
 import math
+from collections import defaultdict
 
 import numpy
 import pandas
+from pandas import DataFrame
 import seaborn
-
 from matplotlib import pyplot
 
 from ..core.utils.logging import log_message, date_format
@@ -58,7 +59,7 @@ DV_NAMES = [
 figures_base_dir = os.path.join(Preferences.figures_dir, "priming")
 
 
-def ensure_column_safety(df: pandas.DataFrame) -> pandas.DataFrame:
+def ensure_column_safety(df: DataFrame) -> DataFrame:
     return df.rename(columns=lambda col_name: col_name.replace(" ", "_").lower())
 
 
@@ -92,16 +93,18 @@ def main():
 
     b_corr_cos_distributions(results_df)
 
+    table_parameter_settings_wins(results_df)
 
-def table_top_n_models(regression_results_df: pandas.DataFrame, top_n: int, distance_type: DistanceType = None):
+
+def table_top_n_models(regression_results_df: DataFrame, top_n: int, distance_type: DistanceType = None):
 
     summary_dir = Preferences.summary_dir
 
-    results_df = pandas.DataFrame()
+    results_df = DataFrame()
 
     for dv_name in DV_NAMES:
 
-        filtered_df: pandas.DataFrame = regression_results_df.copy()
+        filtered_df: DataFrame = regression_results_df.copy()
         filtered_df = filtered_df[filtered_df["dependent_variable"] == dv_name]
 
         if distance_type is not None:
@@ -117,9 +120,86 @@ def table_top_n_models(regression_results_df: pandas.DataFrame, top_n: int, dist
         file_name = f"priming_top_{top_n}_models_{distance_type.name}.csv"
 
     results_df.to_csv(os.path.join(summary_dir, file_name), index=False)
+    
+    
+def table_parameter_settings_wins(results_df: DataFrame):
+    summary_dir = Preferences.summary_dir
+    figures_dir = os.path.join(figures_base_dir, "parameter comparisons")
+
+    results_all_dvs = []
+
+    for dv_name in DV_NAMES:
+
+        results_this_dv = []
+
+        this_dv_df = results_df[results_df["dependent_variable"] == dv_name].copy()
+
+        # RADIUS
+
+        # Distributions of winning-radius-vs-next-best bfs
+        radius_dist = defaultdict(list)
+
+        # model name, not including radius
+        this_dv_df["model_name"] = this_dv_df.apply(
+            lambda r:
+            f"{r['model_type']} {r['embedding_size']:.0f} {r['distance_type']} {r['corpus']}"
+            if r['embedding_size'] is not None and not numpy.isnan(r['embedding_size'])
+            else f"{r['model_type']} {r['distance_type']} {r['corpus']}",
+            axis=1
+        )
+
+        for model_name in this_dv_df["model_name"].unique():
+            all_radii_df = this_dv_df[this_dv_df["model_name"] == model_name]
+            all_radii_df = all_radii_df.sort_values("b10_approx", ascending=False).reset_index(drop=True)
+
+            # add bfs for winning radius to results
+            radius_dist[all_radii_df["window_radius"][0]].append(all_radii_df["b10_approx"][0]/all_radii_df["b10_approx"][1])
+
+        for radius in Preferences.window_radii:
+
+            # Add to results
+
+            results_this_dv.append(
+                # value  number of wins
+                [radius, len(radius_dist[radius])]
+            )
+
+            # Make figure
+
+            seaborn.set_context(context="paper", font_scale=1)
+            plot = seaborn.distplot(radius_dist[radius], kde=False, color="b")
+
+            plot.axes.set_xlim(1, None)
+
+            plot.set_xlabel("BF")
+            plot.set_title(f"BFs for winning RADIUS={radius} versus next competitor for {dv_name}")
+
+            plot.figure.savefig(os.path.join(figures_dir, f"priming RADIUS={radius} bf dist {dv_name}.png"), dpi=300)
+
+            pyplot.close(plot.figure)
+
+        for result in results_this_dv:
+            results_all_dvs.append([dv_name, "radius"] + result)
+
+        results_this_dv_df = DataFrame(results_this_dv, columns=["Radius", "Number of times winner"])
+
+        seaborn.set_context(context="paper", font_scale=1)
+        plot = seaborn.barplot(x=results_this_dv_df["Radius"], y=results_this_dv_df["Number of times winner"])
+
+        plot.set_xlabel("Radius")
+        plot.set_title(f"Number of times each radius is the best for {dv_name}")
+
+        plot.figure.savefig(os.path.join(figures_dir, f"priming RADIUS bf dist {dv_name}.png"), dpi=300)
+
+        pyplot.close(plot.figure)
+
+        # END RADIUS
+
+    all_results_df = DataFrame(results_all_dvs, columns=["DV name", "Parameter", "Value", "Number of times winner"])
+    all_results_df.to_csv(os.path.join(summary_dir, "priming parameter wins.csv"), index=False)
 
 
-def b_corr_cos_distributions(regression_results_df: pandas.DataFrame):
+def b_corr_cos_distributions(results_df: DataFrame):
 
     figures_dir = os.path.join(figures_base_dir, "bf histograms")
     seaborn.set(style="white", palette="muted", color_codes=True)
@@ -127,7 +207,7 @@ def b_corr_cos_distributions(regression_results_df: pandas.DataFrame):
     for dv_name in DV_NAMES:
         distribution = []
 
-        filtered_df: pandas.DataFrame = regression_results_df.copy()
+        filtered_df: DataFrame = results_df.copy()
         filtered_df = filtered_df[filtered_df["dependent_variable"] == dv_name]
 
         filtered_df["model_name"] = filtered_df.apply(
@@ -139,11 +219,11 @@ def b_corr_cos_distributions(regression_results_df: pandas.DataFrame):
         )
 
         for model_name in set(filtered_df["model_name"]):
-            cos_df: pandas.DataFrame = filtered_df.copy()
+            cos_df: DataFrame = filtered_df.copy()
             cos_df = cos_df[cos_df["model_name"] == model_name]
             cos_df = cos_df[cos_df["distance_type"] == "cosine"]
 
-            corr_df: pandas.DataFrame = filtered_df.copy()
+            corr_df: DataFrame = filtered_df.copy()
             corr_df = corr_df[corr_df["model_name"] == model_name]
             corr_df = corr_df[corr_df["distance_type"] == "correlation"]
 
@@ -172,13 +252,13 @@ def b_corr_cos_distributions(regression_results_df: pandas.DataFrame):
         pyplot.close(plot.figure)
 
 
-def model_performance_bar_graphs(spp_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType):
+def model_performance_bar_graphs(spp_results_df: DataFrame, window_radius: int, distance_type: DistanceType):
 
     figures_dir = os.path.join(figures_base_dir, "model performance bar graphs")
 
     seaborn.set_style("ticks")
 
-    filtered_df: pandas.DataFrame = spp_results_df.copy()
+    filtered_df: DataFrame = spp_results_df.copy()
     filtered_df = filtered_df[filtered_df["window_radius"] == window_radius]
     filtered_df = filtered_df[filtered_df["distance_type"] == distance_type.name]
 
@@ -258,13 +338,13 @@ def model_performance_bar_graphs(spp_results_df: pandas.DataFrame, window_radius
             plot.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
 
-def model_comparison_matrix(spp_results_df: pandas.DataFrame, dv_name: str, radius: int, corpus_name: str):
+def model_comparison_matrix(spp_results_df: DataFrame, dv_name: str, radius: int, corpus_name: str):
 
     figures_dir = os.path.join(figures_base_dir, "heatmaps all models")
 
     seaborn.set(style="white")
 
-    filtered_df: pandas.DataFrame = spp_results_df.copy()
+    filtered_df: DataFrame = spp_results_df.copy()
     filtered_df = filtered_df[filtered_df["dependent_variable"] == dv_name]
     filtered_df = filtered_df[filtered_df["window_radius"] == radius]
     filtered_df = filtered_df[filtered_df["corpus"] == corpus_name]
@@ -292,7 +372,7 @@ def model_comparison_matrix(spp_results_df: pandas.DataFrame, dv_name: str, radi
     bf_matrix = numpy.log10(bf_matrix)
     n_rows, n_columns = bf_matrix.shape
 
-    bf_matrix_df = pandas.DataFrame(bf_matrix, filtered_df.index, filtered_df.index)
+    bf_matrix_df = DataFrame(bf_matrix, filtered_df.index, filtered_df.index)
 
     # Generate a mask for the upper triangle
     mask = numpy.zeros((n_rows, n_columns), dtype=numpy.bool)
@@ -321,9 +401,9 @@ def model_comparison_matrix(spp_results_df: pandas.DataFrame, dv_name: str, radi
     pyplot.close(f)
 
 
-def load_data() -> pandas.DataFrame:
+def load_data() -> DataFrame:
     """
-    Load a pandas.DataFrame from a collection of CSV fragments.
+    Load a DataFrame from a collection of CSV fragments.
     """
     results_dir = Preferences.spp_results_dir
     separator = ","
