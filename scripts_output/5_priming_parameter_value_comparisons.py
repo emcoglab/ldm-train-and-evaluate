@@ -18,6 +18,7 @@ caiwingfield.net
 import logging
 import os
 import sys
+import math
 from collections import defaultdict
 
 import pandas
@@ -26,6 +27,7 @@ from matplotlib import pyplot
 from pandas import DataFrame
 
 from ..core.utils.logging import log_message, date_format
+from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -56,6 +58,13 @@ DV_NAMES = [
 figures_base_dir = os.path.join(Preferences.figures_dir, "priming")
 
 
+def model_name_without_distance(r):
+    if not r['Model category'] == "Predict":
+        return f"{r['Model type']} {r['Embedding size']:.0f} r={r['Window radius']} {r['Corpus']}"
+    else:
+        return f"{r['Model type']} r={r['Window radius']} {r['Corpus']}"
+
+
 def model_name_without_radius(r):
     if not r['Model category'] == "Predict":
         return f"{r['Model type']} {r['Embedding size']:.0f} {r['Distance type']} {r['Corpus']}"
@@ -75,10 +84,14 @@ def main():
 
     regression_df = load_data()
 
+    b_corr_cos_distributions(regression_df)
+
     compare_param_values(regression_df, param_name="Window radius", param_values=Preferences.window_radii,
                          model_name_func=model_name_without_radius)
     compare_param_values(regression_df, param_name="Embedding size", param_values=Preferences.predict_embedding_sizes,
                          model_name_func=model_name_without_embedding_size, row_filter=predict_models_only)
+    compare_param_values(regression_df, param_name="Distance type", param_values=[d.name for d in DistanceType],
+                         model_name_func=model_name_without_distance)
 
 
 def compare_param_values(regression_df: DataFrame, param_name, param_values, model_name_func, row_filter=None):
@@ -175,6 +188,53 @@ def compare_param_values(regression_df: DataFrame, param_name, param_values, mod
         # Save values to csv
 
         all_win_counts_df.to_csv(os.path.join(Preferences.summary_dir, f"priming {param_name.lower()} wins.csv"), index=False)
+
+
+def b_corr_cos_distributions(regression_df: DataFrame):
+
+    figures_dir = os.path.join(figures_base_dir, "bf histograms")
+    seaborn.set(style="white", palette="muted", color_codes=True)
+
+    for dv_name in DV_NAMES:
+        distribution = []
+
+        filtered_df: DataFrame = regression_df.copy()
+        filtered_df = filtered_df[filtered_df["Dependent variable"] == dv_name]
+
+        filtered_df["model_name"] = filtered_df.apply(model_name_without_distance, axis=1)
+
+        for model_name in set(filtered_df["model_name"]):
+            cos_df: DataFrame = filtered_df.copy()
+            cos_df = cos_df[cos_df["model_name"] == model_name]
+            cos_df = cos_df[cos_df["distance_type"] == "cosine"]
+
+            corr_df: DataFrame = filtered_df.copy()
+            corr_df = corr_df[corr_df["model_name"] == model_name]
+            corr_df = corr_df[corr_df["distance_type"] == "correlation"]
+
+            # barf
+            bf_cos = list(cos_df["b10_approx"])[0]
+            bf_corr = list(corr_df["b10_approx"])[0]
+
+            bf_cos_cor = bf_cos / bf_corr
+
+            distribution.append(math.log10(bf_cos_cor))
+
+        seaborn.set_context(context="paper", font_scale=1)
+        plot = seaborn.distplot(distribution, kde=False, color="b")
+
+        xlims = plot.axes.get_xlim()
+        plot.axes.set_xlim(
+            -max(math.fabs(xlims[0]), math.fabs(xlims[1])),
+            max(math.fabs(xlims[0]), math.fabs(xlims[1]))
+        )
+
+        plot.set_xlabel("log BF (cos, corr)")
+        plot.set_title(f"Distribution of log BF (cos > corr) for {dv_name}")
+
+        plot.figure.savefig(os.path.join(figures_dir, f"priming bf dist {dv_name}.png"), dpi=300)
+
+        pyplot.close(plot.figure)
 
 
 def load_data() -> DataFrame:
