@@ -1,6 +1,6 @@
 """
 ===========================
-Figures for semantic priming tests.
+Figures for comparing model parameter values with semantic priming tests.
 ===========================
 
 Dr. Cai Wingfield
@@ -72,7 +72,7 @@ def parameter_value_comparison(results_df: DataFrame):
 
     for dv_name in DV_NAMES:
 
-        this_dv_df = results_df[results_df["dependent_variable"] == dv_name].copy()
+        this_dv_df = results_df[results_df["Dependent variable"] == dv_name].copy()
 
         # RADIUS
 
@@ -82,18 +82,18 @@ def parameter_value_comparison(results_df: DataFrame):
         # model name, not including radius
         this_dv_df["model_name"] = this_dv_df.apply(
             lambda r:
-            f"{r['model_type']} {r['embedding_size']:.0f} {r['distance_type']} {r['corpus']}"
-            if r['embedding_size'] is not None and not numpy.isnan(r['embedding_size'])
-            else f"{r['model_type']} {r['distance_type']} {r['corpus']}",
+            f"{r['Model type']} {r['Embedding size']:.0f} {r['Distance type']} {r['Corpus']}"
+            if r['Embedding size'] is not None and not numpy.isnan(r['Embedding size'])
+            else f"{r['Model type']} {r['Distance type']} {r['Corpus']}",
             axis=1
         )
 
-        for model_name in this_dv_df["model_name"].unique():
-            all_radii_df = this_dv_df[this_dv_df["model_name"] == model_name]
-            all_radii_df = all_radii_df.sort_values("b10_approx", ascending=False).reset_index(drop=True)
+        for model_name in this_dv_df["Model name"].unique():
+            all_radii_df = this_dv_df[this_dv_df["Model name"] == model_name]
+            all_radii_df = all_radii_df.sort_values("B10 approx", ascending=False).reset_index(drop=True)
 
             # add bfs for winning radius to results
-            radius_dist[all_radii_df["window_radius"][0]].append(all_radii_df["b10_approx"][0]/all_radii_df["b10_approx"][1])
+            radius_dist[all_radii_df["Window radius"][0]].append(all_radii_df["B10 approx"][0]/all_radii_df["B10 approx"][1])
 
         radius_results_this_dv = []
 
@@ -123,7 +123,7 @@ def parameter_value_comparison(results_df: DataFrame):
                 pyplot.close(plot.figure)
 
         for result in radius_results_this_dv:
-            results_all_dvs.append([dv_name, "radius"] + result)
+            results_all_dvs.append([dv_name, "Radius"] + result)
 
         results_this_dv_df = DataFrame(radius_results_this_dv, columns=["Radius", "Number of times winner"])
 
@@ -145,27 +145,27 @@ def parameter_value_comparison(results_df: DataFrame):
         embedding_size_dist = defaultdict(list)
 
         # model name, not including embedding size
-        this_dv_df = results_df[results_df["dependent_variable"] == dv_name].copy()
-        this_dv_df["model_name"] = this_dv_df.apply(
+        this_dv_df = results_df[results_df["Dependent variable"] == dv_name].copy()
+        this_dv_df["Model name"] = this_dv_df.apply(
             lambda r:
-            f"{r['model_type']} r={r['window_radius']} {r['distance_type']} {r['corpus']}",
+            f"{r['Model type']} r={r['Window radius']} {r['Distance type']} {r['Corpus']}",
             axis=1
         )
 
         # don't care about models without embedding sizes
         # TODO: store count/predict in regression results
-        this_dv_df = this_dv_df[pandas.notnull(this_dv_df["embedding_size"])]
+        this_dv_df = this_dv_df[pandas.notnull(this_dv_df["Embedding size"])]
 
         # make embedding sizes ints
         # TODO: fix this at source
-        this_dv_df["embedding_size"] = this_dv_df.apply(lambda r: int(r['embedding_size']), axis=1)
+        this_dv_df["embedding_size"] = this_dv_df.apply(lambda r: int(r['Embedding size']), axis=1)
 
-        for model_name in this_dv_df["model_name"].unique():
-            all_embed_df = this_dv_df[this_dv_df["model_name"] == model_name]
+        for model_name in this_dv_df["Model name"].unique():
+            all_embed_df = this_dv_df[this_dv_df["Model name"] == model_name]
             all_embed_df = all_embed_df.sort_values("b10_approx", ascending=False).reset_index(drop=True)
 
             # add bfs for winning radius to results
-            embedding_size_dist[all_embed_df["embedding_size"][0]].append(all_embed_df["b10_approx"][0]/all_embed_df["b10_approx"][1])
+            embedding_size_dist[all_embed_df["Embedding size"][0]].append(all_embed_df["B10 approx"][0]/all_embed_df["B10 approx"][1])
 
         embedding_results_this_dv = []
 
@@ -195,7 +195,7 @@ def parameter_value_comparison(results_df: DataFrame):
                 pyplot.close(plot.figure)
 
         for result in embedding_results_this_dv:
-            results_all_dvs.append([dv_name, "embedding size"] + result)
+            results_all_dvs.append([dv_name, "Embedding size"] + result)
 
         results_this_dv_df = DataFrame(embedding_results_this_dv, columns=["Embedding size", "Number of times winner"])
 
@@ -216,7 +216,7 @@ def parameter_value_comparison(results_df: DataFrame):
 
     # Heatmaps
 
-    radius_df = all_results_df[all_results_df["Parameter"] == "radius"].copy()
+    radius_df = all_results_df[all_results_df["Parameter"] == "Radius"].copy()
     radius_df.drop("Parameter", axis=1, inplace=True)
     radius_df.rename(columns={"Value": "Radius"}, inplace=True)
     radius_df = radius_df.pivot(index="DV name", columns="Radius", values="Number of times winner")
@@ -230,7 +230,7 @@ def parameter_value_comparison(results_df: DataFrame):
 
     pyplot.close(plot.figure)
 
-    embedding_df = all_results_df[all_results_df["Parameter"] == "embedding size"].copy()
+    embedding_df = all_results_df[all_results_df["Parameter"] == "Embedding size"].copy()
     embedding_df.drop("Parameter", axis=1, inplace=True)
     embedding_df.rename(columns={"Value": "Embedding size"}, inplace=True)
     embedding_df = embedding_df.pivot(index="DV name", columns="Embedding size", values="Number of times winner")
