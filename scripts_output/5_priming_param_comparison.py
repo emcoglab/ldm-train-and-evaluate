@@ -188,45 +188,30 @@ def compare_param_values(regression_results: DataFrame, parameter_name, paramete
                 for parameter_value in joint_best_models[parameter_name]:
                     number_of_wins_for_param_value[parameter_value] += 1
 
-        # Convert win counts to dataframe for plotting
-        win_counts_this_dv = []
-        for parameter_value in parameter_values:
-            win_counts_this_dv.append([parameter_value, number_of_wins_for_param_value[parameter_value]])
-        win_counts_this_dv = DataFrame(win_counts_this_dv, columns=[parameter_name, "Number of times (joint-)best"])
-
-        # Bar graph for this DV
-
-        seaborn.set_context(context="paper", font_scale=1)
-        plot = seaborn.barplot(x=win_counts_this_dv[parameter_name], y=win_counts_this_dv["Number of times (joint-)best"])
-
-        plot.set_xlabel(parameter_name)
-        plot.set_title(f"Number of times each {parameter_name.lower()} is the best for {dv}")
-
-        plot.figure.savefig(os.path.join(figures_dir, f"priming {parameter_name.lower()} bf dist {dv}.png"), dpi=300)
-
-        pyplot.close(plot.figure)
-
         # Add to all-DV win-counts
         for parameter_value in parameter_values:
             win_counts_all_dvs.append([dv, parameter_value, number_of_wins_for_param_value[parameter_value]])
 
     all_win_counts = DataFrame(win_counts_all_dvs, columns=["Dependent variable", parameter_name, "Number of times (joint-)best"])
 
+    # Save values to csv
+    all_win_counts.to_csv(os.path.join(Preferences.summary_dir, f"priming {parameter_name.lower()} wins.csv"), index=False)
+
+    # Bar graph for all DVs
+    seaborn.set_style("ticks")
+    seaborn.set_context(context="paper", font_scale=1)
+    grid = seaborn.FacetGrid(data=all_win_counts, col="Dependent variable", col_wrap=2, margin_titles=True, size=2.5)
+    grid.map(seaborn.barplot, parameter_name, "Number of times (joint-)best")
+    grid.fig.savefig(os.path.join(figures_dir, f"priming {parameter_name.lower()} all dvs.png"), dpi=300)
+    pyplot.close(grid.fig)
+
     # Heatmap for all DVs
-
     heatmap_df = all_win_counts.pivot(index="Dependent variable", columns=parameter_name, values="Number of times (joint-)best")
-
     plot = seaborn.heatmap(heatmap_df, square=True, cmap=seaborn.light_palette("green"))
     pyplot.xticks(rotation=90)
     pyplot.yticks(rotation=0)
-
     plot.figure.savefig(os.path.join(figures_dir, f"priming {parameter_name.lower()} heatmap.png"), dpi=300)
-
     pyplot.close(plot.figure)
-
-    # Save values to csv
-
-    all_win_counts.to_csv(os.path.join(Preferences.summary_dir, f"priming {parameter_name.lower()} wins.csv"), index=False)
 
 
 def b_corr_cos_distributions(regression_df: DataFrame):
