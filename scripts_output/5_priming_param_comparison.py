@@ -116,19 +116,20 @@ def compare_param_values(regression_results: DataFrame, parameter_name, paramete
     figures_dir = os.path.join(figures_base_dir, "parameter comparisons")
 
     win_counts_all_dvs = []
+    win_fraction_all_dvs = []
 
     # Consider each dependent variable separately
     for dv in DV_NAMES:
 
         # Filter the regression results for this comparison
-        bayes_factors_this_dv = regression_results[regression_results["Dependent variable"] == dv].copy()
+        regression_results_this_dv = regression_results[regression_results["Dependent variable"] == dv].copy()
         # Apply further filters if necessary
         if row_filter is not None:
-            bayes_factors_this_dv = row_filter(bayes_factors_this_dv)
+            regression_results_this_dv = row_filter(regression_results_this_dv)
 
         # Column containing the name of the models, not including information relating to the parameter being compared
         # (as this will be listed on another axis in any table or figure).
-        bayes_factors_this_dv["Model name"] = bayes_factors_this_dv.apply(model_name_func, axis=1)
+        regression_results_this_dv["Model name"] = regression_results_this_dv.apply(model_name_func, axis=1)
 
         # We will count "tied-best" parameter values, where "tied-best" means "indistinguishable from the best", rather
         # than "indistinguishable from next-best neighbour". This takes care of problematic examples arising from the
@@ -153,9 +154,9 @@ def compare_param_values(regression_results: DataFrame, parameter_name, paramete
         assert n_models_overall == regression_results_this_dv["Model name"].unique().shape[0]
 
         # Loop through models
-        for model_name in bayes_factors_this_dv["Model name"].unique():
+        for model_name in regression_results_this_dv["Model name"].unique():
             # Collection of models differing only by the value of the parameter
-            model_variations: DataFrame = bayes_factors_this_dv[bayes_factors_this_dv["Model name"] == model_name].copy()
+            model_variations: DataFrame = regression_results_this_dv[regression_results_this_dv["Model name"] == model_name].copy()
 
             # Sort by BF(model, baseline)
             model_variations = model_variations.sort_values("B10 approx", ascending=False).reset_index(drop=True)
@@ -197,25 +198,34 @@ def compare_param_values(regression_results: DataFrame, parameter_name, paramete
         # Add to all-DV win-counts
         for parameter_value in parameter_values:
             win_counts_all_dvs.append([dv, parameter_value, number_of_wins_for_param_value[parameter_value]])
+            win_fraction_all_dvs.append([dv, parameter_value, number_of_wins_for_param_value[parameter_value] / n_models_overall])
 
     all_win_counts = DataFrame(win_counts_all_dvs, columns=["Dependent variable", parameter_name, "Number of times (joint-)best"])
+    all_win_fractions = DataFrame(win_fraction_all_dvs, columns=["Dependent variable", parameter_name, "Fraction of times (joint-)best"])
 
     # Save values to csv
-    all_win_counts.to_csv(os.path.join(Preferences.summary_dir, f"priming {parameter_name.lower()} wins.csv"), index=False)
+    all_win_counts.to_csv(os.path.join(Preferences.summary_dir, f"priming {parameter_name.lower()} win counts.csv"), index=False)
+    all_win_fractions.to_csv(os.path.join(Preferences.summary_dir, f"priming {parameter_name.lower()} win fractions.csv"), index=False)
 
     # Bar graph for all DVs
     seaborn.set_style("ticks")
     seaborn.set_context(context="paper", font_scale=1)
-    grid = seaborn.FacetGrid(data=all_win_counts, col="Dependent variable", col_wrap=2, margin_titles=True, size=2.5)
-    grid.map(seaborn.barplot, parameter_name, "Number of times (joint-)best")
+    grid = seaborn.FacetGrid(data=all_win_fractions, col="Dependent variable", col_wrap=2, margin_titles=True, size=2.5, ylim=(0, 1))
+    # format y as percent
+    grid.set_yticklabels(['{:3.0f}%'.format(float(label.get_text()) * 100) for label in grid.axes[0].get_yticklabels()])
+    grid.map(seaborn.barplot, parameter_name, "Fraction of times (joint-)best")
     grid.fig.savefig(os.path.join(figures_dir, f"priming {parameter_name.lower()} all dvs.png"), dpi=300)
     pyplot.close(grid.fig)
 
     # Heatmap for all DVs
-    heatmap_df = all_win_counts.pivot(index="Dependent variable", columns=parameter_name, values="Number of times (joint-)best")
-    plot = seaborn.heatmap(heatmap_df, square=True, cmap=seaborn.light_palette("green"))
+    heatmap_df = all_win_fractions.pivot(index="Dependent variable", columns=parameter_name, values="Fraction of times (joint-)best")
+    plot = seaborn.heatmap(heatmap_df, square=True, cmap=seaborn.light_palette("green", as_cmap=True))
     pyplot.xticks(rotation=90)
     pyplot.yticks(rotation=0)
+    # Colorbar has % labels
+    old_labels = plot.collections[0].colorbar.ax.get_yticklabels()
+    plot.collections[0].colorbar.set_ticks([float(label.get_text()) for label in old_labels])
+    plot.collections[0].colorbar.set_ticklabels(['{:3.0f}%'.format(float(label.get_text()) * 100) for label in old_labels])
     plot.figure.savefig(os.path.join(figures_dir, f"priming {parameter_name.lower()} heatmap.png"), dpi=300)
     pyplot.close(plot.figure)
 
