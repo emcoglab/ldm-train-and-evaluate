@@ -64,14 +64,14 @@ BF_THRESHOLD = math.sqrt(10)
 
 
 def model_name_without_distance(r):
-    if not r['Model category'] == "Predict":
+    if r['Model category'] == "Predict":
         return f"{r['Model type']} {r['Embedding size']:.0f} r={r['Window radius']} {r['Corpus']}"
     else:
         return f"{r['Model type']} r={r['Window radius']} {r['Corpus']}"
 
 
 def model_name_without_radius(r):
-    if not r['Model category'] == "Predict":
+    if r['Model category'] == "Predict":
         return f"{r['Model type']} {r['Embedding size']:.0f} {r['Distance type']} {r['Corpus']}"
     else:
         return f"{r['Model type']} {r['Distance type']} {r['Corpus']}"
@@ -145,6 +145,12 @@ def compare_param_values(regression_results: DataFrame, parameter_name, paramete
         #
         # Only 1 and 2 would be "joint-best", even though no two neighbouring models are distinguishable.
         number_of_wins_for_param_value = defaultdict(int)
+
+        # The maximum number of total wins is the number of total models
+        n_models_overall = regression_results_this_dv.shape[0] / len(parameter_values)
+        assert n_models_overall == int(n_models_overall)
+        n_models_overall = int(n_models_overall)
+        assert n_models_overall == regression_results_this_dv["Model name"].unique().shape[0]
 
         # Loop through models
         for model_name in bayes_factors_this_dv["Model name"].unique():
