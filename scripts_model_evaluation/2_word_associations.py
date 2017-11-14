@@ -20,7 +20,7 @@ import sys
 
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
-    AssociationTester, ColourAssociation, ThematicAssociation, AssociationResults
+    AssociationTester, ColourEmotionAssociation, ThematicRelatedness, AssociationResults
 from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..core.utils.maths import DistanceType
@@ -36,9 +36,9 @@ def main():
         WordsimSimilarity(),
         WordsimRelatedness(),
         MenSimilarity(),
-        ColourAssociation(),
-        ThematicAssociation(),
-        ThematicAssociation(only_use_response=1)
+        ColourEmotionAssociation(),
+        ThematicRelatedness(),
+        ThematicRelatedness(only_use_response=1)
     ]
 
     results = AssociationResults()

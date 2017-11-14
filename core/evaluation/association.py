@@ -301,9 +301,9 @@ class WordsimRelatedness(WordAssociationTest):
         return judgements
 
 
-class ColourAssociation(WordAssociationTest):
+class ColourEmotionAssociation(WordAssociationTest):
     """
-    Sutton & Altarriba (2016) colour associations.
+    Sutton & Altarriba (2016) colour–emotion association norms.
     """
 
     @property
@@ -328,9 +328,9 @@ class ColourAssociation(WordAssociationTest):
         return assocs
 
 
-class ThematicAssociation(WordAssociationTest):
+class ThematicRelatedness(WordAssociationTest):
     """
-    Jouravlev & McRae (2015) thematic associations.
+    Jouravlev & McRae (2015) thematic relatedness production norms.
     """
 
     def __init__(self, only_use_response=None):
@@ -341,9 +341,9 @@ class ThematicAssociation(WordAssociationTest):
     @property
     def name(self) -> str:
         if self._only_use_response is None:
-            return "Thematic associations"
+            return "Thematic relatedness"
         else:
-            return f"Thematic associations (R{self._only_use_response} only)"
+            return f"Thematic relatedness (R{self._only_use_response} only)"
 
     def _load(self):
         with open(Preferences.thematic_association_path, mode="r", encoding="utf-8") as thematic_assoc_file:

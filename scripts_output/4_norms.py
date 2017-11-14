@@ -25,14 +25,14 @@ import seaborn
 
 from matplotlib import pyplot
 
-from ..core.evaluation.association import ColourAssociation, AssociationResults, ThematicAssociation
+from ..core.evaluation.association import ColourEmotionAssociation, AssociationResults, ThematicRelatedness
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType, CorrelationType
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
-TEST_NAMES = [ColourAssociation().name, ThematicAssociation().name]
+TEST_NAMES = [ColourEmotionAssociation().name, ThematicRelatedness().name]
 
 figures_base_dir = os.path.join(Preferences.figures_dir, "norms")
 
