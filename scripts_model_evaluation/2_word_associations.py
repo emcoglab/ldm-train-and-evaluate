@@ -37,7 +37,8 @@ def main():
         WordsimRelatedness(),
         MenSimilarity(),
         ColourAssociation(),
-        ThematicAssociation()
+        ThematicAssociation(),
+        ThematicAssociation(only_use_response=1)
     ]
 
     results = AssociationResults()

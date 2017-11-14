@@ -17,6 +17,7 @@ caiwingfield.net
 
 import logging
 import re
+import csv
 from abc import ABCMeta, abstractmethod
 from typing import List
 
@@ -101,7 +102,9 @@ class AssociationTester(object):
             ) -> AssociationResults:
         """
         Administers a battery of tests against a model
+        :param test:
         :param model: Must be trained.
+        :param distance_type:
         """
 
         assert model.is_trained
@@ -330,34 +333,65 @@ class ThematicAssociation(WordAssociationTest):
     Jouravlev & McRae (2015) thematic associations.
     """
 
+    def __init__(self, only_use_response=None):
+        super().__init__()
+        assert only_use_response is None or only_use_response in [1, 2, 3]
+        self._only_use_response = only_use_response
+
     @property
     def name(self) -> str:
-        return "Thematic associations"
+        if self._only_use_response is None:
+            return "Thematic associations"
+        else:
+            return f"Thematic associations (R{self._only_use_response} only)"
 
     def _load(self):
         with open(Preferences.thematic_association_path, mode="r", encoding="utf-8") as thematic_assoc_file:
-            # Skip header line
-            thematic_assoc_file.readline()
-            assocs = []
-            for line in thematic_assoc_file:
-                parts = line.split(",")
 
-                word = parts[0].lower()
-                response = parts[1].lower()
-                number_of_respondents_weighted = float(parts[6])
+            csvreader = csv.reader(thematic_assoc_file, delimiter=",", quotechar='"')
+
+            assocs = []
+            for line_i, line in enumerate(csvreader):
+
+                # Skip header line
+                if line_i == 0:
+                    continue
+
+                # Stop when last is reached
+                if not line:
+                    break
+
+                word                      = line[0].lower().strip()
+                response                  = line[1].lower().strip()
+                respondent_count_r1       = int(line[2]) if line[2] else 0
+                respondent_count_r2       = int(line[3]) if line[3] else 0
+                respondent_count_r3       = int(line[4]) if line[4] else 0
+                respondent_count_total    = int(line[5])
+                respondent_count_weighted = int(line[6])
+
+                # Check things went right and verify formulae used for summaries
+                assert respondent_count_total == respondent_count_r1 + respondent_count_r2 + respondent_count_r3
+                assert respondent_count_weighted == (3*respondent_count_r1) + (2*respondent_count_r2) + (1*respondent_count_r3)
 
                 # Some responses have alternatives listed in brackets
                 if "(" in response:
                     # Take only part of response before the alternatives
                     response = response.split("(")[0].strip()
 
-                # This is a csv, so we may need to strip off some residual quotes
-                word = word.strip("\"' ")
-                response = response.strip("\"' ")
+                if self._only_use_response is None:
+                    similarity_value = respondent_count_weighted
+                elif self._only_use_response == 1:
+                    similarity_value = respondent_count_r1
+                elif self._only_use_response == 2:
+                    similarity_value = respondent_count_r2
+                elif self._only_use_response == 3:
+                    similarity_value = respondent_count_r3
+                else:
+                    raise ValueError()
 
                 assocs.append(WordAssociation(
                     word,
                     response,
-                    number_of_respondents_weighted))
+                    similarity_value))
 
         return assocs
