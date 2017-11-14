@@ -20,7 +20,6 @@ import os
 import sys
 import math
 
-import numpy
 import pandas
 import seaborn
 
@@ -116,11 +115,11 @@ def model_performance_bar_graphs(similarity_results_df: pandas.DataFrame, window
     # Use absolute values of correlation
     filtered_df["Correlation"] = abs(filtered_df["Correlation"])
 
-    # Model name doesn't need to include corpus or distance, since those are fixed
+    # Model name doesn't need to include corpus or distance, since those are fixed for each sub-plot
     filtered_df["Model name"] = filtered_df.apply(
         lambda r:
-        f"{r['Model type']} {r['Embedding size']}"
-        if not numpy.math.isnan(r['Embedding size'])
+        f"{r['Model type']} {r['Embedding size']:.0f}"
+        if r['Model category'] == "Predict"
         else f"{r['Model type']}",
         axis=1
     )
@@ -152,10 +151,6 @@ def model_performance_bar_graphs(similarity_results_df: pandas.DataFrame, window
         "CBOW 300",
         "CBOW 500",
     ])
-
-    # TODO: this isn't working for some reason
-    # Remove the "corpus = " from the titles
-    # grid.set_titles(col_template='{col_name}', row_template="{row_name}")
 
     grid.set_ylabels("Correlation")
 
