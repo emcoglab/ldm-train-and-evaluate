@@ -173,13 +173,15 @@ def model_performance_bar_graphs(similarity_results_df: pandas.DataFrame, window
 
 def figures_score_vs_radius(similarity_results):
 
-    figures_dir = os.path.join(figures_base_dir, "effects of Radius")
+    figures_dir = os.path.join(figures_base_dir, "effects of radius")
+
+    correlation_type = "Spearman"
 
     for distance in [d.name for d in DistanceType]:
 
         filtered_df: pandas.DataFrame = similarity_results.copy()
         filtered_df = filtered_df[filtered_df["Distance type"] == distance]
-        filtered_df = filtered_df[filtered_df["Correlation type"] == "Spearman"]
+        filtered_df = filtered_df[filtered_df["Correlation type"] == correlation_type]
 
         # Don't need corpus, radius or distance, as they're fixed for each plot
         filtered_df["Model name"] = filtered_df.apply(
@@ -258,7 +260,7 @@ def figures_score_vs_radius(similarity_results):
 
         grid.add_legend(bbox_to_anchor=(1, 0.5))
 
-        figure_name = f"similarity {distance}.png"
+        figure_name = f"similarity {distance} {correlation_type}.png"
         grid.fig.savefig(os.path.join(figures_dir, figure_name), dpi=300)
         pyplot.close(grid.fig)
 

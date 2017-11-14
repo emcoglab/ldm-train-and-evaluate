@@ -57,37 +57,132 @@ DV_NAMES = [
 figures_base_dir = os.path.join(Preferences.figures_dir, "priming")
 
 
-def ensure_column_safety(df: DataFrame) -> DataFrame:
-    return df.rename(columns=lambda col_name: col_name.replace(" ", "_").lower())
-
-
-# TODO: essentially duplicated code
 def main():
 
-    results_df = load_data()
-    results_df = ensure_column_safety(results_df)
+    regression_results = load_data()
 
     # Add rsquared increase column
-    results_df["r-squared_increase"] = results_df["model_r-squared"] - results_df["baseline_r-squared"]
+    regression_results["R-squared increase"] = regression_results["Model R-squared"] - regression_results["Baseline R-squared"]
 
     for radius in Preferences.window_radii:
         for distance_type in DistanceType:
             logger.info(
                 f"Making model performance bargraph figures for r={radius}, d={distance_type.name}")
-            model_performance_bar_graphs(results_df, window_radius=radius, distance_type=distance_type)
+            model_performance_bar_graphs(regression_results, window_radius=radius, distance_type=distance_type)
 
     for dv_name in DV_NAMES:
         for radius in Preferences.window_radii:
             for corpus_name in ["BNC", "BBC", "UKWAC"]:
                 logger.info(f"Making heatmaps dv={dv_name}, r={radius}, c={corpus_name}")
-                model_comparison_matrix(results_df, dv_name, radius, corpus_name)
+                model_comparison_matrix(regression_results, dv_name, radius, corpus_name)
 
     # Summary tables
     logger.info("Making top-5 model tables overall")
-    table_top_n_models(results_df, 5)
+    table_top_n_models(regression_results, 5)
     for distance_type in DistanceType:
         logger.info(f"Making top-5 model tables overall for {distance_type.name}")
-        table_top_n_models(results_df, 5, distance_type)
+        table_top_n_models(regression_results, 5, distance_type)
+
+    figures_r2_vs_radius(regression_results)
+
+
+def figures_r2_vs_radius(regression_results: DataFrame):
+
+    figures_dir = os.path.join(figures_base_dir, "effects of radius")
+
+    for distance in [d.name for d in DistanceType]:
+        for task_type in ["LDT", "NT"]:
+            for y_measure in ["R-squared increase", "B10 approx"]:
+
+                dvs_this_task = [dv for dv in DV_NAMES if dv.startswith(task_type)]
+
+                filtered_df: pandas.DataFrame = regression_results.copy()
+                filtered_df = filtered_df[filtered_df["Distance type"] == distance]
+
+                # Filter on task type
+                filtered_df = filtered_df[filtered_df["Dependent variable"].isin(dvs_this_task)]
+
+                # Don't need corpus, radius or distance, as they're fixed for each plot
+                filtered_df["Model name"] = filtered_df.apply(
+                    lambda r:
+                    f"{r['Model type']} {r['Embedding size']:.0f}"
+                    if r["Model category"] == "Predict"
+                    else f"{r['Model type']}",
+                    axis=1
+                )
+
+                filtered_df = filtered_df.sort_values(by=["Model name", "Window radius"])
+                filtered_df = filtered_df.reset_index(drop=True)
+
+                seaborn.set_style("ticks")
+                seaborn.set_context(context="paper", font_scale=1)
+                grid = seaborn.FacetGrid(
+                    data=filtered_df,
+                    row="Dependent variable", col="Corpus", hue="Model name",
+                    hue_order=[
+                        "log n-gram",
+                        "Conditional probability",
+                        "Probability ratio",
+                        "PPMI",
+                        "Skip-gram 50",
+                        "Skip-gram 100",
+                        "Skip-gram 200",
+                        "Skip-gram 300",
+                        "Skip-gram 500",
+                        "CBOW 50",
+                        "CBOW 100",
+                        "CBOW 200",
+                        "CBOW 300",
+                        "CBOW 500"
+                    ],
+                    palette=[
+                        "orange",
+                        "turquoise",
+                        "pink",
+                        "red",
+                        "#0000ff",
+                        "#2a2aff",
+                        "#5454ff",
+                        "#7e7eff",
+                        "#a8a8ff",
+                        "#00ff00",
+                        "#2aff2a",
+                        "#54ff54",
+                        "#7eff7e",
+                        "#a8ffa8",
+                    ],
+                    hue_kws=dict(
+                        marker=[
+                            "o",
+                            "o",
+                            "o",
+                            "o",
+                            "^",
+                            "^",
+                            "^",
+                            "^",
+                            "^",
+                            "^",
+                            "^",
+                            "^",
+                            "^",
+                            "^",
+                        ]
+                    ),
+                    margin_titles=True,
+                    legend_out=True,
+                    size=3.5)
+                grid.map(pyplot.plot, "Window radius", y_measure)
+
+                if y_measure is "B10 approx":
+                    grid.set(yscale="log")
+
+                # grid.set_titles(row_template="{row_name}", col_template="{col_name}")
+                grid.add_legend(bbox_to_anchor=(1, 0.5))
+
+                figure_name = f"priming {distance} {task_type} {y_measure}.png"
+                grid.fig.savefig(os.path.join(figures_dir, figure_name), dpi=300)
+                pyplot.close(grid.fig)
 
 
 def table_top_n_models(regression_results_df: DataFrame, top_n: int, distance_type: DistanceType = None):
@@ -99,12 +194,12 @@ def table_top_n_models(regression_results_df: DataFrame, top_n: int, distance_ty
     for dv_name in DV_NAMES:
 
         filtered_df: DataFrame = regression_results_df.copy()
-        filtered_df = filtered_df[filtered_df["dependent_variable"] == dv_name]
+        filtered_df = filtered_df[filtered_df["Dependent variable"] == dv_name]
 
         if distance_type is not None:
-            filtered_df = filtered_df[filtered_df["distance_type"] == distance_type.name]
+            filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
 
-        top_models = filtered_df.sort_values("b10_approx", ascending=False).reset_index(drop=True).head(top_n)
+        top_models = filtered_df.sort_values("B10 approx", ascending=False).reset_index(drop=True).head(top_n)
 
         results_df = results_df.append(top_models)
 
@@ -123,24 +218,24 @@ def model_performance_bar_graphs(spp_results_df: DataFrame, window_radius: int, 
     seaborn.set_style("ticks")
 
     filtered_df: DataFrame = spp_results_df.copy()
-    filtered_df = filtered_df[filtered_df["window_radius"] == window_radius]
-    filtered_df = filtered_df[filtered_df["distance_type"] == distance_type.name]
+    filtered_df = filtered_df[filtered_df["Window radius"] == window_radius]
+    filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
 
     # Model name doesn't need to include corpus or distance, since those are fixed
-    filtered_df["model_name"] = filtered_df.apply(
+    filtered_df["Model name"] = filtered_df.apply(
         lambda r:
         # TODO: embedding sizes aren't ints for some reason, so we have to force this here 🤦‍
-        f"{r['model_type']} {r['embedding_size']:.0f}"
-        if r['embedding_size'] is not None
-        else f"{r['model_type']}",
+        f"{r['Model type']} {r['Embedding size']:.0f}"
+        if r['Embedding size'] is not None
+        else f"{r['Model type']}",
         axis=1
     )
 
     # Get info about the dv
-    filtered_df["dv_test_type"] = filtered_df.apply(lambda r: "LDT"     if r["dependent_variable"].startswith("LDT") else "NT",   axis=1)
-    filtered_df["dv_measure"]   = filtered_df.apply(lambda r: "Acc"     if "Acc" in r["dependent_variable"]          else "Z-RT", axis=1)
-    filtered_df["dv_soa"]       = filtered_df.apply(lambda r: 200       if "_200ms" in r["dependent_variable"]       else 1200,   axis=1)
-    filtered_df["dv_priming"]   = filtered_df.apply(lambda r: True      if "Priming" in r["dependent_variable"]      else False,  axis=1)
+    filtered_df["dv_test_type"] = filtered_df.apply(lambda r: "LDT"     if r["Dependent variable"].startswith("LDT") else "NT",   axis=1)
+    filtered_df["dv_measure"]   = filtered_df.apply(lambda r: "Acc"     if "Acc" in r["Dependent variable"]          else "Z-RT", axis=1)
+    filtered_df["dv_soa"]       = filtered_df.apply(lambda r: 200       if "_200ms" in r["Dependent variable"]       else 1200,   axis=1)
+    filtered_df["dv_priming"]   = filtered_df.apply(lambda r: True      if "Priming" in r["Dependent variable"]      else False,  axis=1)
 
     for soa in [200, 1200]:
         for test_type in ["LDT", "NT"]:
@@ -157,14 +252,14 @@ def model_performance_bar_graphs(spp_results_df: DataFrame, window_radius: int, 
             seaborn.set_context(context="paper", font_scale=1)
             grid = seaborn.FacetGrid(
                 double_filtered_df,
-                row="dependent_variable", col="corpus",
+                row="Dependent variable", col="corpus",
                 margin_titles=True,
                 size=3)
 
             grid.set_xticklabels(rotation=-90)
 
             # Plot the bars
-            plot = grid.map(seaborn.barplot, "model_name", "b10_approx", order=[
+            plot = grid.map(seaborn.barplot, "Model name", "B10 approx", order=[
                 "log n-gram",
                 "Conditional probability",
                 "Probability ratio",
@@ -209,22 +304,22 @@ def model_comparison_matrix(spp_results_df: DataFrame, dv_name: str, radius: int
     seaborn.set(style="white")
 
     filtered_df: DataFrame = spp_results_df.copy()
-    filtered_df = filtered_df[filtered_df["dependent_variable"] == dv_name]
-    filtered_df = filtered_df[filtered_df["window_radius"] == radius]
+    filtered_df = filtered_df[filtered_df["Dependent variable"] == dv_name]
+    filtered_df = filtered_df[filtered_df["Window radius"] == radius]
     filtered_df = filtered_df[filtered_df["corpus"] == corpus_name]
 
-    filtered_df["model_name"] = filtered_df.apply(
+    filtered_df["Model name"] = filtered_df.apply(
         lambda r:
-        f"{r['distance_type']} {r['model_type']} {r['embedding_size']:.0f}"
-        if not numpy.math.isnan(r['embedding_size'])
-        else f"{r['distance_type']} {r['model_type']}",
+        f"{r['Distance type']} {r['Model type']} {r['Embedding size']:.0f}"
+        if not numpy.math.isnan(r['Embedding size'])
+        else f"{r['Distance type']} {r['Model type']}",
         axis=1
     )
 
     # filtered_df = filtered_df.sort_values("distance_type")
 
     # Make the model name the index so it will label the rows and columns of the matrix
-    filtered_df = filtered_df.set_index('model_name')
+    filtered_df = filtered_df.set_index('Model name')
 
     # filtered_df = filtered_df.sort_values(by=["model_type", "embedding_size", "distance_type"])
 
@@ -274,6 +369,9 @@ def load_data() -> DataFrame:
 
     with open(os.path.join(results_dir, "regression.csv"), mode="r", encoding="utf-8") as regression_file:
         regression_df = pandas.read_csv(regression_file, sep=separator, header=0)
+
+    regression_df["Model category"] = regression_df.apply(
+        lambda r: "Count" if pandas.isnull(r["Embedding size"]) else "Predict", axis=1)
 
     return regression_df
 
