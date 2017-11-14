@@ -52,6 +52,9 @@ def main():
         axis=1
     )
 
+    # We make an artificial distinction between similarity data and similarity-based association norms
+    results_df = results_df[results_df["Test name"].isin(TEST_NAMES)]
+
     logger.info(f"Making correlation-vs-radius figures")
     figures_score_vs_radius(results_df)
 
