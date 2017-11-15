@@ -16,11 +16,10 @@ caiwingfield.net
 """
 
 import unittest
-from math import sqrt
 
 import numpy
 
-from ..core.utils.maths import distance, DistanceType, levenshtein_distance, jzs_cor_bf, jzs_parcor_bf
+from ..core.utils.maths import distance, DistanceType, levenshtein_distance
 
 
 class DistanceTests(unittest.TestCase):
@@ -125,34 +124,6 @@ class LevenshteinDistanceTests(unittest.TestCase):
         self.assertEqual(
             levenshtein_distance(s, t),
             9
-        )
-
-
-class CorrelationBayesFactorTests(unittest.TestCase):
-    """Tests for core.utils.maths.jzs_cor_bf and core.utils.maths.jzs_parcor_bf"""
-
-    def test_maclean_2010_values(self):
-        # From MacLean et al. (2010)
-        self.assertAlmostEqual(
-            jzs_cor_bf(r=-0.3616346, n=54),
-            3.85,
-            places=2
-        )
-
-    def test_kanai_values(self):
-        # From Kanai et al. (in press)
-        self.assertAlmostEqual(
-            jzs_cor_bf(r=0.4844199, n=40),
-            17.87,
-            places=2
-        )
-
-    def test_lleras_values(self):
-        # From Lleras et al. (in press)
-        self.assertAlmostEqual(
-            jzs_parcor_bf(r0=sqrt(0.6084), r1=sqrt(0.6084408), n=40, p0=1, p1=2),
-            0.13,
-            places=2
         )
 
 

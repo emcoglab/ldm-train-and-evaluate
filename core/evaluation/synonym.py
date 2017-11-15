@@ -315,7 +315,9 @@ class SynonymTester(object):
         answer_paper = AnswerPaper(answers)
 
         results.add_result(
-            test.name, model, distance_type, {"Score": answer_paper.score},
+            test.name, model, distance_type, {
+                "Score": answer_paper.score
+            },
             append_to_model_name="" if truncate_vectors_at_length is None else f" ({truncate_vectors_at_length})")
 
         return results

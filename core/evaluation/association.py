@@ -18,11 +18,14 @@ caiwingfield.net
 import logging
 import re
 import csv
+from math import exp
 from abc import ABCMeta, abstractmethod
 from typing import List
 
 import numpy
 import scipy.stats
+import statsmodels.formula.api as sm
+from pandas import DataFrame
 
 from ..evaluation.results import EvaluationResults
 from ..model.base import VectorSemanticModel
@@ -36,7 +39,7 @@ logger = logging.getLogger(__name__)
 class AssociationResults(EvaluationResults):
     def __init__(self):
         super().__init__(
-            results_column_names=["Correlation type", "Correlation"],
+            results_column_names=["Correlation type", "Correlation", "B10 approx"],
             save_dir=Preferences.association_results_dir
         )
 
@@ -137,16 +140,42 @@ class AssociationTester(object):
                 correlation = numpy.corrcoef(
                     [j.association_strength for j in human_judgements],
                     [j.association_strength for j in model_judgements])[0][1]
+
+                # Estimate Bayes factor from regression, as advised in
+                # Jarosz & Wiley (2014) "What Are the Odds? A Practical Guide to Computing and Reporting Bayes Factors".
+                # Journal of Problem Solving 7. doi:10.7771/1932-6246.1167. p. 5.
+                data = DataFrame.from_dict({
+                    "human": [j.association_strength for j in human_judgements],
+                    "model": [j.association_strength for j in model_judgements]
+                })
+                # Compare variance explained (correlation squared) with two predictors versus one predictor (intercept)
+                model_regression    = sm.ols(formula="human ~ model", data=data).fit()
+                baseline_regression = sm.ols(formula="human ~ 1",     data=data).fit()
+                bayes_factor_estimate = exp((baseline_regression.bic - model_regression.bic) / 2)
             elif correlation_type is CorrelationType.Spearman:
                 # PyCharm erroneously detects input types for scipy.stats.spearmanr as int rather than ndarray
                 # noinspection PyTypeChecker,PyUnresolvedReferences
                 correlation = scipy.stats.spearmanr(
                     [j.association_strength for j in human_judgements],
                     [j.association_strength for j in model_judgements]).correlation
+
+                # Estimate Bayes factors using same approach as for Pearson, but with ranked data
+                # Since Spearman is just Pearson on ranks.
+                data = DataFrame.from_dict({
+                    "human": scipy.stats.rankdata([j.association_strength for j in human_judgements]),
+                    "model": scipy.stats.rankdata([j.association_strength for j in model_judgements])
+                })
+                model_regression    = sm.ols(formula="human ~ model", data=data).fit()
+                baseline_regression = sm.ols(formula="human ~ 1",     data=data).fit()
+                bayes_factor_estimate = exp((baseline_regression.bic - model_regression.bic) / 2)
             else:
                 raise ValueError(correlation_type)
 
-            results.add_result(test.name, model, distance_type, {"Correlation type": correlation_type.name, "Correlation": correlation})
+            results.add_result(test.name, model, distance_type, {
+                "Correlation type": correlation_type.name,
+                "Correlation"     : correlation,
+                "B10 approx"      : bayes_factor_estimate
+            })
 
         return results
 
