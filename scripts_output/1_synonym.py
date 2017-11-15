@@ -152,10 +152,6 @@ def model_performance_bar_graphs(synonym_results_df: DataFrame, window_radius: i
         "CBOW 500",
     ])
 
-    # TODO: this isn't working for some reason
-    # Remove the "corpus = " from the titles
-    grid.set_titles(col_template='{col_name}', row_template="{row_name}")
-
     # Plot the chance line
     grid.map(pyplot.axhline, y=0.25, linestyle="solid", color="xkcd:bright red")
 

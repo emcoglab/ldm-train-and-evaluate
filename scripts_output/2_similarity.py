@@ -18,17 +18,15 @@ caiwingfield.net
 import logging
 import os
 import sys
-import math
 
 import pandas
 import seaborn
 
 from matplotlib import pyplot
 
-from ..core.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
-    AssociationResults
+from ..core.evaluation.association import AssociationResults, SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity
 from ..core.utils.logging import log_message, date_format
-from ..core.utils.maths import DistanceType, CorrelationType
+from ..core.utils.maths import DistanceType, CorrelationType, magnitude_of_negative
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -104,19 +102,19 @@ def table_top_n_models(regression_results_df: pandas.DataFrame,
     results_df.to_csv(os.path.join(summary_dir, file_name), index=False)
 
 
-def model_performance_bar_graphs(similarity_results_df: pandas.DataFrame, window_radius: int, distance_type: DistanceType, correlation_type: CorrelationType):
+def model_performance_bar_graphs(similarity_results: pandas.DataFrame, window_radius: int, distance_type: DistanceType, correlation_type: CorrelationType):
 
     figures_dir = os.path.join(figures_base_dir, "model performance bar graphs")
 
     seaborn.set_style("ticks")
 
-    filtered_df: pandas.DataFrame = similarity_results_df.copy()
+    filtered_df: pandas.DataFrame = similarity_results.copy()
     filtered_df = filtered_df[filtered_df["Radius"] == window_radius]
     filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
     filtered_df = filtered_df[filtered_df["Correlation type"] == correlation_type.name]
 
     # Use absolute values of correlation
-    filtered_df["Correlation"] = abs(filtered_df["Correlation"])
+    similarity_results["Correlation"] = similarity_results.apply(lambda r: magnitude_of_negative(r["Correlation"]))
 
     # Model name doesn't need to include corpus or distance, since those are fixed for each sub-plot
     filtered_df["Model name"] = filtered_df.apply(
@@ -155,6 +153,9 @@ def model_performance_bar_graphs(similarity_results_df: pandas.DataFrame, window
         "CBOW 500",
     ])
 
+    # Plot the chance line
+    grid.map(pyplot.axhline, y=0.0, linestyle="solid", color="xkcd:bright red")
+
     grid.set_ylabels("Correlation")
 
     pyplot.subplots_adjust(top=0.92)
@@ -173,94 +174,93 @@ def figures_score_vs_radius(similarity_results):
 
     figures_dir = os.path.join(figures_base_dir, "effects of radius")
 
-    correlation_type = "Spearman"
+    for correlation_type in CorrelationType:
+        for distance in [d.name for d in DistanceType]:
 
-    for distance in [d.name for d in DistanceType]:
+            filtered_df: pandas.DataFrame = similarity_results.copy()
+            filtered_df = filtered_df[filtered_df["Distance type"] == distance]
+            filtered_df = filtered_df[filtered_df["Correlation type"] == correlation_type.name]
 
-        filtered_df: pandas.DataFrame = similarity_results.copy()
-        filtered_df = filtered_df[filtered_df["Distance type"] == distance]
-        filtered_df = filtered_df[filtered_df["Correlation type"] == correlation_type]
+            # Don't need corpus, radius or distance, as they're fixed for each plot
+            filtered_df["Model name"] = filtered_df.apply(
+                lambda r:
+                f"{r['Model type']} {r['Embedding size']:.0f}"
+                if r["Model category"] == "Predict"
+                else f"{r['Model type']}",
+                axis=1
+            )
 
-        # Don't need corpus, radius or distance, as they're fixed for each plot
-        filtered_df["Model name"] = filtered_df.apply(
-            lambda r:
-            f"{r['Model type']} {r['Embedding size']:.0f}"
-            if r["Model category"] == "Predict"
-            else f"{r['Model type']}",
-            axis=1
-        )
+            filtered_df["Correlation"] = filtered_df.apply(lambda r: magnitude_of_negative(r["Correlation"]), axis=1)
 
-        filtered_df["Correlation"] = filtered_df.apply(lambda r: math.fabs(r["Correlation"]), axis=1)
+            filtered_df = filtered_df.sort_values(by=["Model name", "Radius"])
+            filtered_df = filtered_df.reset_index(drop=True)
 
-        filtered_df = filtered_df.sort_values(by=["Model name", "Radius"])
-        filtered_df = filtered_df.reset_index(drop=True)
+            seaborn.set_style("ticks")
+            seaborn.set_context(context="paper", font_scale=1)
+            grid = seaborn.FacetGrid(
+                data=filtered_df,
+                row="Test name", col="Corpus", hue="Model name",
+                hue_order=[
+                    "log n-gram",
+                    "Conditional probability",
+                    "Probability ratio",
+                    "PPMI",
+                    "Skip-gram 50",
+                    "Skip-gram 100",
+                    "Skip-gram 200",
+                    "Skip-gram 300",
+                    "Skip-gram 500",
+                    "CBOW 50",
+                    "CBOW 100",
+                    "CBOW 200",
+                    "CBOW 300",
+                    "CBOW 500"
+                ],
+                palette=[
+                    "orange",
+                    "turquoise",
+                    "pink",
+                    "red",
+                    "#0000ff",
+                    "#2a2aff",
+                    "#5454ff",
+                    "#7e7eff",
+                    "#a8a8ff",
+                    "#00ff00",
+                    "#2aff2a",
+                    "#54ff54",
+                    "#7eff7e",
+                    "#a8ffa8",
+                ],
+                hue_kws=dict(
+                    marker=[
+                        "o",
+                        "o",
+                        "o",
+                        "o",
+                        "^",
+                        "^",
+                        "^",
+                        "^",
+                        "^",
+                        "^",
+                        "^",
+                        "^",
+                        "^",
+                        "^",
+                    ]
+                ),
+                margin_titles=True,
+                legend_out=True,
+                size=3.5,
+                ylim=(0, 1))
+            grid.map(pyplot.plot, "Radius", "Correlation")
 
-        seaborn.set_style("ticks")
-        seaborn.set_context(context="paper", font_scale=1)
-        grid = seaborn.FacetGrid(
-            data=filtered_df,
-            row="Test name", col="Corpus", hue="Model name",
-            hue_order=[
-                "log n-gram",
-                "Conditional probability",
-                "Probability ratio",
-                "PPMI",
-                "Skip-gram 50",
-                "Skip-gram 100",
-                "Skip-gram 200",
-                "Skip-gram 300",
-                "Skip-gram 500",
-                "CBOW 50",
-                "CBOW 100",
-                "CBOW 200",
-                "CBOW 300",
-                "CBOW 500"
-            ],
-            palette=[
-                "orange",
-                "turquoise",
-                "pink",
-                "red",
-                "#0000ff",
-                "#2a2aff",
-                "#5454ff",
-                "#7e7eff",
-                "#a8a8ff",
-                "#00ff00",
-                "#2aff2a",
-                "#54ff54",
-                "#7eff7e",
-                "#a8ffa8",
-            ],
-            hue_kws=dict(
-                marker=[
-                    "o",
-                    "o",
-                    "o",
-                    "o",
-                    "^",
-                    "^",
-                    "^",
-                    "^",
-                    "^",
-                    "^",
-                    "^",
-                    "^",
-                    "^",
-                    "^",
-                ]
-            ),
-            margin_titles=True,
-            legend_out=True,
-            size=3.5,
-            ylim=(0, 1))
-        grid.map(pyplot.plot, "Radius", "Correlation")
+            grid.add_legend(bbox_to_anchor=(1, 0.5))
 
-        grid.add_legend(bbox_to_anchor=(1, 0.5))
-
-        figure_name = f"similarity {distance} {correlation_type}.png"
-        grid.fig.savefig(os.path.join(figures_dir, figure_name), dpi=300)
-        pyplot.close(grid.fig)
+            figure_name = f"similarity {distance} {correlation_type.name}.png"
+            grid.fig.savefig(os.path.join(figures_dir, figure_name), dpi=300)
+            pyplot.close(grid.fig)
 
 
 def cos_vs_cor_scores(results_df: pandas.DataFrame):
@@ -275,6 +275,10 @@ def cos_vs_cor_scores(results_df: pandas.DataFrame):
             filtered_df: pandas.DataFrame = results_df.copy()
             filtered_df = filtered_df[filtered_df["Test name"] == test_name]
             filtered_df = filtered_df[filtered_df["Correlation type"] == correlation_type.name]
+
+            # Use absolute values of correlation
+            results_df["Correlation"] = results_df.apply(
+                lambda r: magnitude_of_negative(r["Correlation"]))
 
             filtered_df["Model name"] = filtered_df.apply(
                 lambda r:
@@ -291,11 +295,11 @@ def cos_vs_cor_scores(results_df: pandas.DataFrame):
 
                 corr_df: pandas.DataFrame = filtered_df.copy()
                 corr_df = corr_df[corr_df["Model name"] == model_name]
-                corr_df = corr_df[corr_df["Distance type"] == "Correlation"]
+                corr_df = corr_df[corr_df["Distance type"] == "correlation"]
 
                 # barf
-                score_cos = math.fabs(list(cos_df["Correlation"])[0])
-                score_corr = math.fabs(list(corr_df["Correlation"])[0])
+                score_cos = list(cos_df["Correlation"])[0]
+                score_corr = list(corr_df["Correlation"])[0]
 
                 distribution.append([test_name, correlation_type.name, score_cos, score_corr])
 

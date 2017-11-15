@@ -123,3 +123,16 @@ def levenshtein_distance(string_1: str, string_2: str) -> float:
     return nltk.edit_distance(string_1, string_2,
                               substitution_cost=1,
                               transpositions=False)
+
+
+def magnitude_of_negative(c: float) -> float:
+    """
+    Returns the absolute value of input `c` when it is negative, and 0 otherwise.
+    """
+    # If c negative
+    if c < 0:
+        # Make it positive
+        return abs(c)
+    else:
+        # Clamp at zero
+        return 0
