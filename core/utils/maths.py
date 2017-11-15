@@ -15,12 +15,12 @@ caiwingfield.net
 ---------------------------
 """
 
+import math
 from enum import Enum, auto
 
-import numpy
 import nltk
-
-from scipy import spatial
+import numpy
+from scipy import spatial, integrate
 
 
 class CorrelationType(Enum):
@@ -136,3 +136,41 @@ def magnitude_of_negative(c: float) -> float:
     else:
         # Clamp at zero
         return 0
+
+
+def _jzs_integrand(g, r, n, p):
+    return (
+        (1 + g) ** ((n - p - 1) / 2)
+        * (1 + (1 - r ** 2) * g) ** (-(n - 1) / 2)
+        * g ** (-3 / 2)
+        * math.exp(-n / (2 * g)))
+
+
+def jzs_cor_bf(r, n):
+    """
+    Calculate the Bayes factor for a correlation value.
+
+    Ported from R code in Wetzels & Wagenmakers (2012) "A default Bayesian hypothesis test for correlations and partial
+    correlations". Psychon Bull Rev. 19:1057–1064 doi:10.3758/s13423-012-0295-x
+    """
+
+    bf10 = math.sqrt(n / 2) / math.gamma(1 / 2) * integrate.quad(func=_jzs_integrand, a=0, b=numpy.inf, args=(r, n, 1))[0]
+
+    return bf10
+
+
+def jzs_parcor_bf(r0, r1, n, p0, p1):
+    """
+    Calculate the Bayes factor for a partial correlation value.
+
+    Ported from R code in Wetzels & Wagenmakers (2012) "A default Bayesian hypothesis test for correlations and partial
+    correlations". Psychon Bull Rev. 19:1057–1064 doi:10.3758/s13423-012-0295-x
+    """
+
+    bf10 = (
+        integrate.quad(func=_jzs_integrand, a=0, b=numpy.inf, args=(r1, n, p1))[0] /
+        integrate.quad(func=_jzs_integrand, a=0, b=numpy.inf, args=(r0, n, p0))[0]
+    )
+
+    return bf10
+
