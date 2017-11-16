@@ -18,7 +18,6 @@ caiwingfield.net
 import logging
 import re
 import csv
-from math import exp
 from abc import ABCMeta, abstractmethod
 from typing import List
 
@@ -39,7 +38,7 @@ logger = logging.getLogger(__name__)
 class AssociationResults(EvaluationResults):
     def __init__(self):
         super().__init__(
-            results_column_names=["Correlation type", "Correlation", "B10 approx"],
+            results_column_names=["Correlation type", "Correlation", "Model BIC", "Baseline BIC", "B10 approx"],
             save_dir=Preferences.association_results_dir
         )
 
@@ -149,9 +148,9 @@ class AssociationTester(object):
                     "model": [j.association_strength for j in model_judgements]
                 })
                 # Compare variance explained (correlation squared) with two predictors versus one predictor (intercept)
-                model_regression    = sm.ols(formula="human ~ model", data=data).fit()
-                baseline_regression = sm.ols(formula="human ~ 1",     data=data).fit()
-                bayes_factor_estimate = exp((baseline_regression.bic - model_regression.bic) / 2)
+                model_bic    = sm.ols(formula="human ~ model", data=data).fit().bic
+                baseline_bic = sm.ols(formula="human ~ 1",     data=data).fit().bic
+                b10_approx   = numpy.exp((baseline_bic - model_bic) / 2)
             elif correlation_type is CorrelationType.Spearman:
                 # PyCharm erroneously detects input types for scipy.stats.spearmanr as int rather than ndarray
                 # noinspection PyTypeChecker,PyUnresolvedReferences
@@ -165,16 +164,18 @@ class AssociationTester(object):
                     "human": scipy.stats.rankdata([j.association_strength for j in human_judgements]),
                     "model": scipy.stats.rankdata([j.association_strength for j in model_judgements])
                 })
-                model_regression    = sm.ols(formula="human ~ model", data=data).fit()
-                baseline_regression = sm.ols(formula="human ~ 1",     data=data).fit()
-                bayes_factor_estimate = exp((baseline_regression.bic - model_regression.bic) / 2)
+                model_bic    = sm.ols(formula="human ~ model", data=data).fit().bic
+                baseline_bic = sm.ols(formula="human ~ 1",     data=data).fit().bic
+                b10_approx = numpy.exp((baseline_bic - model_bic) / 2)
             else:
                 raise ValueError(correlation_type)
 
             results.add_result(test.name, model, distance_type, {
                 "Correlation type": correlation_type.name,
                 "Correlation"     : correlation,
-                "B10 approx"      : bayes_factor_estimate
+                "Model BIC"       : model_bic,
+                "Baseline BIC"    : baseline_bic,
+                "B10 approx"      : b10_approx
             })
 
         return results
