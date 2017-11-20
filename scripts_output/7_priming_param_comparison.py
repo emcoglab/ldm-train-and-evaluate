@@ -204,8 +204,8 @@ def compare_param_values(regression_results: DataFrame, parameter_name, paramete
     all_win_fractions = DataFrame(win_fraction_all_dvs, columns=["Dependent variable", parameter_name, "Fraction of times (joint-)best"])
 
     # Save values to csv
-    all_win_counts.to_csv(os.path.join(Preferences.summary_dir, f"priming {parameter_name.lower()} win counts.csv"), index=False)
-    all_win_fractions.to_csv(os.path.join(Preferences.summary_dir, f"priming {parameter_name.lower()} win fractions.csv"), index=False)
+    # all_win_counts.to_csv(os.path.join(Preferences.summary_dir, f"priming {parameter_name.lower()} win counts.csv"), index=False)
+    # all_win_fractions.to_csv(os.path.join(Preferences.summary_dir, f"priming {parameter_name.lower()} win fractions.csv"), index=False)
 
     # Bar graph for all DVs
     seaborn.set_style("ticks")

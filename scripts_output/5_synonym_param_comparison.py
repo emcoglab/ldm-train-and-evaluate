@@ -47,14 +47,14 @@ def model_name_without_distance(r):
     if r['Model category'] == "Predict":
         return f"{r['Model type']} {r['Embedding size']:.0f} r={r['Radius']} {r['Corpus']}"
     else:
-        return f"{r['Model type']} r={r['Radius']} {r['Corpus']} ({r['Correlation type']})"
+        return f"{r['Model type']} r={r['Radius']} {r['Corpus']}"
 
 
 def model_name_without_radius(r):
     if r['Model category'] == "Predict":
         return f"{r['Model type']} {r['Embedding size']:.0f} {r['Distance type']} {r['Corpus']}"
     else:
-        return f"{r['Model type']} {r['Distance type']} {r['Corpus']} ({r['Correlation type']})"
+        return f"{r['Model type']} {r['Distance type']} {r['Corpus']}"
 
 
 def model_name_without_embedding_size(r):

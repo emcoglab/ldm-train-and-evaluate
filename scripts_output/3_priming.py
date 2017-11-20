@@ -17,6 +17,7 @@ caiwingfield.net
 
 import logging
 import os
+import math
 import sys
 
 import numpy
@@ -53,6 +54,11 @@ DV_NAMES = [
     # "NT_1200ms_Z_Priming",
     # "NT_1200ms_Acc_Priming"
 ]
+
+# The Bayes factor threshold at which we say one model is better than another
+# This value from Jeffreys (1961) Theory of Probability.
+BF_THRESHOLD = math.sqrt(10)
+
 
 figures_base_dir = os.path.join(Preferences.figures_dir, "priming")
 
@@ -252,7 +258,7 @@ def model_performance_bar_graphs(spp_results_df: DataFrame, window_radius: int, 
             seaborn.set_context(context="paper", font_scale=1)
             grid = seaborn.FacetGrid(
                 double_filtered_df,
-                row="Dependent variable", col="corpus",
+                row="Dependent variable", col="Corpus",
                 margin_titles=True,
                 size=3)
 
@@ -277,13 +283,11 @@ def model_performance_bar_graphs(spp_results_df: DataFrame, window_radius: int, 
             ])
 
             # Plot the 1-line
-            grid.map(pyplot.axhline, y=1, linestyle="solid", color="xkcd:bright red")
+            grid.map(pyplot.axhline, y=1,              linestyle="solid",  color="xkcd:bright red")
+            grid.map(pyplot.axhline, y=BF_THRESHOLD,   linestyle="dotted", color="xkcd:bright red")
+            grid.map(pyplot.axhline, y=1/BF_THRESHOLD, linestyle="dotted", color="xkcd:bright red")
 
             grid.set(yscale="log")
-
-            # TODO: this isn't working for some reason
-            # Remove the "corpus = " from the titles
-            # grid.set_titles(col_template='{col_name}')
 
             grid.set_ylabels("BF10")
 
@@ -296,6 +300,8 @@ def model_performance_bar_graphs(spp_results_df: DataFrame, window_radius: int, 
             # noinspection PyUnresolvedReferences
             plot.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
+            pyplot.close(grid.fig)
+
 
 def model_comparison_matrix(spp_results_df: DataFrame, dv_name: str, radius: int, corpus_name: str):
 
@@ -306,7 +312,7 @@ def model_comparison_matrix(spp_results_df: DataFrame, dv_name: str, radius: int
     filtered_df: DataFrame = spp_results_df.copy()
     filtered_df = filtered_df[filtered_df["Dependent variable"] == dv_name]
     filtered_df = filtered_df[filtered_df["Window radius"] == radius]
-    filtered_df = filtered_df[filtered_df["corpus"] == corpus_name]
+    filtered_df = filtered_df[filtered_df["Corpus"] == corpus_name]
 
     filtered_df["Model name"] = filtered_df.apply(
         lambda r:
@@ -321,11 +327,11 @@ def model_comparison_matrix(spp_results_df: DataFrame, dv_name: str, radius: int
     # Make the model name the index so it will label the rows and columns of the matrix
     filtered_df = filtered_df.set_index('Model name')
 
-    # filtered_df = filtered_df.sort_values(by=["model_type", "embedding_size", "distance_type"])
+    # filtered_df = filtered_df.sort_values(by=["Model type", "Embedding size", "Distance type"])
 
     # values - values[:, None] gives col-row
     # which is equivalent to row > col
-    bf_matrix = filtered_df.model_bic.values - filtered_df.model_bic.values[:, None]
+    bf_matrix = filtered_df["Model BIC"].values - filtered_df["Model BIC"].values[:, None]
 
     bf_matrix = numpy.exp(bf_matrix)
     bf_matrix = numpy.log10(bf_matrix)

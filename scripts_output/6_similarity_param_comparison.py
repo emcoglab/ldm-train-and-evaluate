@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 TEST_NAMES = [SimlexSimilarity().name, WordsimSimilarity().name, WordsimRelatedness().name, MenSimilarity().name]
 
-figures_base_dir = os.path.join(Preferences.figures_dir, "association")
+figures_base_dir = os.path.join(Preferences.figures_dir, "similarity")
 
 # The Bayes factor threshold at which we say one model is better than another
 # This value from Jeffreys (1961) Theory of Probability.

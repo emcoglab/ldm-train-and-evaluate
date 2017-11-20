@@ -277,7 +277,7 @@ def cos_vs_cor_scores(results_df: pandas.DataFrame):
             filtered_df = filtered_df[filtered_df["Correlation type"] == correlation_type.name]
 
             # Use absolute values of correlation
-            results_df["Correlation"] = results_df["Correlation"].apply(magnitude_of_negative)
+            filtered_df["Correlation"] = filtered_df["Correlation"].apply(magnitude_of_negative)
 
             filtered_df["Model name"] = filtered_df.apply(
                 lambda r:
