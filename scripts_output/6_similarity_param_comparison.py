@@ -80,17 +80,17 @@ def main():
                          model_name_func=model_name_without_distance)
 
 
-def compare_param_values(regression_results: DataFrame, parameter_name, parameter_values, model_name_func, row_filter=None):
+def compare_param_values(test_results: DataFrame, parameter_name, parameter_values, model_name_func, row_filter=None):
     """
-    Compares all model parameter values against all others for all DVs.
+    Compares all model parameter values against all others for all tests.
     Produces figures for the comparison.
-    :param regression_results: Regression results
-    :param parameter_name: The name of the parameter to take. Should be a column name of `results_df`
+    :param test_results: Test results
+    :param parameter_name: The name of the parameter to take. Should be a column name of `test_results`
     :param parameter_values: The possible values the parameter can take
-    :param model_name_func: function which takes a row of `results_df` and produces a name for the model.
+    :param model_name_func: function which takes a row of `test_results` and produces a name for the model.
                             Should produce a name which is the same for each `param_value` of `param_name`, and is
                             otherwise unique.
-    :param row_filter: optional function with which to filter rows `results_df`
+    :param row_filter: optional function with which to filter rows `test_results`
     :return:
     """
 
@@ -103,7 +103,7 @@ def compare_param_values(regression_results: DataFrame, parameter_name, paramete
     for test_name in TEST_NAMES:
 
         # Filter the regression results for this comparison
-        regression_results_this_dv = regression_results[regression_results["Test name"] == test_name].copy()
+        regression_results_this_dv = test_results[test_results["Test name"] == test_name].copy()
         # Apply further filters if necessary
         if row_filter is not None:
             regression_results_this_dv = row_filter(regression_results_this_dv)

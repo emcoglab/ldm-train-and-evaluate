@@ -104,12 +104,12 @@ def compare_param_values(regression_results: DataFrame, parameter_name, paramete
     Compares all model parameter values against all others for all DVs.
     Produces figures for the comparison.
     :param regression_results: Regression results
-    :param parameter_name: The name of the parameter to take. Should be a column name of `results_df`
+    :param parameter_name: The name of the parameter to take. Should be a column name of `regression_results`
     :param parameter_values: The possible values the parameter can take
-    :param model_name_func: function which takes a row of `results_df` and produces a name for the model.
+    :param model_name_func: function which takes a row of `test_results` and produces a name for the model.
                             Should produce a name which is the same for each `param_value` of `param_name`, and is
                             otherwise unique.
-    :param row_filter: optional function with which to filter rows `results_df`
+    :param row_filter: optional function with which to filter rows `test_results`
     :return:
     """
 

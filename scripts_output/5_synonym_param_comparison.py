@@ -15,27 +15,26 @@ caiwingfield.net
 ---------------------------
 """
 
+import logging
+import math
 import os
 import sys
-import math
-import logging
 from collections import defaultdict
 
 import numpy
+import pandas
 import seaborn
 from matplotlib import pyplot
-import pandas
 from pandas import DataFrame
 
-from ..core.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
-    AssociationResults
+from ..core.evaluation.synonym import ToeflTest, EslTest, LbmMcqTest, SynonymResults
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
-TEST_NAMES = [SimlexSimilarity().name, WordsimSimilarity().name, WordsimRelatedness().name, MenSimilarity().name]
+TEST_NAMES = [ToeflTest().name, EslTest().name, LbmMcqTest().name]
 
 figures_base_dir = os.path.join(Preferences.figures_dir, "synonym")
 
@@ -46,20 +45,20 @@ BF_THRESHOLD = math.sqrt(10)
 
 def model_name_without_distance(r):
     if r['Model category'] == "Predict":
-        return f"{r['Model type']} {r['Embedding size']:.0f} r={r['Radius']} {r['Corpus']} ({r['Correlation type']})"
+        return f"{r['Model type']} {r['Embedding size']:.0f} r={r['Radius']} {r['Corpus']}"
     else:
         return f"{r['Model type']} r={r['Radius']} {r['Corpus']} ({r['Correlation type']})"
 
 
 def model_name_without_radius(r):
     if r['Model category'] == "Predict":
-        return f"{r['Model type']} {r['Embedding size']:.0f} {r['Distance type']} {r['Corpus']} ({r['Correlation type']})"
+        return f"{r['Model type']} {r['Embedding size']:.0f} {r['Distance type']} {r['Corpus']}"
     else:
         return f"{r['Model type']} {r['Distance type']} {r['Corpus']} ({r['Correlation type']})"
 
 
 def model_name_without_embedding_size(r):
-    return f"{r['Model type']} r={r['Radius']} {r['Distance type']} {r['Corpus']} ({r['Correlation type']})"
+    return f"{r['Model type']} r={r['Radius']} {r['Distance type']} {r['Corpus']}"
 
 
 def predict_models_only(df: DataFrame) -> DataFrame:
@@ -68,29 +67,29 @@ def predict_models_only(df: DataFrame) -> DataFrame:
 
 def main():
 
-    association_df = AssociationResults().load().data
+    synonym_results_df = SynonymResults().load().data
 
-    association_df["Model category"] = association_df.apply(lambda r: "Count" if pandas.isnull(r["Embedding size"]) else "Predict", axis=1)
+    synonym_results_df["Model category"] = synonym_results_df.apply(lambda r: "Count" if pandas.isnull(r["Embedding size"]) else "Predict", axis=1)
 
-    compare_param_values(association_df, parameter_name="Radius", parameter_values=Preferences.window_radii,
+    compare_param_values(synonym_results_df, parameter_name="Radius", parameter_values=Preferences.window_radii,
                          model_name_func=model_name_without_radius)
-    compare_param_values(association_df, parameter_name="Embedding size", parameter_values=Preferences.predict_embedding_sizes,
+    compare_param_values(synonym_results_df, parameter_name="Embedding size", parameter_values=Preferences.predict_embedding_sizes,
                          model_name_func=model_name_without_embedding_size, row_filter=predict_models_only)
-    compare_param_values(association_df, parameter_name="Distance type", parameter_values=[d.name for d in DistanceType],
+    compare_param_values(synonym_results_df, parameter_name="Distance type", parameter_values=[d.name for d in DistanceType],
                          model_name_func=model_name_without_distance)
 
 
-def compare_param_values(regression_results: DataFrame, parameter_name, parameter_values, model_name_func, row_filter=None):
+def compare_param_values(test_results: DataFrame, parameter_name, parameter_values, model_name_func, row_filter=None):
     """
-    Compares all model parameter values against all others for all DVs.
+    Compares all model parameter values against all others for all tests.
     Produces figures for the comparison.
-    :param regression_results: Regression results
-    :param parameter_name: The name of the parameter to take. Should be a column name of `results_df`
+    :param test_results: Test results
+    :param parameter_name: The name of the parameter to take. Should be a column name of `test_results`
     :param parameter_values: The possible values the parameter can take
-    :param model_name_func: function which takes a row of `results_df` and produces a name for the model.
+    :param model_name_func: function which takes a row of `test_results` and produces a name for the model.
                             Should produce a name which is the same for each `param_value` of `param_name`, and is
                             otherwise unique.
-    :param row_filter: optional function with which to filter rows `results_df`
+    :param row_filter: optional function with which to filter rows `test_results`
     :return:
     """
 
@@ -103,7 +102,7 @@ def compare_param_values(regression_results: DataFrame, parameter_name, paramete
     for test_name in TEST_NAMES:
 
         # Filter the regression results for this comparison
-        regression_results_this_dv = regression_results[regression_results["Test name"] == test_name].copy()
+        regression_results_this_dv = test_results[test_results["Test name"] == test_name].copy()
         # Apply further filters if necessary
         if row_filter is not None:
             regression_results_this_dv = row_filter(regression_results_this_dv)
