@@ -15,12 +15,14 @@ caiwingfield.net
 ---------------------------
 """
 
-import math
 from enum import Enum, auto
 
 import nltk
 import numpy
-from scipy import spatial, integrate
+from numpy import log
+from scipy import spatial
+from scipy.special import beta as beta_function
+from scipy.stats import beta as beta_distribution
 
 
 class CorrelationType(Enum):
@@ -136,3 +138,32 @@ def magnitude_of_negative(c: float) -> float:
     else:
         # Clamp at zero
         return 0
+
+
+def binomial_bayes_factor_one_sided_greater(n, k, p0):
+    """
+    Computes BF for H1: p>p0 vs H0: p=p0
+    :param n: trials
+    :param k: successes
+    :param p0: probability of success under H0
+    :return: BF_10
+    """
+
+    # Port of https://github.com/jasp-stats/jasp-desktop/blob/development/JASP-Engine/JASP/R/binomialtestbayesian.R#L508
+
+    # Shape parameters
+    a = 1
+    b = 1
+
+    log_m_likelihood_h0 = (k * log(p0) + (n - k) * log(1 - p0))
+
+    log_m_likelihood_h1 = (
+        (log(1 - beta_distribution(a + k, b + n - k).cdf(p0)) + log(beta_function(a + k, b + n - k)))
+        -
+        (log(beta_function(a, b)) + log(1 - beta_distribution(a, b).cdf(p0)))
+    )
+
+    b10 = numpy.exp(log_m_likelihood_h0 - log_m_likelihood_h1)
+
+    return b10
+

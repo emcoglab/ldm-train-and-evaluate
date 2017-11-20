@@ -19,7 +19,8 @@ import unittest
 
 import numpy
 
-from ..core.utils.maths import distance, DistanceType, levenshtein_distance
+from ..core.utils.maths import distance, DistanceType, levenshtein_distance, \
+    binomial_bayes_factor_one_sided_greater
 
 
 class DistanceTests(unittest.TestCase):
@@ -124,6 +125,17 @@ class LevenshteinDistanceTests(unittest.TestCase):
         self.assertEqual(
             levenshtein_distance(s, t),
             9
+        )
+
+
+class BinomialBayesTests(unittest.TestCase):
+
+    def test_one_sided_binomial_bayes_10_7(self):
+
+        self.assertAlmostEqual(
+            binomial_bayes_factor_one_sided_greater(10, 7, 0.25),
+            39.182,
+            places=3
         )
 
 
