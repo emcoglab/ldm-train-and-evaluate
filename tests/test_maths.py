@@ -19,8 +19,7 @@ import unittest
 
 import numpy
 
-from ..core.utils.maths import distance, DistanceType, levenshtein_distance, \
-    binomial_bayes_factor_one_sided_greater
+from ..core.utils.maths import distance, DistanceType, levenshtein_distance, binomial_bayes_factor
 
 
 class DistanceTests(unittest.TestCase):
@@ -130,11 +129,27 @@ class LevenshteinDistanceTests(unittest.TestCase):
 
 class BinomialBayesTests(unittest.TestCase):
 
-    def test_one_sided_binomial_bayes_10_7(self):
-
+    def test_one_sided_greater_binomial_bayes_10_7(self):
+        # Value verified using Jasp
         self.assertAlmostEqual(
-            binomial_bayes_factor_one_sided_greater(10, 7, 0.25),
+            binomial_bayes_factor(10, 7, 0.25, alternative_hypothesis=">", a=1, b=1),
             39.182,
+            places=3
+        )
+
+    def test_one_sided_less_binomial_bayes_10_7(self):
+        # Value verified using Jasp
+        self.assertAlmostEqual(
+            binomial_bayes_factor(10, 7, 0.25, alternative_hypothesis="<", a=1, b=1),
+            0.140,
+            places=3
+        )
+
+    def test_two_sided_binomial_bayes_10_7(self):
+        # Value verified using Jasp
+        self.assertAlmostEqual(
+            binomial_bayes_factor(10, 7, 0.25, alternative_hypothesis="≠", a=1, b=1),
+            29.421,
             places=3
         )
 

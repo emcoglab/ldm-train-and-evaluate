@@ -22,12 +22,10 @@ from abc import ABCMeta, abstractmethod
 from copy import copy
 from typing import List
 
-import scipy.integrate
-
 from ..evaluation.results import EvaluationResults
 from ..model.base import VectorSemanticModel
 from ..utils.exceptions import WordNotFoundError
-from ..utils.maths import DistanceType, binomial_pmf, binomial_coefficient
+from ..utils.maths import DistanceType, binomial_bayes_factor_one_sided
 from ..corpus.indexing import LetterIndexing
 from ...preferences.preferences import Preferences
 
@@ -41,8 +39,6 @@ class SynonymResults(EvaluationResults):
                 "Correct answers",
                 "Total questions",
                 "Score",
-                "Model likelihood",
-                "Baseline likelihood",
                 "B10"
             ],
             save_dir=Preferences.synonym_results_dir
@@ -343,48 +339,13 @@ class SynonymTester(object):
         n_total_questions = answer_paper.n_correct_answers + answer_paper.n_incorrect_answers
 
         chance_level = 0.25
-        # The baseline likelihood P(k successes|p(success)=0.25) is
-        #   P_binom(n, k, 0.25)
-        # (p=0.25 is chance)
-        baseline_likelihood = binomial_pmf(n_total_questions, n_correct_answers, chance_level)
-        # The model likelihood P(k successes|p(success)>0.25) is
-        #   ∫(0,1) [ P_binom(n, k, p) · P(p) ] dp
-        # Where P(p) is the prior distribution of p.
-        # We model the this prior to be p uniformly distributed between 0.25 and 1.  So the integral simplifies to
-        #   ∫(0.25,1) [ P_binom(n, k, p) · 4/3 ] dp
-        # since the PDF of U(0.25, 1) is constantly 4/3 on [0.25, 1].
-        model_likelihood = (4/3) * scipy.integrate.quad(
-            func=(lambda p: binomial_pmf(n_total_questions, n_correct_answers, p)),
-            a=chance_level,
-            b=1
-        )[0]
-
-        # Expanding P_binom we get
-        #   4/3 · C(n, k) · ∫(0.25,1) p^k · (1-p)^(n-k) dp
-        # Using integration by parts we get
-        #   4/3 · C(n, k)/C(n, k) · ∫(0.25,1) p^n dp
-        # then evaluating the integral we get
-        #   4/3 · (n + 1 - 0.25^(n+1)) / ((n+1) C(n, k))
-        model_likelihood_simplify = (
-            (4/3)
-            *
-            (n_total_questions + 1 - chance_level**(n_total_questions + 1))
-            /
-            (binomial_coefficient(n_total_questions, n_correct_answers)*(n_total_questions + 1))
-        )
-
-        # TODO: debug and check this, if it's true, use the simplified version.
-        assert model_likelihood - model_likelihood_simplify < 0.01
-
-        b10 = model_likelihood / baseline_likelihood
+        b10 = binomial_bayes_factor_one_sided(n_total_questions, n_correct_answers, chance_level)
 
         results.add_result(
             test.name, model, distance_type, {
                 "Correct answers"     : n_correct_answers,
                 "Total questions"     : n_total_questions,
                 "Score"               : answer_paper.score,
-                "Model likelihood"    : model_likelihood,
-                "Baseline likelihood" : baseline_likelihood,
                 "B10"                 : b10
             },
             append_to_model_name="" if truncate_vectors_at_length is None else f" ({truncate_vectors_at_length})")
