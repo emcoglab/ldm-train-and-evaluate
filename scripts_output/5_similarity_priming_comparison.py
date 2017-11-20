@@ -43,22 +43,23 @@ figures_base_dir = os.path.join(Preferences.figures_dir, "association")
 # This value from Jeffreys (1961) Theory of Probability.
 BF_THRESHOLD = math.sqrt(10)
 
+
 def model_name_without_distance(r):
     if r['Model category'] == "Predict":
-        return f"{r['Model type']} {r['Embedding size']:.0f} r={r['Window radius']} {r['Corpus']}"
+        return f"{r['Model type']} {r['Embedding size']:.0f} r={r['Radius']} {r['Corpus']} ({r['Correlation type']})"
     else:
-        return f"{r['Model type']} r={r['Window radius']} {r['Corpus']}"
+        return f"{r['Model type']} r={r['Radius']} {r['Corpus']} ({r['Correlation type']})"
 
 
 def model_name_without_radius(r):
     if r['Model category'] == "Predict":
-        return f"{r['Model type']} {r['Embedding size']:.0f} {r['Distance type']} {r['Corpus']}"
+        return f"{r['Model type']} {r['Embedding size']:.0f} {r['Distance type']} {r['Corpus']} ({r['Correlation type']})"
     else:
-        return f"{r['Model type']} {r['Distance type']} {r['Corpus']}"
+        return f"{r['Model type']} {r['Distance type']} {r['Corpus']} ({r['Correlation type']})"
 
 
 def model_name_without_embedding_size(r):
-    return f"{r['Model type']} r={r['Window radius']} {r['Distance type']} {r['Corpus']}"
+    return f"{r['Model type']} r={r['Radius']} {r['Distance type']} {r['Corpus']} ({r['Correlation type']})"
 
 
 def predict_models_only(df: DataFrame) -> DataFrame:
@@ -71,7 +72,7 @@ def main():
 
     association_df["Model category"] = association_df.apply(lambda r: "Count" if pandas.isnull(r["Embedding size"]) else "Predict", axis=1)
 
-    compare_param_values(association_df, parameter_name="Window radius", parameter_values=Preferences.window_radii,
+    compare_param_values(association_df, parameter_name="Radius", parameter_values=Preferences.window_radii,
                          model_name_func=model_name_without_radius)
     compare_param_values(association_df, parameter_name="Embedding size", parameter_values=Preferences.predict_embedding_sizes,
                          model_name_func=model_name_without_embedding_size, row_filter=predict_models_only)
@@ -164,21 +165,29 @@ def compare_param_values(regression_results: DataFrame, parameter_name, paramete
                 best_bic = model_variations["Model BIC"][0]
                 best_param_value = model_variations[parameter_name][0]
 
-                # The joint-best models are...
-                joint_best_models = model_variations[
-                    # ...the actual best model...
-                    (model_variations[parameter_name] == best_param_value)
-                    |
-                    # ...or indistinguishable from best.
-                    (
-                        # If the bayes factor is sufficiently large, it may snap to numpy.inf.
-                        # If it's not, we can sensibly make a comparison.
-                        (not numpy.isinf(best_bayes_factor) & (best_bayes_factor / model_variations["B10 approx"] < BF_THRESHOLD))
+                # If the bayes factor is sufficiently large, it may snap to numpy.inf.
+                # If it's not, we can sensibly make a comparison.
+                if not numpy.isinf(best_bayes_factor):
+                    joint_best_models = model_variations[
+                        # The actual best model
+                        (model_variations[parameter_name] == best_param_value)
                         |
-                        # If it is, we can fall back to comparing BICs (assuming they are not also numpy.inf)
-                        (numpy.isinf(best_bayes_factor) & (model_variations["Model BIC"] - best_bic < 2 * numpy.log(BF_THRESHOLD)))
-                    )
-                ]
+                        # Indistinguishable from best
+                        (best_bayes_factor / model_variations["B10 approx"] < BF_THRESHOLD)
+
+                    ]
+
+                # If it is, we can fall back to comparing BICs (assuming they are not also numpy.inf)
+                # because e and log are monotonic increasing on their domains
+                else:
+                    log_bf_best_vs_competitor = (model_variations["Model BIC"] - best_bic) / 2
+                    joint_best_models = model_variations[
+                        # The actual best model
+                        (model_variations[parameter_name] == best_param_value)
+                        |
+                        # Indistinguishable from best
+                        (log_bf_best_vs_competitor < numpy.log(BF_THRESHOLD))
+                    ]
 
                 if numpy.isinf(best_bic):
                     logger.warning("Encountered an infinite BIC")
@@ -202,7 +211,7 @@ def compare_param_values(regression_results: DataFrame, parameter_name, paramete
     # Bar graph for all DVs
     seaborn.set_style("ticks")
     seaborn.set_context(context="paper", font_scale=1)
-    grid = seaborn.FacetGrid(data=all_win_fractions, col="Dependent variable", col_wrap=2, margin_titles=True, size=2.5, ylim=(0, 1))
+    grid = seaborn.FacetGrid(data=all_win_fractions, col="Test name", col_wrap=2, margin_titles=True, size=2.5, ylim=(0, 1))
     # format y as percent
     grid.set_yticklabels(['{:3.0f}%'.format(float(label.get_text()) * 100) for label in grid.axes[0].get_yticklabels()])
     grid.map(seaborn.barplot, parameter_name, "Fraction of times (joint-)best")
@@ -210,7 +219,7 @@ def compare_param_values(regression_results: DataFrame, parameter_name, paramete
     pyplot.close(grid.fig)
 
     # Heatmap for all DVs
-    heatmap_df = all_win_fractions.pivot(index="Dependent variable", columns=parameter_name, values="Fraction of times (joint-)best")
+    heatmap_df = all_win_fractions.pivot(index="Test name", columns=parameter_name, values="Fraction of times (joint-)best")
     plot = seaborn.heatmap(heatmap_df, square=True, cmap=seaborn.light_palette("green", as_cmap=True))
     pyplot.xticks(rotation=90)
     pyplot.yticks(rotation=0)

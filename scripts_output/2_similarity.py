@@ -114,7 +114,7 @@ def model_performance_bar_graphs(similarity_results: pandas.DataFrame, window_ra
     filtered_df = filtered_df[filtered_df["Correlation type"] == correlation_type.name]
 
     # Use absolute values of correlation
-    similarity_results["Correlation"] = similarity_results.apply(lambda r: magnitude_of_negative(r["Correlation"]))
+    filtered_df["Correlation"] = filtered_df["Correlation"].apply(magnitude_of_negative)
 
     # Model name doesn't need to include corpus or distance, since those are fixed for each sub-plot
     filtered_df["Model name"] = filtered_df.apply(
@@ -277,8 +277,7 @@ def cos_vs_cor_scores(results_df: pandas.DataFrame):
             filtered_df = filtered_df[filtered_df["Correlation type"] == correlation_type.name]
 
             # Use absolute values of correlation
-            results_df["Correlation"] = results_df.apply(
-                lambda r: magnitude_of_negative(r["Correlation"]))
+            results_df["Correlation"] = results_df["Correlation"].apply(magnitude_of_negative)
 
             filtered_df["Model name"] = filtered_df.apply(
                 lambda r:

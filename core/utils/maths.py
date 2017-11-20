@@ -127,7 +127,7 @@ def levenshtein_distance(string_1: str, string_2: str) -> float:
                               transpositions=False)
 
 
-def magnitude_of_negative(c: float) -> float:
+def magnitude_of_negative(c):
     """
     Returns the absolute value of input `c` when it is negative, and 0 otherwise.
     """

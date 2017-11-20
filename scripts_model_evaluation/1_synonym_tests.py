@@ -60,7 +60,7 @@ def main():
                 for test in test_battery:
                     for distance_type in DistanceType:
                         # TODO: horrifically inefficient: we load existing results each time
-                        if not SynonymResults.results_exist_for(test.name, model, distance_type):
+                        if not results.results_exist_for(test.name, model, distance_type):
                             model.train(memory_map=True)
                             results.extend_with_results(SynonymTester.administer_test(test, model, distance_type))
                             results.save()
