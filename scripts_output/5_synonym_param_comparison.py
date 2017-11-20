@@ -161,35 +161,15 @@ def compare_param_values(test_results: DataFrame, parameter_name, parameter_valu
 
                 # BF for best model
                 best_bayes_factor = model_variations["B10"][0]
-                best_bic = model_variations["Model BIC"][0]
                 best_param_value = model_variations[parameter_name][0]
 
-                # If the bayes factor is sufficiently large, it may snap to numpy.inf.
-                # If it's not, we can sensibly make a comparison.
-                if not numpy.isinf(best_bayes_factor):
-                    joint_best_models = model_variations[
-                        # The actual best model
-                        (model_variations[parameter_name] == best_param_value)
-                        |
-                        # Indistinguishable from best
-                        (best_bayes_factor / model_variations["B10"] < BF_THRESHOLD)
-
-                    ]
-
-                # If it is, we can fall back to comparing BICs (assuming they are not also numpy.inf)
-                # because e and log are monotonic increasing on their domains
-                else:
-                    log_bf_best_vs_competitor = (model_variations["Model BIC"] - best_bic) / 2
-                    joint_best_models = model_variations[
-                        # The actual best model
-                        (model_variations[parameter_name] == best_param_value)
-                        |
-                        # Indistinguishable from best
-                        (log_bf_best_vs_competitor < numpy.log(BF_THRESHOLD))
-                    ]
-
-                if numpy.isinf(best_bic):
-                    logger.warning("Encountered an infinite BIC")
+                joint_best_models = model_variations[
+                    # The actual best model
+                    (model_variations[parameter_name] == best_param_value)
+                    |
+                    # Indistinguishable from best
+                    (best_bayes_factor / model_variations["B10"] < BF_THRESHOLD)
+                ]
 
                 # Record details of joint-best models
                 for parameter_value in joint_best_models[parameter_name]:
@@ -227,6 +207,8 @@ def compare_param_values(test_results: DataFrame, parameter_name, parameter_valu
     plot.collections[0].colorbar.set_ticks([float(label.get_text()) for label in old_labels])
     plot.collections[0].colorbar.set_ticklabels(['{:3.0f}%'.format(float(label.get_text()) * 100) for label in old_labels])
     plot.figure.savefig(os.path.join(figures_dir, f"priming {parameter_name.lower()} heatmap.png"), dpi=300)
+
+    pyplot.close(plot.figure)
 
 
 if __name__ == "__main__":
