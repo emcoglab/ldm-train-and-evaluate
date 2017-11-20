@@ -139,10 +139,10 @@ def compare_param_values(test_results: DataFrame, parameter_name, parameter_valu
             model_variations: DataFrame = regression_results_this_dv[regression_results_this_dv["Model name"] == model_name].copy()
 
             # Sort by BF(model, baseline)
-            model_variations = model_variations.sort_values("B10 approx", ascending=False).reset_index(drop=True)
+            model_variations = model_variations.sort_values("B10", ascending=False).reset_index(drop=True)
 
             # Ignore any models which are indistinguishable from the baseline model
-            n_remaining_models = model_variations[model_variations["B10 approx"] > BF_THRESHOLD].shape[0]
+            n_remaining_models = model_variations[model_variations["B10"] > BF_THRESHOLD].shape[0]
 
             # Some cases to consider
 
@@ -160,7 +160,7 @@ def compare_param_values(test_results: DataFrame, parameter_name, parameter_valu
             elif n_remaining_models > 1:
 
                 # BF for best model
-                best_bayes_factor = model_variations["B10 approx"][0]
+                best_bayes_factor = model_variations["B10"][0]
                 best_bic = model_variations["Model BIC"][0]
                 best_param_value = model_variations[parameter_name][0]
 
@@ -172,7 +172,7 @@ def compare_param_values(test_results: DataFrame, parameter_name, parameter_valu
                         (model_variations[parameter_name] == best_param_value)
                         |
                         # Indistinguishable from best
-                        (best_bayes_factor / model_variations["B10 approx"] < BF_THRESHOLD)
+                        (best_bayes_factor / model_variations["B10"] < BF_THRESHOLD)
 
                     ]
 
