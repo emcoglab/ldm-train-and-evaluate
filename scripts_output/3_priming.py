@@ -232,7 +232,7 @@ def model_performance_bar_graphs(spp_results_df: DataFrame, window_radius: int, 
         lambda r:
         # TODO: embedding sizes aren't ints for some reason, so we have to force this here 🤦‍
         f"{r['Model type']} {r['Embedding size']:.0f}"
-        if r['Embedding size'] is not None
+        if r['Model category'] == "Predict"
         else f"{r['Model type']}",
         axis=1
     )
