@@ -16,16 +16,17 @@ caiwingfield.net
 """
 
 import logging
-import os
 import math
+import os
 import sys
 
 import numpy
 import pandas
-from pandas import DataFrame
 import seaborn
 from matplotlib import pyplot
+from pandas import DataFrame
 
+from .visualisation import add_model_category_column
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
@@ -376,8 +377,7 @@ def load_data() -> DataFrame:
     with open(os.path.join(results_dir, "regression.csv"), mode="r", encoding="utf-8") as regression_file:
         regression_df = pandas.read_csv(regression_file, sep=separator, header=0)
 
-    regression_df["Model category"] = regression_df.apply(
-        lambda r: "Count" if pandas.isnull(r["Embedding size"]) else "Predict", axis=1)
+    add_model_category_column(regression_df)
 
     return regression_df
 

@@ -21,10 +21,11 @@ import sys
 
 import pandas
 import seaborn
-
 from matplotlib import pyplot
 
-from ..core.evaluation.association import AssociationResults, SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity
+from .visualisation import add_model_category_column, add_model_name_column
+from ..core.evaluation.association import AssociationResults, SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, \
+    MenSimilarity
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType, CorrelationType, magnitude_of_negative
 from ..preferences.preferences import Preferences
@@ -40,15 +41,8 @@ def main():
 
     results_df = AssociationResults().load().data
 
-    results_df["Model category"] = results_df.apply(lambda r: "Count" if pandas.isnull(r["Embedding size"]) else "Predict", axis=1)
-
-    results_df["Model name"] = results_df.apply(
-        lambda r:
-        f"{r['Corpus']} {r['Distance type']} {r['Model type']} r={r['Radius']} {r['Embedding size']:.0f}"
-        if r["Model category"] == "Predict"
-        else f"{r['Corpus']} {r['Distance type']} {r['Model type']} r={r['Radius']}",
-        axis=1
-    )
+    add_model_category_column(results_df)
+    add_model_name_column(results_df)
 
     # We make an artificial distinction between similarity data and similarity-based association norms
     results_df = results_df[results_df["Test name"].isin(TEST_NAMES)]

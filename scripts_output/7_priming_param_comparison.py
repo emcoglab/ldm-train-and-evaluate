@@ -16,9 +16,9 @@ caiwingfield.net
 """
 
 import logging
+import math
 import os
 import sys
-import math
 from collections import defaultdict
 
 import numpy
@@ -27,9 +27,12 @@ import seaborn
 from matplotlib import pyplot
 from pandas import DataFrame
 
+from ..preferences.preferences import Preferences
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
-from ..preferences.preferences import Preferences
+from ..core.output.constants import BF_THRESHOLD
+from ..core.output.dataframe import model_name_without_radius, model_name_without_embedding_size, \
+    model_name_without_distance, predict_models_only
 
 logger = logging.getLogger(__name__)
 
@@ -57,32 +60,6 @@ DV_NAMES = [
 ]
 
 figures_base_dir = os.path.join(Preferences.figures_dir, "priming")
-
-# The Bayes factor threshold at which we say one model is better than another
-# This value from Jeffreys (1961) Theory of Probability.
-BF_THRESHOLD = math.sqrt(10)
-
-
-def model_name_without_distance(r):
-    if r['Model category'] == "Predict":
-        return f"{r['Model type']} {r['Embedding size']:.0f} r={r['Window radius']} {r['Corpus']}"
-    else:
-        return f"{r['Model type']} r={r['Window radius']} {r['Corpus']}"
-
-
-def model_name_without_radius(r):
-    if r['Model category'] == "Predict":
-        return f"{r['Model type']} {r['Embedding size']:.0f} {r['Distance type']} {r['Corpus']}"
-    else:
-        return f"{r['Model type']} {r['Distance type']} {r['Corpus']}"
-
-
-def model_name_without_embedding_size(r):
-    return f"{r['Model type']} r={r['Window radius']} {r['Distance type']} {r['Corpus']}"
-
-
-def predict_models_only(df: DataFrame) -> DataFrame:
-    return df[df["Model category"] == "Predict"]
 
 
 def main():

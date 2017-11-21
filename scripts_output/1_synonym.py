@@ -20,15 +20,14 @@ import os
 import sys
 
 import seaborn
-import pandas
+from matplotlib import pyplot
 from pandas import DataFrame
 
-from matplotlib import pyplot
-
+from ..preferences.preferences import Preferences
 from ..core.evaluation.synonym import ToeflTest, LbmMcqTest, EslTest, SynonymResults
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
-from ..preferences.preferences import Preferences
+from ..core.output.dataframe import add_model_category_column, add_model_name_column
 
 logger = logging.getLogger(__name__)
 
@@ -41,15 +40,8 @@ figures_base_dir = os.path.join(Preferences.figures_dir, "synonym")
 def main():
     results_df = SynonymResults().load().data
 
-    results_df["Model category"] = results_df.apply(lambda r: "Count" if pandas.isnull(r["Embedding size"]) else "Predict", axis=1)
-
-    results_df["Model name"] = results_df.apply(
-        lambda r:
-        f"{r['Corpus']} {r['Distance type']} {r['Model type']} r={r['Radius']} {r['Embedding size']:.0f}"
-        if r["Model category"] == "Predict"
-        else f"{r['Corpus']} {r['Distance type']} {r['Model type']} r={r['Radius']}",
-        axis=1
-    )
+    add_model_category_column(results_df)
+    add_model_name_column(results_df)
 
     logger.info(f"Making score-vs-radius figures")
     figures_score_vs_radius(results_df)

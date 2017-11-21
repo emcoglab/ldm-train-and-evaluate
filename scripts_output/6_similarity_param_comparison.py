@@ -17,7 +17,6 @@ caiwingfield.net
 
 import os
 import sys
-import math
 import logging
 from collections import defaultdict
 
@@ -27,21 +26,18 @@ from matplotlib import pyplot
 import pandas
 from pandas import DataFrame
 
+from ..preferences.preferences import Preferences
 from ..core.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
     AssociationResults
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
-from ..preferences.preferences import Preferences
+from ..core.output.constants import BF_THRESHOLD
 
 logger = logging.getLogger(__name__)
 
 TEST_NAMES = [SimlexSimilarity().name, WordsimSimilarity().name, WordsimRelatedness().name, MenSimilarity().name]
 
 figures_base_dir = os.path.join(Preferences.figures_dir, "similarity")
-
-# The Bayes factor threshold at which we say one model is better than another
-# This value from Jeffreys (1961) Theory of Probability.
-BF_THRESHOLD = math.sqrt(10)
 
 
 def model_name_without_distance(r):
