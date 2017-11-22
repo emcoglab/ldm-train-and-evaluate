@@ -140,6 +140,13 @@ def magnitude_of_negative(c):
         return 0
 
 
+def flip_sign(c):
+    """
+    Flips the sign of input.
+    """
+    return c * (-1)
+
+
 def binomial_bayes_factor_one_sided(n, k, p0, alternative_hypothesis=">", a=1, b=1):
     """
     Computes one-sided BF for H1: p≠p0 vs H0: p=p0

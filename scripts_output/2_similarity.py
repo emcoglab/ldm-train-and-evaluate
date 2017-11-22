@@ -20,7 +20,7 @@ import os
 import sys
 
 from .common_output.figures import cosine_vs_correlation_scores, model_performance_bar_graphs, \
-    score_vs_radius_line_graph, score_vs_embedding_size_line_graph
+    score_vs_radius_line_graph, score_vs_embedding_size_line_graph, pearson_vs_spearman_scores
 from .common_output.dataframe import add_model_category_column, add_model_name_column
 from .common_output.tables import table_top_n_models
 from ..core.evaluation.association import AssociationResults, SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, \
@@ -87,7 +87,7 @@ def main():
                 for test_name in test_names:
                     logger.info(f"Making embedding size line graphs for {test_name} d={distance_type.name}")
                     score_vs_embedding_size_line_graph(
-                        results=results_df,
+                        results=results_df[results_df["Correlation type"] == correlation_type.name],
                         key_column_name="Test name",
                         key_column_value=test_name,
                         test_statistic_name="Correlation",
@@ -137,6 +137,13 @@ def main():
                 test_statistic_column_name="Correlation",
                 name_prefix=f"{artificial_distinction} ({correlation_type.name})"
             )
+
+        pearson_vs_spearman_scores(
+            results=results_df,
+            figures_base_dir=figures_base_dir,
+            test_names=test_names,
+            name_prefix=artificial_distinction
+        )
 
 
 if __name__ == "__main__":

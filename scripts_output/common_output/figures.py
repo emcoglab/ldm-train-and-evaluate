@@ -27,7 +27,7 @@ from numpy import isinf, log
 
 from .constants import BF_THRESHOLD
 from .dataframe import model_name_without_distance, model_name_without_corpus_or_distance_or_radius, predict_models_only
-from ...core.utils.maths import DistanceType
+from ...core.utils.maths import DistanceType, CorrelationType
 from ...preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -111,6 +111,63 @@ def cosine_vs_correlation_scores(results: DataFrame,
     grid.fig.suptitle(f"{name_prefix}: correlation- & cosine-distance test statistics")
 
     grid.savefig(os.path.join(figures_dir, f"{name_prefix} cosine vs correlation distance.png"), dpi=300)
+    pyplot.close(grid.fig)
+
+
+def pearson_vs_spearman_scores(results: DataFrame,
+                               figures_base_dir: str,
+                               test_names: List[str],
+                               name_prefix: str):
+
+    figures_dir = os.path.join(figures_base_dir, "effects of distance type")
+    seaborn.set(style="white", palette="muted", color_codes=True)
+
+    distribution = []
+    for test_name in test_names:
+        for distance_type in DistanceType:
+
+            filtered_df: DataFrame = results.copy()
+            filtered_df = filtered_df[filtered_df["Test name"] == test_name]
+            filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
+
+            filtered_df["Model name"] = filtered_df.apply(model_name_without_distance, axis=1)
+
+            for model_name in set(filtered_df["Model name"]):
+
+                pearson_df: DataFrame = filtered_df.copy()
+                pearson_df = pearson_df[pearson_df["Model name"] == model_name]
+                pearson_df = pearson_df[pearson_df["Correlation type"] == CorrelationType.Pearson.name]
+
+                spearman_df: DataFrame = filtered_df.copy()
+                spearman_df = spearman_df[spearman_df["Model name"] == model_name]
+                spearman_df = spearman_df[spearman_df["Correlation type"] == CorrelationType.Spearman.name]
+
+                # barf
+                score_pearson = list(pearson_df["Correlation"])[0]
+                score_spearman = list(spearman_df["Correlation"])[0]
+
+                distribution.append([test_name, score_pearson, score_spearman])
+
+    dist_df = DataFrame(distribution, columns=["Test name", "Pearson", "Spearman"])
+
+    seaborn.set_context(context="paper", font_scale=1)
+
+    grid = seaborn.FacetGrid(data=dist_df,
+                             col="Test name",
+                             col_wrap=2,
+                             size=5, aspect=1,
+                             margin_titles=True,
+                             xlim=(0, 1), ylim=(0, 1))
+
+    grid.map(pyplot.scatter, "Pearson", "Spearman")
+
+    for ax in grid.axes.flat:
+        ax.plot((0, 1), (0, 1), c="r", ls="-")
+
+    pyplot.subplots_adjust(top=0.92)
+    grid.fig.suptitle(f"{name_prefix}: Pearson vs Spearman correlations")
+
+    grid.savefig(os.path.join(figures_dir, f"{name_prefix} Pearson vs Spearman.png"), dpi=300)
     pyplot.close(grid.fig)
 
 
