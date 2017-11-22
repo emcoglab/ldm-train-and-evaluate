@@ -25,6 +25,7 @@ import seaborn
 from matplotlib import pyplot
 from pandas import DataFrame
 
+from core.output.figures import model_performance_bar_graphs
 from ..preferences.preferences import Preferences
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
@@ -68,11 +69,47 @@ def main():
     # Add rsquared increase column
     regression_results["R-squared increase"] = regression_results["Model R-squared"] - regression_results["Baseline R-squared"]
 
+    logger.info(f"Making model performance bargraphs")
+    # Get info about the dv, used for filtering
+    bar_graphs_df: DataFrame = regression_results.copy()
+    bar_graphs_df["dv_test_type"] = bar_graphs_df.apply(lambda r: "LDT" if r["Dependent variable"].startswith("LDT") else "NT", axis=1)
+    bar_graphs_df["dv_measure"] = bar_graphs_df.apply(lambda r: "Acc" if "Acc" in r["Dependent variable"]          else "Z-RT", axis=1)
+    bar_graphs_df["dv_soa"] = bar_graphs_df.apply(lambda r: 200 if "_200ms" in r["Dependent variable"]       else 1200, axis=1)
+    bar_graphs_df["dv_priming"] = bar_graphs_df.apply(lambda r: True if "Priming" in r["Dependent variable"]      else False, axis=1)
     for radius in Preferences.window_radii:
         for distance_type in DistanceType:
-            logger.info(
-                f"Making model performance bargraph figures for r={radius}, d={distance_type.name}")
-            model_performance_bar_graphs(regression_results, window_radius=radius, distance_type=distance_type)
+            for soa in [200, 1200]:
+                for test_type in ["LDT", "NT"]:
+
+                    model_performance_bar_graphs(
+                        # Filter on this sub-set of DVs
+                        results=bar_graphs_df[
+                            (bar_graphs_df["dv_test_type"] == test_type)
+                            & (bar_graphs_df["dv_soa"] == soa)
+                        ],
+                        window_radius=radius,
+                        key_column_name="Dependent variable",
+                        test_statistic_name="R-squared increase",
+                        name_prefix=f"Priming ({test_type} {soa}ms)",
+                        bayes_factor_decorations=False,
+                        distance_type=distance_type,
+                        figures_base_dir=figures_base_dir
+                    )
+
+                    model_performance_bar_graphs(
+                        # Filter on this sub-set of DVs
+                        results=bar_graphs_df[
+                            (bar_graphs_df["dv_test_type"] == test_type)
+                            & (bar_graphs_df["dv_soa"] == soa)
+                        ],
+                        window_radius=radius,
+                        key_column_name="Dependent variable",
+                        test_statistic_name="B10 approx",
+                        name_prefix=f"Priming ({test_type} {soa}ms)",
+                        bayes_factor_decorations=True,
+                        distance_type=distance_type,
+                        figures_base_dir=figures_base_dir
+                    )
 
     for dv_name in DV_NAMES:
         for radius in Preferences.window_radii:
@@ -202,92 +239,6 @@ def figures_r2_vs_radius(regression_results: DataFrame):
                 figure_name = f"priming {distance} {task_type} {y_measure}.png"
                 grid.fig.savefig(os.path.join(figures_dir, figure_name), dpi=300)
                 pyplot.close(grid.fig)
-
-
-def model_performance_bar_graphs(spp_results_df: DataFrame, window_radius: int, distance_type: DistanceType):
-
-    figures_dir = os.path.join(figures_base_dir, "model performance bar graphs")
-
-    seaborn.set_style("ticks")
-
-    filtered_df: DataFrame = spp_results_df.copy()
-    filtered_df = filtered_df[filtered_df["Window radius"] == window_radius]
-    filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
-
-    # Model name doesn't need to include corpus or distance, since those are fixed
-    filtered_df["Model name"] = filtered_df.apply(
-        lambda r:
-        # TODO: embedding sizes aren't ints for some reason, so we have to force this here 🤦‍
-        f"{r['Model type']} {r['Embedding size']:.0f}"
-        if r['Model category'] == "Predict"
-        else f"{r['Model type']}",
-        axis=1
-    )
-
-    # Get info about the dv
-    filtered_df["dv_test_type"] = filtered_df.apply(lambda r: "LDT"     if r["Dependent variable"].startswith("LDT") else "NT",   axis=1)
-    filtered_df["dv_measure"]   = filtered_df.apply(lambda r: "Acc"     if "Acc" in r["Dependent variable"]          else "Z-RT", axis=1)
-    filtered_df["dv_soa"]       = filtered_df.apply(lambda r: 200       if "_200ms" in r["Dependent variable"]       else 1200,   axis=1)
-    filtered_df["dv_priming"]   = filtered_df.apply(lambda r: True      if "Priming" in r["Dependent variable"]      else False,  axis=1)
-
-    for soa in [200, 1200]:
-        for test_type in ["LDT", "NT"]:
-
-            # include z-rt/acc and priming/non-priming distinctions in graphs
-
-            dv_name = f"{test_type} {soa}ms"
-
-            double_filtered_df = filtered_df.copy()
-
-            double_filtered_df = double_filtered_df[double_filtered_df["dv_test_type"] == test_type]
-            double_filtered_df = double_filtered_df[double_filtered_df["dv_soa"] == soa]
-
-            seaborn.set_context(context="paper", font_scale=1)
-            grid = seaborn.FacetGrid(
-                double_filtered_df,
-                row="Dependent variable", col="Corpus",
-                margin_titles=True,
-                size=3)
-
-            grid.set_xticklabels(rotation=-90)
-
-            # Plot the bars
-            plot = grid.map(seaborn.barplot, "Model name", "B10 approx", order=[
-                "log n-gram",
-                "Conditional probability",
-                "Probability ratio",
-                "PPMI",
-                "Skip-gram 50",
-                "Skip-gram 100",
-                "Skip-gram 200",
-                "Skip-gram 300",
-                "Skip-gram 500",
-                "CBOW 50",
-                "CBOW 100",
-                "CBOW 200",
-                "CBOW 300",
-                "CBOW 500",
-            ])
-
-            # Plot the 1-line
-            grid.map(pyplot.axhline, y=1,              linestyle="solid",  color="xkcd:bright red")
-            grid.map(pyplot.axhline, y=BF_THRESHOLD,   linestyle="dotted", color="xkcd:bright red")
-            grid.map(pyplot.axhline, y=1/BF_THRESHOLD, linestyle="dotted", color="xkcd:bright red")
-
-            grid.set(yscale="log")
-
-            grid.set_ylabels("BF10")
-
-            pyplot.subplots_adjust(top=0.92)
-            grid.fig.suptitle(f"Priming BF10 for {dv_name} radius {window_radius} using {distance_type.name} distance")
-
-            figure_name = f"priming {dv_name} r={window_radius} {distance_type.name}.png"
-
-            # I don't know why PyCharm doesn't find this... it works...
-            # noinspection PyUnresolvedReferences
-            plot.savefig(os.path.join(figures_dir, figure_name), dpi=300)
-
-            pyplot.close(grid.fig)
 
 
 def model_comparison_matrix(spp_results_df: DataFrame, dv_name: str, radius: int, corpus_name: str):
