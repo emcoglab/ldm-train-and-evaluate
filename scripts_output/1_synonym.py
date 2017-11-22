@@ -28,6 +28,7 @@ from ..core.evaluation.synonym import ToeflTest, LbmMcqTest, EslTest, SynonymRes
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
 from ..core.output.dataframe import add_model_category_column, add_model_name_column
+from ..core.output.figures import cosine_vs_correlation_scores
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,6 @@ TEST_NAMES = [ToeflTest().name, EslTest().name, LbmMcqTest().name]
 figures_base_dir = os.path.join(Preferences.figures_dir, "synonym")
 
 
-# TODO: essentially duplicated code
 def main():
     results_df = SynonymResults().load().data
 
@@ -62,7 +62,7 @@ def main():
         logger.info(f"Making top-5 model tables overall for {distance_type.name}")
         table_top_n_models(results_df, 5, distance_type)
 
-    cos_vs_cor_scores(results_df)
+    cosine_vs_correlation_scores(results_df, figures_base_dir, TEST_NAMES, "Score", "Synonym", ticks_as_percentages=True)
 
 
 def table_top_n_models(regression_results_df: DataFrame, top_n: int, distance_type: DistanceType = None):
@@ -315,65 +315,6 @@ def figures_embedding_size(regression_results_df: DataFrame, test_name: str):
         grid.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
         pyplot.close(grid.fig)
-
-
-def cos_vs_cor_scores(results_df: DataFrame):
-
-    figures_dir = os.path.join(figures_base_dir, "effects of distance")
-    seaborn.set(style="white", palette="muted", color_codes=True)
-
-    distribution = []
-    for test_name in TEST_NAMES:
-
-        filtered_df: DataFrame = results_df.copy()
-        filtered_df = filtered_df[filtered_df["Test name"] == test_name]
-
-        filtered_df["Model name"] = filtered_df.apply(
-            lambda r:
-            f"{r['Model type']} {r['Embedding size']:.0f} r={r['Radius']} {r['Corpus']}"
-            if r['Embedding size'] is not None
-            else f"{r['Model type']} r={r['Radius']} {r['Corpus']}",
-            axis=1
-        )
-
-        for model_name in set(filtered_df["Model name"]):
-            cos_df: DataFrame = filtered_df.copy()
-            cos_df = cos_df[cos_df["Model name"] == model_name]
-            cos_df = cos_df[cos_df["Distance type"] == "cosine"]
-
-            corr_df: DataFrame = filtered_df.copy()
-            corr_df = corr_df[corr_df["Model name"] == model_name]
-            corr_df = corr_df[corr_df["Distance type"] == "correlation"]
-
-            # barf
-            score_cos = list(cos_df["Score"])[0]
-            score_corr = list(corr_df["Score"])[0]
-
-            distribution.append([test_name, score_cos, score_corr])
-
-    dist_df = DataFrame(distribution, columns=["Test name", "Cosine Score", "Correlation Score"])
-
-    seaborn.set_context(context="paper", font_scale=1)
-
-    grid = seaborn.FacetGrid(data=dist_df, col="Test name", col_wrap=2, size=5)
-    grid.set(xlim=(0, 1), ylim=(0, 1))
-
-    grid.map(pyplot.scatter, "Cosine Score", "Correlation Score")
-
-    for ax in grid.axes.flat:
-        ax.plot((0, 1), (0, 1), c="r", ls="-")
-
-    # Format xicks as percentages
-    xtick_labels = grid.axes[0].get_xticklabels()
-    grid.set_xticklabels(['{:3.0f}%'.format(float(label.get_text()) * 100) for label in xtick_labels])
-    ytick_labels = grid.axes[0].get_yticklabels()
-    grid.set_yticklabels(['{:3.0f}%'.format(float(label.get_text()) * 100) for label in ytick_labels])
-
-    pyplot.subplots_adjust(top=0.92)
-    grid.fig.suptitle(f"Synonyms: correlation- & cosine-distance Scores")
-
-    grid.savefig(os.path.join(figures_dir, f"synonym Scores cos-vs-cor.png"), dpi=300)
-    pyplot.close(grid.fig)
 
 
 if __name__ == "__main__":

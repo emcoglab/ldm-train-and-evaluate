@@ -16,7 +16,6 @@ caiwingfield.net
 """
 
 import logging
-import math
 import os
 import sys
 
@@ -26,10 +25,11 @@ import seaborn
 from matplotlib import pyplot
 from pandas import DataFrame
 
-from .visualisation import add_model_category_column
+from ..preferences.preferences import Preferences
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
-from ..preferences.preferences import Preferences
+from ..core.output.constants import BF_THRESHOLD
+from ..core.output.dataframe import add_model_category_column
 
 logger = logging.getLogger(__name__)
 
@@ -55,10 +55,6 @@ DV_NAMES = [
     # "NT_1200ms_Z_Priming",
     # "NT_1200ms_Acc_Priming"
 ]
-
-# The Bayes factor threshold at which we say one model is better than another
-# This value from Jeffreys (1961) Theory of Probability.
-BF_THRESHOLD = math.sqrt(10)
 
 
 figures_base_dir = os.path.join(Preferences.figures_dir, "priming")

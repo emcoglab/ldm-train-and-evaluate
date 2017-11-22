@@ -23,11 +23,12 @@ import pandas
 import seaborn
 from matplotlib import pyplot
 
-from .visualisation import add_model_category_column, add_model_name_column
+from core.output.figures import cosine_vs_correlation_scores
 from ..core.evaluation.association import AssociationResults, SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, \
     MenSimilarity
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType, CorrelationType, magnitude_of_negative
+from ..core.output.dataframe import add_model_category_column, add_model_name_column
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -63,7 +64,16 @@ def main():
         logger.info(f"Making top-5 model tables overall for {distance_type.name}")
         table_top_n_models(results_df, 5, distance_type)
 
-    cos_vs_cor_scores(results_df)
+    for correlation_type in CorrelationType:
+        cos_cor_df = results_df.copy()
+        cos_cor_df["Correlation"] = cos_cor_df["Correlation"].apply(magnitude_of_negative, axis=1)
+        cosine_vs_correlation_scores(
+            results=cos_cor_df[cos_cor_df["Correlation type"] == correlation_type.name],
+            figures_base_dir=figures_base_dir,
+            test_names=TEST_NAMES,
+            test_statistic_column_name="Correlation",
+            name_prefix=f"Similarity judgements ({correlation_type.name})"
+        )
 
 
 def table_top_n_models(regression_results_df: pandas.DataFrame,
@@ -255,67 +265,6 @@ def figures_score_vs_radius(similarity_results):
             figure_name = f"similarity {distance} {correlation_type.name}.png"
             grid.fig.savefig(os.path.join(figures_dir, figure_name), dpi=300)
             pyplot.close(grid.fig)
-
-
-def cos_vs_cor_scores(results_df: pandas.DataFrame):
-
-    figures_dir = os.path.join(figures_base_dir, "effects of distance")
-    seaborn.set(style="white", palette="muted", color_codes=True)
-
-    distribution = []
-    for test_name in TEST_NAMES:
-        for correlation_type in CorrelationType:
-
-            filtered_df: pandas.DataFrame = results_df.copy()
-            filtered_df = filtered_df[filtered_df["Test name"] == test_name]
-            filtered_df = filtered_df[filtered_df["Correlation type"] == correlation_type.name]
-
-            # Use absolute values of correlation
-            filtered_df["Correlation"] = filtered_df["Correlation"].apply(magnitude_of_negative)
-
-            filtered_df["Model name"] = filtered_df.apply(
-                lambda r:
-                f"{r['Model type']} {r['Embedding size']:.0f} r={r['Radius']} {r['Corpus']}"
-                if r['Embedding size'] is not None
-                else f"{r['Model type']} r={r['Radius']} {r['Corpus']}",
-                axis=1
-            )
-
-            for model_name in set(filtered_df["Model name"]):
-                cos_df: pandas.DataFrame = filtered_df.copy()
-                cos_df = cos_df[cos_df["Model name"] == model_name]
-                cos_df = cos_df[cos_df["Distance type"] == "cosine"]
-
-                corr_df: pandas.DataFrame = filtered_df.copy()
-                corr_df = corr_df[corr_df["Model name"] == model_name]
-                corr_df = corr_df[corr_df["Distance type"] == "correlation"]
-
-                # barf
-                score_cos = list(cos_df["Correlation"])[0]
-                score_corr = list(corr_df["Correlation"])[0]
-
-                distribution.append([test_name, correlation_type.name, score_cos, score_corr])
-
-    dist_df = pandas.DataFrame(distribution, columns=["Test name", "Correlation type", "Cosine score", "Correlation score"])
-
-    seaborn.set_context(context="paper", font_scale=1)
-
-    grid = seaborn.FacetGrid(data=dist_df,
-                             row="Test name", col="Correlation type",
-                             size=5, aspect=1,
-                             margin_titles=True,
-                             xlim=(0, 1), ylim=(0, 1))
-
-    grid.map(pyplot.scatter, "Cosine score", "Correlation score")
-
-    for ax in grid.axes.flat:
-        ax.plot((0, 1), (0, 1), c="r", ls="-")
-
-    pyplot.subplots_adjust(top=0.92)
-    grid.fig.suptitle(f"Similarity judgements: Correlation- & cosine-distance scores")
-
-    grid.savefig(os.path.join(figures_dir, f"similarity scores cos-vs-cor.png"), dpi=300)
-    pyplot.close(grid.fig)
 
 
 if __name__ == "__main__":
