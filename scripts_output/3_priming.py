@@ -30,6 +30,7 @@ from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
 from ..core.output.constants import BF_THRESHOLD
 from ..core.output.dataframe import add_model_category_column
+from ..core.output.tables import table_top_n_models
 
 logger = logging.getLogger(__name__)
 
@@ -81,10 +82,25 @@ def main():
 
     # Summary tables
     logger.info("Making top-5 model tables overall")
-    table_top_n_models(regression_results, 5)
+    table_top_n_models(
+        results=regression_results,
+        top_n=5,
+        key_column_values=DV_NAMES,
+        test_statistic_name="B10 approx",
+        name_prefix="Priming",
+        key_column_name="Dependent variable"
+    )
     for distance_type in DistanceType:
         logger.info(f"Making top-5 model tables overall for {distance_type.name}")
-        table_top_n_models(regression_results, 5, distance_type)
+        table_top_n_models(
+            results=regression_results,
+            top_n=5,
+            key_column_values=DV_NAMES,
+            test_statistic_name="B10 approx",
+            name_prefix="Priming",
+            key_column_name="Dependent variable",
+            distance_type=distance_type
+        )
 
     figures_r2_vs_radius(regression_results)
 
@@ -186,32 +202,6 @@ def figures_r2_vs_radius(regression_results: DataFrame):
                 figure_name = f"priming {distance} {task_type} {y_measure}.png"
                 grid.fig.savefig(os.path.join(figures_dir, figure_name), dpi=300)
                 pyplot.close(grid.fig)
-
-
-def table_top_n_models(regression_results_df: DataFrame, top_n: int, distance_type: DistanceType = None):
-
-    summary_dir = Preferences.summary_dir
-
-    results_df = DataFrame()
-
-    for dv_name in DV_NAMES:
-
-        filtered_df: DataFrame = regression_results_df.copy()
-        filtered_df = filtered_df[filtered_df["Dependent variable"] == dv_name]
-
-        if distance_type is not None:
-            filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
-
-        top_models = filtered_df.sort_values("B10 approx", ascending=False).reset_index(drop=True).head(top_n)
-
-        results_df = results_df.append(top_models)
-
-    if distance_type is None:
-        file_name = f"priming_top_{top_n}_models.csv"
-    else:
-        file_name = f"priming_top_{top_n}_models_{distance_type.name}.csv"
-
-    results_df.to_csv(os.path.join(summary_dir, file_name), index=False)
 
 
 def model_performance_bar_graphs(spp_results_df: DataFrame, window_radius: int, distance_type: DistanceType):

@@ -23,13 +23,14 @@ import pandas
 import seaborn
 from matplotlib import pyplot
 
-from core.output.figures import cosine_vs_correlation_scores
+from ..preferences.preferences import Preferences
 from ..core.evaluation.association import AssociationResults, SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, \
     MenSimilarity
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType, CorrelationType, magnitude_of_negative
 from ..core.output.dataframe import add_model_category_column, add_model_name_column
-from ..preferences.preferences import Preferences
+from ..core.output.figures import cosine_vs_correlation_scores
+from ..core.output.tables import table_top_n_models
 
 logger = logging.getLogger(__name__)
 
@@ -59,10 +60,26 @@ def main():
 
     # Summary tables
     logger.info("Making top-5 model tables overall")
-    table_top_n_models(results_df, 5)
-    for distance_type in DistanceType:
-        logger.info(f"Making top-5 model tables overall for {distance_type.name}")
-        table_top_n_models(results_df, 5, distance_type)
+    for correlation_type in CorrelationType:
+        table_top_n_models(
+            results=results_df[results_df["Correlation type"] == correlation_type.name],
+            top_n=5,
+            key_column_values=TEST_NAMES,
+            test_statistic_name="Correlation",
+            name_prefix=f"Similarity judgements ({correlation_type.name})",
+            key_column_name="Test name"
+        )
+        for distance_type in DistanceType:
+            logger.info(f"Making top-5 model tables overall for {distance_type.name}")
+            table_top_n_models(
+                results=results_df[results_df["Correlation type"] == correlation_type.name],
+                top_n=5,
+                key_column_values=TEST_NAMES,
+                test_statistic_name="Correlation",
+                name_prefix=f"Similarity judgements ({correlation_type.name})",
+                key_column_name="Test name",
+                distance_type=distance_type
+            )
 
     for correlation_type in CorrelationType:
         cos_cor_df = results_df.copy()
@@ -74,36 +91,6 @@ def main():
             test_statistic_column_name="Correlation",
             name_prefix=f"Similarity judgements ({correlation_type.name})"
         )
-
-
-def table_top_n_models(regression_results_df: pandas.DataFrame,
-                       top_n: int,
-                       distance_type: DistanceType = None):
-
-    summary_dir = Preferences.summary_dir
-
-    results_df = pandas.DataFrame()
-
-    for correlation_type in CorrelationType:
-        for test_name in TEST_NAMES:
-
-            filtered_df: pandas.DataFrame = regression_results_df.copy()
-            filtered_df = filtered_df[filtered_df["Test name"] == test_name]
-            filtered_df = filtered_df[filtered_df["Correlation type"] == correlation_type.name]
-
-            if distance_type is not None:
-                filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
-
-            top_models = filtered_df.sort_values("Correlation", ascending=True).reset_index(drop=True).head(top_n)
-
-            results_df = results_df.append(top_models)
-
-    if distance_type is None:
-        file_name = f"similarity_top_{top_n}_models.csv"
-    else:
-        file_name = f"similarity_top_{top_n}_models_{distance_type.name}.csv"
-
-    results_df.to_csv(os.path.join(summary_dir, file_name), index=False)
 
 
 def model_performance_bar_graphs(similarity_results: pandas.DataFrame, window_radius: int, distance_type: DistanceType, correlation_type: CorrelationType):
