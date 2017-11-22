@@ -20,7 +20,7 @@ import os
 import sys
 
 from .common_output.figures import cosine_vs_correlation_scores, model_performance_bar_graphs, \
-    score_vs_radius_line_graph, figures_embedding_size
+    score_vs_radius_line_graph, score_vs_embedding_size_line_graph
 from .common_output.dataframe import add_model_category_column, add_model_name_column
 from .common_output.tables import table_top_n_models
 from ..core.evaluation.association import AssociationResults, SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, \
@@ -56,7 +56,7 @@ def main():
         results_df = results_df[results_df["Test name"].isin(test_names)]
 
         # Negative correlations are better correlations, so make them positive for the purposes of display
-        results_df["Correlation"] = results_df["Correlation"].apply(magnitude_of_negative, axis=1)
+        results_df["Correlation"] = results_df["Correlation"].apply(magnitude_of_negative)
 
         for correlation_type in CorrelationType:
             for distance_type in DistanceType:
@@ -71,6 +71,7 @@ def main():
                         name_prefix=f"{artificial_distinction} ({correlation_type.name})",
                         figures_base_dir=figures_base_dir,
                         distance_type=distance_type,
+                        ylim=(0, 1)
                     )
                     model_performance_bar_graphs(
                         results=results_df[results_df["Correlation type"] == correlation_type.name],
@@ -84,27 +85,26 @@ def main():
                     )
 
                 for test_name in test_names:
-
                     logger.info(f"Making embedding size line graphs for {test_name} d={distance_type.name}")
-                    figures_embedding_size(
+                    score_vs_embedding_size_line_graph(
                         results=results_df,
                         key_column_name="Test name",
                         key_column_value=test_name,
-                        test_statistic_name="Score",
-                        name_prefix=artificial_distinction,
+                        test_statistic_name="Correlation",
+                        name_prefix=f"{artificial_distinction} ({correlation_type.name})",
                         figures_base_dir=figures_base_dir,
                         distance_type=distance_type
                     )
 
                 logger.info(f"Making correlation-vs-radius figures")
                 score_vs_radius_line_graph(
-                    results=results_df,
+                    results=results_df[results_df["Correlation type"] == correlation_type.name],
                     key_column_name="Test name",
                     test_statistic_name="Correlation",
-                    name_prefix=artificial_distinction,
+                    name_prefix=f"{artificial_distinction} ({correlation_type.name})",
                     figures_base_dir=figures_base_dir,
                     distance_type=distance_type,
-                    ticks_as_percenages=True
+                    ylim=(0, 1)
                 )
 
             # Summary tables

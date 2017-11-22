@@ -92,7 +92,7 @@ def cosine_vs_correlation_scores(results: DataFrame,
     seaborn.set_context(context="paper", font_scale=1)
 
     grid = seaborn.FacetGrid(data=dist_df,
-                             row="Test name",
+                             col="Test name",
                              col_wrap=2,
                              size=5, aspect=1,
                              margin_titles=True,
@@ -123,6 +123,7 @@ def model_performance_bar_graphs(results: DataFrame,
                                  distance_type: DistanceType,
                                  bayes_factor_decorations: bool=False,
                                  extra_h_line_at: float=None,
+                                 ylim=None,
                                  ticks_as_percentages: bool=False):
 
     figures_dir = os.path.join(figures_base_dir, "model performance bar graphs")
@@ -141,12 +142,13 @@ def model_performance_bar_graphs(results: DataFrame,
     filtered_df["Model name"] = filtered_df.apply(model_name_without_corpus_or_distance_or_radius, axis=1)
 
     seaborn.set_context(context="paper", font_scale=1)
+
     grid = seaborn.FacetGrid(
         filtered_df,
         row=key_column_name, col="Corpus",
         margin_titles=True,
         size=2.5,
-        ylim=(0, 1))
+        ylim=ylim)
 
     grid.set_xticklabels(rotation=-90)
 
@@ -175,13 +177,13 @@ def model_performance_bar_graphs(results: DataFrame,
         # Plot the chance line
         grid.map(pyplot.axhline, y=extra_h_line_at, linestyle="solid", color="xkcd:bright red")
 
+    grid.set_ylabels(test_statistic_name)
+
     if bayes_factor_decorations:
         grid.map(pyplot.axhline, y=1,              linestyle="solid",  color="xkcd:bright red")
         grid.map(pyplot.axhline, y=BF_THRESHOLD,   linestyle="dotted", color="xkcd:bright red")
         grid.map(pyplot.axhline, y=1/BF_THRESHOLD, linestyle="dotted", color="xkcd:bright red")
         grid.set(yscale="log")
-
-    grid.set_ylabels(test_statistic_name)
 
     pyplot.subplots_adjust(top=0.92)
     grid.fig.suptitle(f"Model scores for radius {window_radius} using {distance_type.name} distance")
@@ -200,12 +202,13 @@ def score_vs_radius_line_graph(results: DataFrame,
                                figures_base_dir: str,
                                distance_type: DistanceType,
                                bayes_factor_decorations: bool=False,
+                               ylim=None,
                                ticks_as_percenages: bool=False):
 
     figures_dir = os.path.join(figures_base_dir, "effects of radius")
 
     filtered_df: DataFrame = results.copy()
-    filtered_df = filtered_df[filtered_df["Distance type"] == distance_type]
+    filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
 
     # Don't need corpus, radius or distance, as they're fixed for each plot
     filtered_df["Model name"] = filtered_df.apply(model_name_without_corpus_or_distance_or_radius, axis=1)
@@ -275,7 +278,7 @@ def score_vs_radius_line_graph(results: DataFrame,
         margin_titles=True,
         legend_out=True,
         size=3.5,
-        ylim=(0, 1))
+        ylim=ylim)
     grid.map(pyplot.plot, "Window radius", test_statistic_name)
 
     # Format yticks as percentages
@@ -283,27 +286,27 @@ def score_vs_radius_line_graph(results: DataFrame,
         yticks_as_percentages(grid)
 
     if bayes_factor_decorations:
-        grid.map(pyplot.axhline, y=1,              linestyle="solid",  color="xkcd:bright red")
-        grid.map(pyplot.axhline, y=BF_THRESHOLD,   linestyle="dotted", color="xkcd:bright red")
-        grid.map(pyplot.axhline, y=1/BF_THRESHOLD, linestyle="dotted", color="xkcd:bright red")
+        grid.map(pyplot.axhline, y=1,              linestyle="solid",  marker="", color="xkcd:bright red")
+        grid.map(pyplot.axhline, y=BF_THRESHOLD,   linestyle="dotted", marker="", color="xkcd:bright red")
+        grid.map(pyplot.axhline, y=1/BF_THRESHOLD, linestyle="dotted", marker="", color="xkcd:bright red")
         grid.set(yscale="log")
 
     grid.add_legend(bbox_to_anchor=(1.15, 0.5))
 
-    figure_name = f"{name_prefix} effect of radius {distance_type}.png"
+    figure_name = f"{name_prefix} effect of radius {distance_type.name} ({test_statistic_name}).png"
     grid.savefig(os.path.join(figures_dir, figure_name), dpi=300)
     pyplot.close(grid.fig)
 
 
-def figures_embedding_size(results: DataFrame,
-                           name_prefix: str,
-                           key_column_name: str,
-                           key_column_value: str,
-                           test_statistic_name: str,
-                           distance_type: DistanceType,
-                           figures_base_dir: str,
-                           additional_h_line_at: float=None,
-                           ticks_as_percentages: bool=False):
+def score_vs_embedding_size_line_graph(results: DataFrame,
+                                       name_prefix: str,
+                                       key_column_name: str,
+                                       key_column_value: str,
+                                       test_statistic_name: str,
+                                       distance_type: DistanceType,
+                                       figures_base_dir: str,
+                                       additional_h_line_at: float=None,
+                                       ticks_as_percentages: bool=False):
 
         figures_dir = os.path.join(figures_base_dir, "effects of embedding size")
 
@@ -322,6 +325,7 @@ def figures_embedding_size(results: DataFrame,
         grid = seaborn.FacetGrid(
             filtered_df,
             row="Window radius", col="Corpus",
+            hue="Model type",
             margin_titles=True,
             size=2,
             ylim=(0, 1),
@@ -444,9 +448,12 @@ def compare_param_values_bf(test_results: DataFrame,
             # If there are multiple best models, we look at those which are indistinguishable from the best model
             elif n_remaining_models > 1:
 
+                # Not all datasets have Bayesian information criterion values
+                bic_available = "Model BIC" in model_variations.columns.values
+
                 # BF for best model
                 best_bayes_factor = model_variations[bf_statistic_name][0]
-                best_bic = model_variations["Model BIC"][0]
+                best_bic = model_variations["Model BIC"][0] if bic_available else None
                 best_param_value = model_variations[parameter_name][0]
 
                 # If the bayes factor is sufficiently large, it may snap to numpy.inf.
@@ -462,7 +469,7 @@ def compare_param_values_bf(test_results: DataFrame,
 
                 # If it is, we can fall back to comparing BICs (assuming they are not also numpy.inf)
                 # because e and log are monotonic increasing on their domains
-                else:
+                elif bic_available:
                     log_bf_best_vs_competitor = (model_variations["Model BIC"] - best_bic) / 2
                     joint_best_models = model_variations[
                         # The actual best model
@@ -472,8 +479,15 @@ def compare_param_values_bf(test_results: DataFrame,
                         (log_bf_best_vs_competitor < log(BF_THRESHOLD))
                     ]
 
-                if isinf(best_bic):
-                    logger.warning("Encountered an infinite BIC")
+                    if isinf(best_bic):
+                        logger.warning("Encountered an infinite BIC")
+
+                else:
+                    logger.warning("Encountered an infinite Bayes factor and no BIC was available for fallback")
+                    # We can only pick the ones which literally share a BF value with the best model
+                    joint_best_models = model_variations[
+                        model_variations[parameter_name] == best_param_value
+                    ]
 
                 # Record details of joint-best models
                 for parameter_value in joint_best_models[parameter_name]:
@@ -505,7 +519,7 @@ def compare_param_values_bf(test_results: DataFrame,
 
     # Heatmap for all DVs
 
-    heatmap_df = all_win_fractions.pivot(index="Test name", columns=parameter_name, values="Fraction of times (joint-)best")
+    heatmap_df = all_win_fractions.pivot(index=key_column_name, columns=parameter_name, values="Fraction of times (joint-)best")
     plot = seaborn.heatmap(heatmap_df, square=True, cmap=seaborn.light_palette("green", as_cmap=True))
     pyplot.xticks(rotation=90)
     pyplot.yticks(rotation=0)

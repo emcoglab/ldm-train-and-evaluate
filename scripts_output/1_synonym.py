@@ -21,7 +21,7 @@ import sys
 
 from .common_output.dataframe import add_model_category_column, add_model_name_column
 from .common_output.figures import cosine_vs_correlation_scores, model_performance_bar_graphs, \
-    score_vs_radius_line_graph, figures_embedding_size
+    score_vs_radius_line_graph, score_vs_embedding_size_line_graph
 from .common_output.tables import table_top_n_models
 from ..core.evaluation.synonym import ToeflTest, LbmMcqTest, EslTest, SynonymResults
 from ..core.utils.logging import log_message, date_format
@@ -42,8 +42,8 @@ def main():
     add_model_name_column(results_df)
 
     for distance_type in DistanceType:
-        for radius in Preferences.window_radii:
 
+        for radius in Preferences.window_radii:
             logger.info(f"Making model bar graph figures for r={radius} and d={distance_type.name}")
             model_performance_bar_graphs(
                 results=results_df,
@@ -54,7 +54,8 @@ def main():
                 figures_base_dir=figures_base_dir,
                 distance_type=distance_type,
                 extra_h_line_at=0.25,
-                ticks_as_percentages=True
+                ticks_as_percentages=True,
+                ylim=(0, 1)
             )
             model_performance_bar_graphs(
                 results=results_df,
@@ -71,7 +72,7 @@ def main():
         for test_name in TEST_NAMES:
 
             logger.info(f"Making embedding size line graphs for {test_name} d={distance_type.name}")
-            figures_embedding_size(
+            score_vs_embedding_size_line_graph(
                 results=results_df,
                 key_column_name="Test name",
                 key_column_value=test_name,
@@ -92,7 +93,8 @@ def main():
             name_prefix="Synonym",
             figures_base_dir=figures_base_dir,
             distance_type=distance_type,
-            ticks_as_percenages=True
+            ticks_as_percenages=True,
+            ylim=(0, 1)
         )
 
     # Summary tables

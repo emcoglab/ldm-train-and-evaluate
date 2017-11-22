@@ -68,7 +68,6 @@ def main():
     # Add rsquared increase column
     regression_results["R-squared increase"] = regression_results["Model R-squared"] - regression_results["Baseline R-squared"]
 
-    logger.info(f"Making model performance bargraphs")
     # Get info about the dv, used for filtering
     graphs_df: DataFrame = regression_results.copy()
     graphs_df["dv_test_type"] = graphs_df.apply(lambda r: "LDT" if r["Dependent variable"].startswith("LDT") else "NT", axis=1)
@@ -76,18 +75,19 @@ def main():
     graphs_df["dv_soa"] = graphs_df.apply(lambda r: 200 if "_200ms" in r["Dependent variable"]       else 1200, axis=1)
     graphs_df["dv_priming"] = graphs_df.apply(lambda r: True if "Priming" in r["Dependent variable"]      else False, axis=1)
     for distance_type in DistanceType:
+        # Group DVs
         for soa in [200, 1200]:
             for test_type in ["LDT", "NT"]:
+                # Filter on this subset of DVs
+                filtered_df: DataFrame = graphs_df.copy()
+                filtered_df = filtered_df[
+                    (filtered_df["dv_test_type"] == test_type)
+                    & (filtered_df["dv_soa"] == soa)
+                ]
+
+                # Model performance bar graphs
                 for radius in Preferences.window_radii:
-
-                    # Filter on this sub-set of DVs
-                    filtered_df = graphs_df.copy()[
-                        (graphs_df["dv_test_type"] == test_type)
-                        & (graphs_df["dv_soa"] == soa)
-                    ]
-
-                    # Model performance bar graphs
-
+                    logger.info(f"Making model performance bar graphs for {test_type} {soa}ms r={radius}")
                     model_performance_bar_graphs(
                         results=filtered_df,
                         window_radius=radius,
@@ -96,7 +96,8 @@ def main():
                         name_prefix=f"Priming ({test_type} {soa}ms)",
                         bayes_factor_decorations=False,
                         distance_type=distance_type,
-                        figures_base_dir=figures_base_dir
+                        figures_base_dir=figures_base_dir,
+                        ylim=(0, None)
                     )
                     model_performance_bar_graphs(
                         results=filtered_df,
@@ -110,7 +111,7 @@ def main():
                     )
 
                 # Score vs radius line graphs
-
+                logger.info(f"Making score-v-radius graphs for {test_type} {soa}ms")
                 score_vs_radius_line_graph(
                     results=filtered_df,
                     key_column_name="Dependent variable",
@@ -118,7 +119,8 @@ def main():
                     name_prefix=f"Priming ({test_type} {soa}ms)",
                     bayes_factor_decorations=False,
                     distance_type=distance_type,
-                    figures_base_dir=figures_base_dir
+                    figures_base_dir=figures_base_dir,
+                    ylim=(0, None)
                 )
                 score_vs_radius_line_graph(
                     results=filtered_df,
@@ -133,7 +135,7 @@ def main():
     for dv_name in DV_NAMES:
         for radius in Preferences.window_radii:
             for corpus_name in ["BNC", "BBC", "UKWAC"]:
-                logger.info(f"Making heatmaps dv={dv_name}, r={radius}, c={corpus_name}")
+                logger.info(f"Making model comparison matrix dv={dv_name}, r={radius}, c={corpus_name}")
                 model_comparison_matrix(regression_results, dv_name, radius, corpus_name)
 
     # Summary tables
