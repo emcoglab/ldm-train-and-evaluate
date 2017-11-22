@@ -41,7 +41,7 @@ def main():
     add_model_name_column(results_df)
 
     compare_param_values_bf(
-        parameter_name="Radius",
+        parameter_name="Window radius",
         test_results=results_df,
         name_prefix="Synonym",
         parameter_values=Preferences.window_radii,

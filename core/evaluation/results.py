@@ -40,7 +40,7 @@ class EvaluationResults(metaclass=ABCMeta):
        "Test name",
        "Model type",
        "Embedding size",
-       "Radius",
+       "Window radius",
        "Distance type",
        "Corpus"
     ]
@@ -79,7 +79,7 @@ class EvaluationResults(metaclass=ABCMeta):
         # TODO: this is also gross
         result["Model type"] = model.model_type.name + (append_to_model_name if append_to_model_name is not None else "")
         result["Embedding size"] = model.embedding_size if isinstance(model, PredictVectorModel) else None
-        result["Radius"] = model.window_radius
+        result["Window radius"] = model.window_radius
         result["Distance type"] = distance_type.name
         result["Corpus"] = model.corpus_meta.name
 
@@ -108,7 +108,7 @@ class EvaluationResults(metaclass=ABCMeta):
                    # TODO: this is gross
                    (self.data["Model type"] == (model.model_type.name + (f" ({truncate_vectors_at_length})" if truncate_vectors_at_length is not None else ""))) &
                    ((self.data["Embedding size"] == model.embedding_size) if isinstance(model, PredictVectorModel) else pandas.isnull(self.data["Embedding size"])) &
-                   (self.data["Radius"] == model.window_radius) &
+                   (self.data["Window radius"] == model.window_radius) &
                    (self.data["Distance type"] == distance_type.name) &
                    (self.data["Corpus"] == model.corpus_meta.name)
                ].shape[0] > 0

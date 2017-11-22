@@ -276,7 +276,7 @@ def score_vs_radius_line_graph(results: DataFrame,
         legend_out=True,
         size=3.5,
         ylim=(0, 1))
-    grid.map(pyplot.plot, "Radius", test_statistic_name)
+    grid.map(pyplot.plot, "Window radius", test_statistic_name)
 
     # Format yticks as percentages
     if ticks_as_percenages:
@@ -314,14 +314,14 @@ def figures_embedding_size(results: DataFrame,
         # This graph doesn't make sense for count models
         filtered_df = predict_models_only(filtered_df)
 
-        filtered_df = filtered_df.sort_values(by=["Corpus", "Model type", "Embedding size", "Radius"])
+        filtered_df = filtered_df.sort_values(by=["Corpus", "Model type", "Embedding size", "Window radius"])
         filtered_df = filtered_df.reset_index(drop=True)
 
         seaborn.set_style("ticks")
         seaborn.set_context(context="paper", font_scale=1)
         grid = seaborn.FacetGrid(
             filtered_df,
-            row="Radius", col="Corpus",
+            row="Window radius", col="Corpus",
             margin_titles=True,
             size=2,
             ylim=(0, 1),

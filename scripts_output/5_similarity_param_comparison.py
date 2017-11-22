@@ -34,9 +34,9 @@ logger = logging.getLogger(__name__)
 
 def model_name_without_distance(r):
     if r['Model category'] == "Predict":
-        return f"{r['Model type']} {r['Embedding size']:.0f} r={r['Radius']} {r['Corpus']} ({r['Correlation type']})"
+        return f"{r['Model type']} {r['Embedding size']:.0f} r={r['Window radius']} {r['Corpus']} ({r['Correlation type']})"
     else:
-        return f"{r['Model type']} r={r['Radius']} {r['Corpus']} ({r['Correlation type']})"
+        return f"{r['Model type']} r={r['Window radius']} {r['Corpus']} ({r['Correlation type']})"
 
 
 def model_name_without_radius(r):
@@ -47,7 +47,7 @@ def model_name_without_radius(r):
 
 
 def model_name_without_embedding_size(r):
-    return f"{r['Model type']} r={r['Radius']} {r['Distance type']} {r['Corpus']} ({r['Correlation type']})"
+    return f"{r['Model type']} r={r['Window radius']} {r['Distance type']} {r['Corpus']} ({r['Correlation type']})"
 
 
 def predict_models_only(df: DataFrame) -> DataFrame:
@@ -74,7 +74,7 @@ def main():
         association_df["Model category"] = association_df.apply(lambda r: "Count" if pandas.isnull(r["Embedding size"]) else "Predict", axis=1)
 
         compare_param_values_bf(
-            parameter_name="Radius",
+            parameter_name="Window radius",
             test_results=association_df,
             bf_statistic_name="B10 approx",
             figures_base_dir=figures_base_dir,
