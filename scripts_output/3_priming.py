@@ -25,7 +25,7 @@ import seaborn
 from matplotlib import pyplot
 from pandas import DataFrame
 
-from .common_output.figures import model_performance_bar_graphs
+from .common_output.figures import model_performance_bar_graphs, score_vs_radius_line_graph
 from .common_output.dataframe import add_model_category_column
 from .common_output.tables import table_top_n_models
 from ..core.utils.logging import log_message, date_format
@@ -70,22 +70,26 @@ def main():
 
     logger.info(f"Making model performance bargraphs")
     # Get info about the dv, used for filtering
-    bar_graphs_df: DataFrame = regression_results.copy()
-    bar_graphs_df["dv_test_type"] = bar_graphs_df.apply(lambda r: "LDT" if r["Dependent variable"].startswith("LDT") else "NT", axis=1)
-    bar_graphs_df["dv_measure"] = bar_graphs_df.apply(lambda r: "Acc" if "Acc" in r["Dependent variable"]          else "Z-RT", axis=1)
-    bar_graphs_df["dv_soa"] = bar_graphs_df.apply(lambda r: 200 if "_200ms" in r["Dependent variable"]       else 1200, axis=1)
-    bar_graphs_df["dv_priming"] = bar_graphs_df.apply(lambda r: True if "Priming" in r["Dependent variable"]      else False, axis=1)
-    for radius in Preferences.window_radii:
-        for distance_type in DistanceType:
-            for soa in [200, 1200]:
-                for test_type in ["LDT", "NT"]:
+    graphs_df: DataFrame = regression_results.copy()
+    graphs_df["dv_test_type"] = graphs_df.apply(lambda r: "LDT" if r["Dependent variable"].startswith("LDT") else "NT", axis=1)
+    graphs_df["dv_measure"] = graphs_df.apply(lambda r: "Acc" if "Acc" in r["Dependent variable"]          else "Z-RT", axis=1)
+    graphs_df["dv_soa"] = graphs_df.apply(lambda r: 200 if "_200ms" in r["Dependent variable"]       else 1200, axis=1)
+    graphs_df["dv_priming"] = graphs_df.apply(lambda r: True if "Priming" in r["Dependent variable"]      else False, axis=1)
+    for distance_type in DistanceType:
+        for soa in [200, 1200]:
+            for test_type in ["LDT", "NT"]:
+                for radius in Preferences.window_radii:
+
+                    # Filter on this sub-set of DVs
+                    filtered_df = graphs_df.copy()[
+                        (graphs_df["dv_test_type"] == test_type)
+                        & (graphs_df["dv_soa"] == soa)
+                    ]
+
+                    # Model performance bar graphs
 
                     model_performance_bar_graphs(
-                        # Filter on this sub-set of DVs
-                        results=bar_graphs_df[
-                            (bar_graphs_df["dv_test_type"] == test_type)
-                            & (bar_graphs_df["dv_soa"] == soa)
-                        ],
+                        results=filtered_df,
                         window_radius=radius,
                         key_column_name="Dependent variable",
                         test_statistic_name="R-squared increase",
@@ -94,13 +98,8 @@ def main():
                         distance_type=distance_type,
                         figures_base_dir=figures_base_dir
                     )
-
                     model_performance_bar_graphs(
-                        # Filter on this sub-set of DVs
-                        results=bar_graphs_df[
-                            (bar_graphs_df["dv_test_type"] == test_type)
-                            & (bar_graphs_df["dv_soa"] == soa)
-                        ],
+                        results=filtered_df,
                         window_radius=radius,
                         key_column_name="Dependent variable",
                         test_statistic_name="B10 approx",
@@ -109,6 +108,27 @@ def main():
                         distance_type=distance_type,
                         figures_base_dir=figures_base_dir
                     )
+
+                # Score vs radius line graphs
+
+                score_vs_radius_line_graph(
+                    results=filtered_df,
+                    key_column_name="Dependent variable",
+                    test_statistic_name="R-squared increase",
+                    name_prefix=f"Priming ({test_type} {soa}ms)",
+                    bayes_factor_decorations=False,
+                    distance_type=distance_type,
+                    figures_base_dir=figures_base_dir
+                )
+                score_vs_radius_line_graph(
+                    results=filtered_df,
+                    key_column_name="Dependent variable",
+                    test_statistic_name="B10 approx",
+                    name_prefix=f"Priming ({test_type} {soa}ms)",
+                    bayes_factor_decorations=True,
+                    distance_type=distance_type,
+                    figures_base_dir=figures_base_dir
+                )
 
     for dv_name in DV_NAMES:
         for radius in Preferences.window_radii:
@@ -137,107 +157,6 @@ def main():
             key_column_name="Dependent variable",
             distance_type=distance_type
         )
-
-    figures_r2_vs_radius(regression_results)
-
-
-def figures_r2_vs_radius(regression_results: DataFrame):
-
-    figures_dir = os.path.join(figures_base_dir, "effects of radius")
-
-    for distance in [d.name for d in DistanceType]:
-        for task_type in ["LDT", "NT"]:
-            for y_measure in ["R-squared increase", "B10 approx"]:
-
-                dvs_this_task = [dv for dv in DV_NAMES if dv.startswith(task_type)]
-
-                filtered_df: pandas.DataFrame = regression_results.copy()
-                filtered_df = filtered_df[filtered_df["Distance type"] == distance]
-
-                # Filter on task type
-                filtered_df = filtered_df[filtered_df["Dependent variable"].isin(dvs_this_task)]
-
-                # Don't need corpus, radius or distance, as they're fixed for each plot
-                filtered_df["Model name"] = filtered_df.apply(
-                    lambda r:
-                    f"{r['Model type']} {r['Embedding size']:.0f}"
-                    if r["Model category"] == "Predict"
-                    else f"{r['Model type']}",
-                    axis=1
-                )
-
-                filtered_df = filtered_df.sort_values(by=["Model name", "Window radius"])
-                filtered_df = filtered_df.reset_index(drop=True)
-
-                seaborn.set_style("ticks")
-                seaborn.set_context(context="paper", font_scale=1)
-                grid = seaborn.FacetGrid(
-                    data=filtered_df,
-                    row="Dependent variable", col="Corpus", hue="Model name",
-                    hue_order=[
-                        "log n-gram",
-                        "Conditional probability",
-                        "Probability ratio",
-                        "PPMI",
-                        "Skip-gram 50",
-                        "Skip-gram 100",
-                        "Skip-gram 200",
-                        "Skip-gram 300",
-                        "Skip-gram 500",
-                        "CBOW 50",
-                        "CBOW 100",
-                        "CBOW 200",
-                        "CBOW 300",
-                        "CBOW 500"
-                    ],
-                    palette=[
-                        "orange",
-                        "turquoise",
-                        "pink",
-                        "red",
-                        "#0000ff",
-                        "#2a2aff",
-                        "#5454ff",
-                        "#7e7eff",
-                        "#a8a8ff",
-                        "#00ff00",
-                        "#2aff2a",
-                        "#54ff54",
-                        "#7eff7e",
-                        "#a8ffa8",
-                    ],
-                    hue_kws=dict(
-                        marker=[
-                            "o",
-                            "o",
-                            "o",
-                            "o",
-                            "^",
-                            "^",
-                            "^",
-                            "^",
-                            "^",
-                            "^",
-                            "^",
-                            "^",
-                            "^",
-                            "^",
-                        ]
-                    ),
-                    margin_titles=True,
-                    legend_out=True,
-                    size=3.5)
-                grid.map(pyplot.plot, "Window radius", y_measure)
-
-                if y_measure is "B10 approx":
-                    grid.set(yscale="log")
-
-                # grid.set_titles(row_template="{row_name}", col_template="{col_name}")
-                grid.add_legend(bbox_to_anchor=(1, 0.5))
-
-                figure_name = f"priming {distance} {task_type} {y_measure}.png"
-                grid.fig.savefig(os.path.join(figures_dir, figure_name), dpi=300)
-                pyplot.close(grid.fig)
 
 
 def model_comparison_matrix(spp_results_df: DataFrame, dv_name: str, radius: int, corpus_name: str):

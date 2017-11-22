@@ -46,6 +46,8 @@ def yticks_as_percentages(grid):
     grid.set_yticklabels(['{:3.0f}%'.format(float(label.get_text()) * 100) for label in ytick_labels])
 
 
+# Specific output graphs
+
 def cosine_vs_correlation_scores(results: DataFrame,
                                  figures_base_dir: str,
                                  test_names: List[str],
@@ -182,4 +184,106 @@ def model_performance_bar_graphs(results: DataFrame,
 
     grid.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 
+    pyplot.close(grid.fig)
+
+
+def score_vs_radius_line_graph(results: DataFrame,
+                               key_column_name: str,
+                               test_statistic_name: str,
+                               name_prefix: str,
+                               figures_base_dir: str,
+                               distance_type: DistanceType,
+                               bayes_factor_decorations: bool=False,
+                               ticks_as_percenages: bool=False):
+
+    figures_dir = os.path.join(figures_base_dir, "effects of radius")
+
+    filtered_df: DataFrame = results.copy()
+    filtered_df = filtered_df[filtered_df["Distance type"] == distance_type]
+
+    # Don't need corpus, radius or distance, as they're fixed for each plot
+    filtered_df["Model name"] = filtered_df.apply(model_name_without_corpus_or_distance_or_radius, axis=1)
+
+    # We don't want this one
+    # This only applies for synonym tests, but it doesn't cause a problem if it's not present
+    filtered_df = filtered_df[filtered_df["Model name"] != "PPMI (10000)"]
+
+    filtered_df = filtered_df.sort_values(by=["Model name", "Window radius"], ascending=True)
+    filtered_df = filtered_df.reset_index(drop=True)
+
+    seaborn.set_style("ticks")
+    seaborn.set_context(context="paper", font_scale=1)
+    grid = seaborn.FacetGrid(
+        data=filtered_df,
+        row=key_column_name, col="Corpus", hue="Model name",
+        hue_order=[
+            "log n-gram",
+            "Conditional probability",
+            "Probability ratio",
+            "PPMI",
+            "Skip-gram 50",
+            "Skip-gram 100",
+            "Skip-gram 200",
+            "Skip-gram 300",
+            "Skip-gram 500",
+            "CBOW 50",
+            "CBOW 100",
+            "CBOW 200",
+            "CBOW 300",
+            "CBOW 500"
+        ],
+        palette=[
+            "orange",
+            "turquoise",
+            "pink",
+            "red",
+            "#0000ff",
+            "#2a2aff",
+            "#5454ff",
+            "#7e7eff",
+            "#a8a8ff",
+            "#00ff00",
+            "#2aff2a",
+            "#54ff54",
+            "#7eff7e",
+            "#a8ffa8",
+        ],
+        hue_kws=dict(
+            marker=[
+                "o",
+                "o",
+                "o",
+                "o",
+                "^",
+                "^",
+                "^",
+                "^",
+                "^",
+                "^",
+                "^",
+                "^",
+                "^",
+                "^",
+            ]
+        ),
+        margin_titles=True,
+        legend_out=True,
+        size=3.5,
+        ylim=(0, 1))
+    grid.map(pyplot.plot, "Radius", test_statistic_name)
+
+    # Format yticks as percentages
+    if ticks_as_percenages:
+        yticks_as_percentages(grid)
+
+    if bayes_factor_decorations:
+        grid.map(pyplot.axhline, y=1,              linestyle="solid",  color="xkcd:bright red")
+        grid.map(pyplot.axhline, y=BF_THRESHOLD,   linestyle="dotted", color="xkcd:bright red")
+        grid.map(pyplot.axhline, y=1/BF_THRESHOLD, linestyle="dotted", color="xkcd:bright red")
+        grid.set(yscale="log")
+
+    grid.add_legend(bbox_to_anchor=(1.15, 0.5))
+
+    figure_name = f"{name_prefix} effect of radius {distance_type}.png"
+    grid.savefig(os.path.join(figures_dir, figure_name), dpi=300)
     pyplot.close(grid.fig)
