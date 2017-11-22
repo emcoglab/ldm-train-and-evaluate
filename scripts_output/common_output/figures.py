@@ -25,6 +25,7 @@ from pandas import DataFrame
 from .constants import BF_THRESHOLD
 from .dataframe import model_name_without_distance, model_name_without_corpus_or_distance_or_radius
 from ...core.utils.maths import DistanceType
+from ...preferences.preferences import Preferences
 
 
 # Utility functions
@@ -287,3 +288,63 @@ def score_vs_radius_line_graph(results: DataFrame,
     figure_name = f"{name_prefix} effect of radius {distance_type}.png"
     grid.savefig(os.path.join(figures_dir, figure_name), dpi=300)
     pyplot.close(grid.fig)
+
+
+def figures_embedding_size(results: DataFrame,
+                           name_prefix: str,
+                           key_column_name: str,
+                           key_column_value: str,
+                           test_statistic_name: str,
+                           distance_type: DistanceType,
+                           figures_base_dir: str,
+                           additional_h_line_at: float=None,
+                           ticks_as_percentages: bool=False):
+
+        figures_dir = os.path.join(figures_base_dir, "effects of embedding size")
+
+        filtered_df: DataFrame = results.copy()
+        filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
+        filtered_df = filtered_df[filtered_df[key_column_name] == key_column_value]
+
+        # This graph doesn't make sense for count models
+        filtered_df = filtered_df[filtered_df["Model category"] == "Predict"]
+
+        filtered_df = filtered_df.sort_values(by=["Corpus", "Model type", "Embedding size", "Radius"])
+        filtered_df = filtered_df.reset_index(drop=True)
+
+        seaborn.set_style("ticks")
+        seaborn.set_context(context="paper", font_scale=1)
+        grid = seaborn.FacetGrid(
+            filtered_df,
+            row="Radius", col="Corpus",
+            margin_titles=True,
+            size=2,
+            ylim=(0, 1),
+            legend_out=True
+        )
+
+        grid.map(pyplot.plot, "Embedding size", test_statistic_name, marker="o")
+
+        if additional_h_line_at is not None:
+            grid.map(pyplot.axhline, y=additional_h_line_at, ls=":", c=".5", label="")
+
+        grid.set(xticks=Preferences.predict_embedding_sizes)
+
+        if ticks_as_percentages:
+            yticks_as_percentages(grid)
+
+        grid.set_xlabels("Embedding size")
+        grid.set_ylabels(test_statistic_name)
+
+        grid.add_legend(title="Model", bbox_to_anchor=(1, 1))
+
+        # Title
+        title = f"{key_column_value} ({distance_type.name})"
+        pyplot.subplots_adjust(top=0.92)
+        grid.fig.suptitle(title)
+
+        figure_name = f"{name_prefix} Embedding size {key_column_value} {distance_type.name}.png"
+
+        grid.savefig(os.path.join(figures_dir, figure_name), dpi=300)
+
+        pyplot.close(grid.fig)

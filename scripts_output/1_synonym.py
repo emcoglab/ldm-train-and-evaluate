@@ -19,13 +19,10 @@ import logging
 import os
 import sys
 
-import seaborn
-from matplotlib import pyplot
-from pandas import DataFrame
-
 from .common_output.dataframe import add_model_category_column, add_model_name_column
+from .common_output.figures import cosine_vs_correlation_scores, model_performance_bar_graphs, \
+    score_vs_radius_line_graph, figures_embedding_size
 from .common_output.tables import table_top_n_models
-from .common_output.figures import cosine_vs_correlation_scores, model_performance_bar_graphs, score_vs_radius_line_graph
 from ..core.evaluation.synonym import ToeflTest, LbmMcqTest, EslTest, SynonymResults
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
@@ -43,10 +40,6 @@ def main():
 
     add_model_category_column(results_df)
     add_model_name_column(results_df)
-
-    for test_name in TEST_NAMES:
-        logger.info(f"Making embedding size figures for {test_name}")
-        figures_embedding_size(results_df, test_name)
 
     for distance_type in DistanceType:
         for radius in Preferences.window_radii:
@@ -75,7 +68,23 @@ def main():
                 ticks_as_percentages=False
             )
 
-        logger.info(f"Making score-vs-radius figures")
+        for test_name in TEST_NAMES:
+
+            logger.info(f"Making embedding size line graphs for {test_name} d={distance_type.name}")
+            figures_embedding_size(
+                results=results_df,
+                key_column_name="Test name",
+                key_column_value=test_name,
+                test_statistic_name="Score",
+                name_prefix="Synonym",
+                figures_base_dir=figures_base_dir,
+                distance_type=distance_type,
+                ticks_as_percentages=True,
+                # Chance line
+                additional_h_line_at=0.25
+            )
+
+        logger.info(f"Making score-vs-radius graphs for d={distance_type.name}")
         score_vs_radius_line_graph(
             results=results_df,
             key_column_name="Test name",
@@ -109,69 +118,6 @@ def main():
         )
 
     cosine_vs_correlation_scores(results_df, figures_base_dir, TEST_NAMES, "Score", "Synonym", ticks_as_percentages=True)
-
-
-def figures_embedding_size(regression_results_df: DataFrame, test_name: str):
-
-    figures_dir = os.path.join(figures_base_dir, "effects of embedding size")
-
-    for distance in [d.name for d in DistanceType]:
-        filtered_df: DataFrame = regression_results_df.copy()
-        filtered_df = filtered_df[filtered_df["Distance type"] == distance]
-        filtered_df = filtered_df[filtered_df["Test name"] == test_name]
-
-        # Remove count models by dropping rows with nan in embedding_size column
-        filtered_df = filtered_df.dropna()
-
-        filtered_df = filtered_df[[
-            "Corpus",
-            "Model type",
-            "Embedding size",
-            "Radius",
-            "Score"]]
-
-        filtered_df = filtered_df.sort_values(by=["Corpus", "Model type", "Embedding size", "Radius"])
-        filtered_df = filtered_df.reset_index(drop=True)
-
-        seaborn.set_style("ticks")
-        seaborn.set_context(context="paper", font_scale=1)
-        grid = seaborn.FacetGrid(
-            filtered_df,
-            row="Radius", col="Corpus",
-            margin_titles=True,
-            size=2,
-            ylim=(0, 1),
-            legend_out=True
-        )
-
-        grid.map(pyplot.plot, "Embedding size", "Score", marker="o")
-
-        # Chance line
-        grid.map(pyplot.axhline, y=0.25, ls=":", c=".5", label="")
-
-        grid.set(
-            xticks=Preferences.predict_embedding_sizes,
-        )
-
-        ytick_labels = grid.axes[0][0].get_yticklabels()
-        grid.set_yticklabels(['{:3.0f}%'.format(float(label.get_text()) * 100) for label in ytick_labels])
-
-        grid.set_xlabels("Embedding size")
-        grid.set_ylabels("Score")
-
-        grid.add_legend(title="Model", bbox_to_anchor=(1, 1))
-        # pyplot.legend(loc="lower center")
-
-        # Title
-        title = f"{test_name} ({distance})"
-        pyplot.subplots_adjust(top=0.92)
-        grid.fig.suptitle(title)
-
-        figure_name = f"synonym Embedding size {test_name} {distance}.png"
-
-        grid.savefig(os.path.join(figures_dir, figure_name), dpi=300)
-
-        pyplot.close(grid.fig)
 
 
 if __name__ == "__main__":

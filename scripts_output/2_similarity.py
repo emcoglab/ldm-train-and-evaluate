@@ -19,7 +19,8 @@ import logging
 import os
 import sys
 
-from .common_output.figures import cosine_vs_correlation_scores, model_performance_bar_graphs, score_vs_radius_line_graph
+from .common_output.figures import cosine_vs_correlation_scores, model_performance_bar_graphs, \
+    score_vs_radius_line_graph, figures_embedding_size
 from .common_output.dataframe import add_model_category_column, add_model_name_column
 from .common_output.tables import table_top_n_models
 from ..core.evaluation.association import AssociationResults, SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, \
@@ -80,6 +81,19 @@ def main():
                         figures_base_dir=figures_base_dir,
                         bayes_factor_decorations=True,
                         distance_type=distance_type,
+                    )
+
+                for test_name in test_names:
+
+                    logger.info(f"Making embedding size line graphs for {test_name} d={distance_type.name}")
+                    figures_embedding_size(
+                        results=results_df,
+                        key_column_name="Test name",
+                        key_column_value=test_name,
+                        test_statistic_name="Score",
+                        name_prefix=artificial_distinction,
+                        figures_base_dir=figures_base_dir,
+                        distance_type=distance_type
                     )
 
                 logger.info(f"Making correlation-vs-radius figures")
