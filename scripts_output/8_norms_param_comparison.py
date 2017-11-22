@@ -16,7 +16,6 @@ caiwingfield.net
 """
 
 import logging
-import math
 import os
 import sys
 from collections import defaultdict
@@ -27,6 +26,7 @@ import seaborn
 from matplotlib import pyplot
 from pandas import DataFrame
 
+from .common_output.constants import BF_THRESHOLD
 from ..core.evaluation.association import AssociationResults, ColourEmotionAssociation, ThematicRelatedness
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
@@ -37,10 +37,6 @@ logger = logging.getLogger(__name__)
 TEST_NAMES = [ColourEmotionAssociation().name, ThematicRelatedness().name, ThematicRelatedness(only_use_response=1).name]
 
 figures_base_dir = os.path.join(Preferences.figures_dir, "norms")
-
-# The Bayes factor threshold at which we say one model is better than another
-# This value from Jeffreys (1961) Theory of Probability.
-BF_THRESHOLD = math.sqrt(10)
 
 
 def model_name_without_distance(r):

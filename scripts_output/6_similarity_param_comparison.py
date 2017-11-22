@@ -15,23 +15,23 @@ caiwingfield.net
 ---------------------------
 """
 
+import logging
 import os
 import sys
-import logging
 from collections import defaultdict
 
 import numpy
+import pandas
 import seaborn
 from matplotlib import pyplot
-import pandas
 from pandas import DataFrame
 
-from ..preferences.preferences import Preferences
+from .common_output.constants import BF_THRESHOLD
 from ..core.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
     AssociationResults
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
-from ..core.output.constants import BF_THRESHOLD
+from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 

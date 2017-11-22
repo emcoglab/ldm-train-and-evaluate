@@ -27,12 +27,12 @@ import seaborn
 from matplotlib import pyplot
 from pandas import DataFrame
 
-from ..preferences.preferences import Preferences
+from .common_output.constants import BF_THRESHOLD
+from .common_output.dataframe import model_name_without_radius, model_name_without_embedding_size, \
+    model_name_without_distance, predict_models_only
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
-from ..core.output.constants import BF_THRESHOLD
-from ..core.output.dataframe import model_name_without_radius, model_name_without_embedding_size, \
-    model_name_without_distance, predict_models_only
+from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 

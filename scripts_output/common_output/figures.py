@@ -22,9 +22,9 @@ import seaborn
 from matplotlib import pyplot
 from pandas import DataFrame
 
-from core.output.constants import BF_THRESHOLD
-from ..utils.maths import DistanceType
-from ..output.dataframe import model_name_without_distance, model_name_without_corpus_or_distance_or_radius
+from .constants import BF_THRESHOLD
+from .dataframe import model_name_without_distance, model_name_without_corpus_or_distance_or_radius
+from ...core.utils.maths import DistanceType
 
 
 # Utility functions

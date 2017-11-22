@@ -25,13 +25,12 @@ import seaborn
 from matplotlib import pyplot
 from pandas import DataFrame
 
-from core.output.figures import model_performance_bar_graphs
-from ..preferences.preferences import Preferences
+from .common_output.figures import model_performance_bar_graphs
+from .common_output.dataframe import add_model_category_column
+from .common_output.tables import table_top_n_models
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
-from ..core.output.constants import BF_THRESHOLD
-from ..core.output.dataframe import add_model_category_column
-from ..core.output.tables import table_top_n_models
+from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 

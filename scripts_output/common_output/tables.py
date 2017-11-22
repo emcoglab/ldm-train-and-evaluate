@@ -20,7 +20,7 @@ from typing import List
 
 from pandas import DataFrame
 
-from ..utils.maths import DistanceType
+from ...core.utils.maths import DistanceType
 from ...preferences.preferences import Preferences
 
 

@@ -23,13 +23,13 @@ import seaborn
 from matplotlib import pyplot
 from pandas import DataFrame
 
-from ..preferences.preferences import Preferences
+from .common_output.dataframe import add_model_category_column, add_model_name_column
+from .common_output.tables import table_top_n_models
+from .common_output.figures import cosine_vs_correlation_scores, model_performance_bar_graphs
 from ..core.evaluation.synonym import ToeflTest, LbmMcqTest, EslTest, SynonymResults
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
-from ..core.output.dataframe import add_model_category_column, add_model_name_column
-from ..core.output.figures import cosine_vs_correlation_scores, model_performance_bar_graphs
-from ..core.output.tables import table_top_n_models
+from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
