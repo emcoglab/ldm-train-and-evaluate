@@ -23,10 +23,11 @@ from typing import List
 import seaborn
 from matplotlib import pyplot
 from pandas import DataFrame
-from numpy import isinf, log
+import numpy
 
 from .constants import BF_THRESHOLD
-from .dataframe import model_name_without_distance, model_name_without_corpus_or_distance_or_radius, predict_models_only
+from .dataframe import model_name_without_distance, model_name_without_corpus_or_distance_or_radius, \
+    predict_models_only
 from ...core.utils.maths import DistanceType, CorrelationType
 from ...preferences.preferences import Preferences
 
@@ -96,12 +97,12 @@ def cosine_vs_correlation_scores(results: DataFrame,
                              col_wrap=2,
                              size=5, aspect=1,
                              margin_titles=True,
-                             xlim=(0, 1), ylim=(0, 1))
+                             xlim=(-0.5, 1), ylim=(-0.5, 1))
 
     grid.map(pyplot.scatter, "Cosine test statistic", "Correlation test statistic")
 
     for ax in grid.axes.flat:
-        ax.plot((0, 1), (0, 1), c="r", ls="-")
+        ax.plot((-0.5, 1), (-0.5, 1), c="r", ls="-")
 
     if ticks_as_percentages:
         xticks_as_percentages(grid)
@@ -119,7 +120,7 @@ def pearson_vs_spearman_scores(results: DataFrame,
                                test_names: List[str],
                                name_prefix: str):
 
-    figures_dir = os.path.join(figures_base_dir, "effects of distance type")
+    figures_dir = os.path.join(figures_base_dir, "effects of correlation type")
     seaborn.set(style="white", palette="muted", color_codes=True)
 
     distribution = []
@@ -157,12 +158,12 @@ def pearson_vs_spearman_scores(results: DataFrame,
                              col_wrap=2,
                              size=5, aspect=1,
                              margin_titles=True,
-                             xlim=(0, 1), ylim=(0, 1))
+                             xlim=(-0.5, 1), ylim=(-0.5, 1))
 
     grid.map(pyplot.scatter, "Pearson", "Spearman")
 
     for ax in grid.axes.flat:
-        ax.plot((0, 1), (0, 1), c="r", ls="-")
+        ax.plot((-0.5, 1), (-0.5, 1), c="r", ls="-")
 
     pyplot.subplots_adjust(top=0.92)
     grid.fig.suptitle(f"{name_prefix}: Pearson vs Spearman correlations")
@@ -178,7 +179,7 @@ def model_performance_bar_graphs(results: DataFrame,
                                  name_prefix: str,
                                  figures_base_dir: str,
                                  distance_type: DistanceType,
-                                 bayes_factor_decorations: bool=False,
+                                 bayes_factor_graph: bool=False,
                                  extra_h_line_at: float=None,
                                  ylim=None,
                                  ticks_as_percentages: bool=False):
@@ -204,8 +205,7 @@ def model_performance_bar_graphs(results: DataFrame,
         filtered_df,
         row=key_column_name, col="Corpus",
         margin_titles=True,
-        size=2.5,
-        ylim=ylim)
+        size=2.5)
 
     grid.set_xticklabels(rotation=-90)
 
@@ -236,7 +236,10 @@ def model_performance_bar_graphs(results: DataFrame,
 
     grid.set_ylabels(test_statistic_name)
 
-    if bayes_factor_decorations:
+    if ylim is not None:
+        grid.set(ylim=ylim)
+
+    if bayes_factor_graph:
         grid.map(pyplot.axhline, y=1,              linestyle="solid",  color="xkcd:bright red")
         grid.map(pyplot.axhline, y=BF_THRESHOLD,   linestyle="dotted", color="xkcd:bright red")
         grid.map(pyplot.axhline, y=1/BF_THRESHOLD, linestyle="dotted", color="xkcd:bright red")
@@ -334,13 +337,15 @@ def score_vs_radius_line_graph(results: DataFrame,
         ),
         margin_titles=True,
         legend_out=True,
-        size=3.5,
-        ylim=ylim)
+        size=3.5)
     grid.map(pyplot.plot, "Window radius", test_statistic_name)
 
     # Format yticks as percentages
     if ticks_as_percenages:
         yticks_as_percentages(grid)
+
+    if ylim is not None:
+        grid.set(ylim=ylim)
 
     if bayes_factor_decorations:
         grid.map(pyplot.axhline, y=1,              linestyle="solid",  marker="", color="xkcd:bright red")
@@ -363,6 +368,7 @@ def score_vs_embedding_size_line_graph(results: DataFrame,
                                        distance_type: DistanceType,
                                        figures_base_dir: str,
                                        additional_h_line_at: float=None,
+                                       ylim=None,
                                        ticks_as_percentages: bool=False):
 
         figures_dir = os.path.join(figures_base_dir, "effects of embedding size")
@@ -385,7 +391,6 @@ def score_vs_embedding_size_line_graph(results: DataFrame,
             hue="Model type",
             margin_titles=True,
             size=2,
-            ylim=(0, 1),
             legend_out=True
         )
 
@@ -398,6 +403,9 @@ def score_vs_embedding_size_line_graph(results: DataFrame,
 
         if ticks_as_percentages:
             yticks_as_percentages(grid)
+
+        if ylim is not None:
+            grid.set(ylim=ylim)
 
         grid.set_xlabels("Embedding size")
         grid.set_ylabels(test_statistic_name)
@@ -510,12 +518,13 @@ def compare_param_values_bf(test_results: DataFrame,
 
                 # BF for best model
                 best_bayes_factor = model_variations[bf_statistic_name][0]
-                best_bic = model_variations["Model BIC"][0] if bic_available else None
                 best_param_value = model_variations[parameter_name][0]
+
+                best_bic = model_variations["Model BIC"][0] if bic_available else None
 
                 # If the bayes factor is sufficiently large, it may snap to numpy.inf.
                 # If it's not, we can sensibly make a comparison.
-                if not isinf(best_bayes_factor):
+                if not numpy.isinf(best_bayes_factor):
                     joint_best_models = model_variations[
                         # The actual best model
                         (model_variations[parameter_name] == best_param_value)
@@ -533,10 +542,10 @@ def compare_param_values_bf(test_results: DataFrame,
                         (model_variations[parameter_name] == best_param_value)
                         |
                         # Indistinguishable from best
-                        (log_bf_best_vs_competitor < log(BF_THRESHOLD))
+                        (log_bf_best_vs_competitor < numpy.log(BF_THRESHOLD))
                     ]
 
-                    if isinf(best_bic):
+                    if numpy.isinf(best_bic):
                         logger.warning("Encountered an infinite BIC")
 
                 else:

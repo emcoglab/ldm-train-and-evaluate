@@ -44,6 +44,7 @@ def table_top_n_models(results: DataFrame,
         if distance_type is not None:
             filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
 
+        # Assume that "higher is better", so we want to sort values descending
         top_models = filtered_df.sort_values(test_statistic_name, ascending=False).reset_index(drop=True).head(top_n)
 
         table = table.append(top_models)

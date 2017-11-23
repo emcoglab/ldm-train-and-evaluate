@@ -19,14 +19,14 @@ import logging
 import os
 import sys
 
+from .common_output.dataframe import add_model_category_column, add_model_name_column
 from .common_output.figures import cosine_vs_correlation_scores, model_performance_bar_graphs, \
     score_vs_radius_line_graph, score_vs_embedding_size_line_graph, pearson_vs_spearman_scores
-from .common_output.dataframe import add_model_category_column, add_model_name_column
 from .common_output.tables import table_top_n_models
 from ..core.evaluation.association import AssociationResults, SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, \
     MenSimilarity, ColourEmotionAssociation, ThematicRelatedness
 from ..core.utils.logging import log_message, date_format
-from ..core.utils.maths import DistanceType, CorrelationType, magnitude_of_negative
+from ..core.utils.maths import DistanceType, CorrelationType
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -55,8 +55,8 @@ def main():
 
         results_df = results_df[results_df["Test name"].isin(test_names)]
 
-        # Negative correlations are better correlations, so make them positive for the purposes of display
-        results_df["Correlation"] = results_df["Correlation"].apply(magnitude_of_negative)
+        # Negative correlations are better correlations, so flip the sign for the purposes of display
+        results_df["Correlation"] = results_df["Correlation"].apply(lambda r: (-1) * r)
 
         for correlation_type in CorrelationType:
             for distance_type in DistanceType:
@@ -71,7 +71,7 @@ def main():
                         name_prefix=f"{artificial_distinction} ({correlation_type.name})",
                         figures_base_dir=figures_base_dir,
                         distance_type=distance_type,
-                        ylim=(0, 1)
+                        ylim=(None, 1)
                     )
                     model_performance_bar_graphs(
                         results=results_df[results_df["Correlation type"] == correlation_type.name],
@@ -80,7 +80,7 @@ def main():
                         test_statistic_name="B10 approx",
                         name_prefix=f"{artificial_distinction} ({correlation_type.name})",
                         figures_base_dir=figures_base_dir,
-                        bayes_factor_decorations=True,
+                        bayes_factor_graph=True,
                         distance_type=distance_type,
                     )
 
@@ -93,7 +93,8 @@ def main():
                         test_statistic_name="Correlation",
                         name_prefix=f"{artificial_distinction} ({correlation_type.name})",
                         figures_base_dir=figures_base_dir,
-                        distance_type=distance_type
+                        distance_type=distance_type,
+                        ylim=(None, 1)
                     )
 
                 logger.info(f"Making correlation-vs-radius figures")
@@ -104,7 +105,7 @@ def main():
                     name_prefix=f"{artificial_distinction} ({correlation_type.name})",
                     figures_base_dir=figures_base_dir,
                     distance_type=distance_type,
-                    ylim=(0, 1)
+                    ylim=(None, 1)
                 )
 
             # Summary tables

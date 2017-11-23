@@ -65,7 +65,7 @@ def main():
                 name_prefix="Synonym",
                 figures_base_dir=figures_base_dir,
                 distance_type=distance_type,
-                bayes_factor_decorations=True,
+                bayes_factor_graph=True,
                 ticks_as_percentages=False
             )
 
@@ -82,7 +82,8 @@ def main():
                 distance_type=distance_type,
                 ticks_as_percentages=True,
                 # Chance line
-                additional_h_line_at=0.25
+                additional_h_line_at=0.25,
+                ylim=(0, 1)
             )
 
         logger.info(f"Making score-vs-radius graphs for d={distance_type.name}")

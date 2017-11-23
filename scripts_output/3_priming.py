@@ -94,7 +94,7 @@ def main():
                         key_column_name="Dependent variable",
                         test_statistic_name="R-squared increase",
                         name_prefix=f"Priming ({test_type} {soa}ms)",
-                        bayes_factor_decorations=False,
+                        bayes_factor_graph=False,
                         distance_type=distance_type,
                         figures_base_dir=figures_base_dir,
                         ylim=(0, None)
@@ -105,7 +105,7 @@ def main():
                         key_column_name="Dependent variable",
                         test_statistic_name="B10 approx",
                         name_prefix=f"Priming ({test_type} {soa}ms)",
-                        bayes_factor_decorations=True,
+                        bayes_factor_graph=True,
                         distance_type=distance_type,
                         figures_base_dir=figures_base_dir
                     )
