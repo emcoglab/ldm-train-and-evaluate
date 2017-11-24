@@ -17,8 +17,8 @@ caiwingfield.net
 
 from pandas import DataFrame, isnull
 
-# Model name transformations
 
+# Model name transformations
 
 def model_name(r):
     if r["Model category"] == "Predict":
@@ -54,7 +54,6 @@ def model_name_without_embedding_size(r):
 
 # Add columns
 
-
 def add_model_category_column(df: DataFrame):
     """
     Adds a "Model category" column to a results dataframe, containing either "Count" or "Predict".
@@ -71,7 +70,6 @@ def add_model_name_column(df: DataFrame, name_alteration=model_name):
 
 
 # Filtering
-
 
 def predict_models_only(df: DataFrame) -> DataFrame:
     return df[df["Model category"] == "Predict"]

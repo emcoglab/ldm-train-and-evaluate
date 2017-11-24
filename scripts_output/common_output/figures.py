@@ -186,6 +186,8 @@ def model_performance_bar_graphs(results: DataFrame,
 
     figures_dir = os.path.join(figures_base_dir, "model performance bar graphs")
 
+    value_cap = 1e20
+
     seaborn.set_style("ticks")
 
     filtered_df: DataFrame = results.copy()
@@ -198,6 +200,10 @@ def model_performance_bar_graphs(results: DataFrame,
 
     # Model name doesn't need to include corpus or distance, since those are fixed
     filtered_df["Model name"] = filtered_df.apply(model_name_without_corpus_or_distance_or_radius, axis=1)
+
+    # Apply value cap to Bayes factor graphs
+    if bayes_factor_graph and (value_cap is not None):
+        filtered_df[test_statistic_name] = filtered_df[test_statistic_name].apply(lambda x: min(x, value_cap))
 
     seaborn.set_context(context="paper", font_scale=1)
 
