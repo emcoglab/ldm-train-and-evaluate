@@ -42,9 +42,18 @@ def main():
         figures_base_dir = os.path.join(Preferences.figures_dir, artificial_distinction.lower())
 
         if artificial_distinction == "Similarity":
-            test_names = [SimlexSimilarity().name, WordsimSimilarity().name, WordsimRelatedness().name, MenSimilarity().name]
+            test_names = [
+                SimlexSimilarity().name,
+                WordsimSimilarity().name,
+                WordsimRelatedness().name,
+                MenSimilarity().name
+            ]
         elif artificial_distinction == "Norms":
-            test_names = [ColourEmotionAssociation().name, ThematicRelatedness().name, ThematicRelatedness(only_use_response=1).name]
+            test_names = [
+                # ColourEmotionAssociation().name,
+                ThematicRelatedness().name,
+                ThematicRelatedness(only_use_response=1).name
+            ]
         else:
             raise ValueError()
 

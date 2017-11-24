@@ -597,3 +597,28 @@ def compare_param_values_bf(test_results: DataFrame,
 
     plot.figure.savefig(os.path.join(figures_dir, f"{name_prefix} {parameter_name.lower()} heatmap.png"), dpi=300)
     pyplot.close(plot.figure)
+
+
+def model_data_scatter_plot(transcript: DataFrame,
+                            name_prefix: str,
+                            figures_dir: str):
+
+    figures_dir = os.path.join(figures_dir, "effects of correlation type")
+
+    seaborn.set(style="white", palette="muted", color_codes=True)
+    seaborn.set_context(context="paper", font_scale=1)
+
+    grid = seaborn.FacetGrid(data=transcript,
+                             col="Test name",
+                             col_wrap=2,
+                             size=5, aspect=1,
+                             margin_titles=True,
+                             sharey=False)
+
+    grid.map(pyplot.scatter, "Model distance", "Data similarity")
+
+    pyplot.subplots_adjust(top=0.92)
+    grid.fig.suptitle(f"{name_prefix} model vs data")
+
+    grid.savefig(os.path.join(figures_dir, f"{name_prefix} model vs data.png"), dpi=300)
+    pyplot.close(grid.fig)

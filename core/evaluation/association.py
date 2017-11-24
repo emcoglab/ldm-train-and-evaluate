@@ -20,6 +20,7 @@ import re
 import csv
 from abc import ABCMeta, abstractmethod
 from typing import List
+from os import path
 
 import numpy
 import scipy.stats
@@ -113,28 +114,37 @@ class AssociationTester(object):
 
         results = AssociationResults()
 
-        for correlation_type in CorrelationType:
-            human_judgements: List[WordAssociation] = []
-            model_judgements: List[WordAssociation] = []
-            for human_judgement in test.association_list:
-                try:
-                    distance = model.distance_between(
-                        human_judgement.word_1,
-                        human_judgement.word_2,
-                        distance_type)
-                except WordNotFoundError as er:
-                    # If we can't find one of the words in the corpus, just ignore it.
-                    logger.warning(er.message)
-                    continue
-
-                # If both words were found in the model, add them to the test list
-                human_judgements.append(human_judgement)
-                model_judgements.append(WordAssociation(
+        human_judgements: List[WordAssociation] = []
+        model_judgements: List[WordAssociation] = []
+        for human_judgement in test.association_list:
+            try:
+                distance = model.distance_between(
                     human_judgement.word_1,
                     human_judgement.word_2,
-                    distance))
+                    distance_type)
+            except WordNotFoundError as er:
+                # If we can't find one of the words in the corpus, just ignore it.
+                logger.warning(er.message)
+                continue
 
-            # Apply correlation
+            # If both words were found in the model, add them to the test list
+            human_judgements.append(human_judgement)
+            model_judgements.append(WordAssociation(
+                human_judgement.word_1,
+                human_judgement.word_2,
+                distance))
+
+        # Save transcript
+        transcript_csv_path = path.join(Preferences.association_results_dir, f"transcript test={test.name} model={model.name} distance={distance_type.name}")
+        DataFrame.from_dict({
+            "Word 1"         : [j.word_1 for j in human_judgements],
+            "Word 2"         : [j.word_2 for j in human_judgements],
+            "Model distance" : [j.association_strength for j in model_judgements],
+            "Data similarity": [j.association_strength for j in human_judgements]
+        }).to_csv(transcript_csv_path, index=False)
+
+        # Apply correlations
+        for correlation_type in CorrelationType:
             if correlation_type is CorrelationType.Pearson:
                 correlation = numpy.corrcoef(
                     [j.association_strength for j in human_judgements],
