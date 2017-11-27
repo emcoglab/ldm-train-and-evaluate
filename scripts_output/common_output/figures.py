@@ -378,8 +378,9 @@ def score_vs_radius_line_graph(results: DataFrame,
 
 def score_vs_embedding_size_line_graph(results: DataFrame,
                                        name_prefix: str,
+                                       window_radius: int,
                                        key_column_name: str,
-                                       key_column_value: str,
+                                       key_column_values: List[str],
                                        test_statistic_name: str,
                                        distance_type: DistanceType,
                                        figures_base_dir: str,
@@ -391,19 +392,20 @@ def score_vs_embedding_size_line_graph(results: DataFrame,
 
         filtered_df: DataFrame = results.copy()
         filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
-        filtered_df = filtered_df[filtered_df[key_column_name] == key_column_value]
+        filtered_df = filtered_df[filtered_df["Window radius"] == window_radius]
+        filtered_df = filtered_df[filtered_df[key_column_name].isin(key_column_values)]
 
         # This graph doesn't make sense for count models
         filtered_df = predict_models_only(filtered_df)
 
-        filtered_df = filtered_df.sort_values(by=["Corpus", "Model type", "Embedding size", "Window radius"])
+        filtered_df = filtered_df.sort_values(by=["Corpus", "Model type", "Embedding size", key_column_name])
         filtered_df = filtered_df.reset_index(drop=True)
 
         seaborn.set_style("ticks")
         seaborn.set_context(context="paper", font_scale=1)
         grid = seaborn.FacetGrid(
             filtered_df,
-            row="Window radius", col="Corpus",
+            row=key_column_name, col="Corpus",
             hue="Model type",
             margin_titles=True,
             size=2,
@@ -417,11 +419,11 @@ def score_vs_embedding_size_line_graph(results: DataFrame,
 
         grid.set(xticks=Preferences.predict_embedding_sizes)
 
-        if ticks_as_percentages:
-            yticks_as_percentages(grid)
-
         if ylim is not None:
             grid.set(ylim=ylim)
+
+        if ticks_as_percentages:
+            yticks_as_percentages(grid)
 
         grid.set_xlabels("Embedding size")
         grid.set_ylabels(test_statistic_name)
@@ -429,11 +431,11 @@ def score_vs_embedding_size_line_graph(results: DataFrame,
         grid.add_legend(title="Model", bbox_to_anchor=(1, 1))
 
         # Title
-        title = f"{key_column_value} ({distance_type.name})"
+        title = f"Embedding size r={window_radius} ({distance_type.name})"
         pyplot.subplots_adjust(top=0.92)
         grid.fig.suptitle(title)
 
-        figure_name = f"{name_prefix} Embedding size {key_column_value} {distance_type.name}.png"
+        figure_name = f"{name_prefix} Embedding size r={window_radius} {distance_type.name}.png"
 
         grid.savefig(os.path.join(figures_dir, figure_name), dpi=300)
 

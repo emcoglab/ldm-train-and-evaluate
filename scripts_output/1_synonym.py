@@ -44,38 +44,37 @@ def main():
     for distance_type in DistanceType:
 
         for radius in Preferences.window_radii:
-            logger.info(f"Making model bar graph figures for r={radius} and d={distance_type.name}")
-            model_performance_bar_graphs(
-                results=results_df,
-                window_radius=radius,
-                key_column_name="Test name",
-                test_statistic_name="Score",
-                name_prefix="Synonym",
-                figures_base_dir=figures_base_dir,
-                distance_type=distance_type,
-                extra_h_line_at=0.25,
-                ticks_as_percentages=True,
-                ylim=(0, 1)
-            )
-            model_performance_bar_graphs(
-                results=results_df,
-                window_radius=radius,
-                key_column_name="Test name",
-                test_statistic_name="B10",
-                name_prefix="Synonym",
-                figures_base_dir=figures_base_dir,
-                distance_type=distance_type,
-                bayes_factor_graph=True,
-                ticks_as_percentages=False
-            )
+            # logger.info(f"Making model bar graph figures for r={radius} and d={distance_type.name}")
+            # model_performance_bar_graphs(
+            #     results=results_df,
+            #     window_radius=radius,
+            #     key_column_name="Test name",
+            #     test_statistic_name="Score",
+            #     name_prefix="Synonym",
+            #     figures_base_dir=figures_base_dir,
+            #     distance_type=distance_type,
+            #     extra_h_line_at=0.25,
+            #     ticks_as_percentages=True,
+            #     ylim=(0, 1)
+            # )
+            # model_performance_bar_graphs(
+            #     results=results_df,
+            #     window_radius=radius,
+            #     key_column_name="Test name",
+            #     test_statistic_name="B10",
+            #     name_prefix="Synonym",
+            #     figures_base_dir=figures_base_dir,
+            #     distance_type=distance_type,
+            #     bayes_factor_graph=True,
+            #     ticks_as_percentages=False
+            # )
 
-        for test_name in TEST_NAMES:
-
-            logger.info(f"Making embedding size line graphs for {test_name} d={distance_type.name}")
+            logger.info(f"Making embedding size line graphs for r={radius} and d={distance_type.name}")
             score_vs_embedding_size_line_graph(
                 results=results_df,
+                window_radius=radius,
                 key_column_name="Test name",
-                key_column_value=test_name,
+                key_column_values=TEST_NAMES,
                 test_statistic_name="Score",
                 name_prefix="Synonym",
                 figures_base_dir=figures_base_dir,
@@ -86,41 +85,41 @@ def main():
                 ylim=(0, 1)
             )
 
-        logger.info(f"Making score-vs-radius graphs for d={distance_type.name}")
-        score_vs_radius_line_graph(
-            results=results_df,
-            key_column_name="Test name",
-            test_statistic_name="Score",
-            name_prefix="Synonym",
-            figures_base_dir=figures_base_dir,
-            distance_type=distance_type,
-            ticks_as_percenages=True,
-            ylim=(0, 1)
-        )
-
-    # Summary tables
-    logger.info("Making top-5 model tables overall")
-    table_top_n_models(
-        results=results_df,
-        top_n=5,
-        key_column_values=TEST_NAMES,
-        test_statistic_name="Score",
-        name_prefix="Synonym",
-        key_column_name="Test name"
-    )
-    for distance_type in DistanceType:
-        logger.info(f"Making top-5 model tables overall for {distance_type.name}")
-        table_top_n_models(
-            results=results_df,
-            top_n=5,
-            key_column_values=TEST_NAMES,
-            test_statistic_name="Score",
-            name_prefix="Synonym",
-            key_column_name="Test name",
-            distance_type=distance_type
-        )
-
-    cosine_vs_correlation_scores(results_df, figures_base_dir, TEST_NAMES, "Score", "Synonym", ticks_as_percentages=True)
+    #     logger.info(f"Making score-vs-radius graphs for d={distance_type.name}")
+    #     score_vs_radius_line_graph(
+    #         results=results_df,
+    #         key_column_name="Test name",
+    #         test_statistic_name="Score",
+    #         name_prefix="Synonym",
+    #         figures_base_dir=figures_base_dir,
+    #         distance_type=distance_type,
+    #         ticks_as_percenages=True,
+    #         ylim=(0, 1)
+    #     )
+    #
+    # # Summary tables
+    # logger.info("Making top-5 model tables overall")
+    # table_top_n_models(
+    #     results=results_df,
+    #     top_n=5,
+    #     key_column_values=TEST_NAMES,
+    #     test_statistic_name="Score",
+    #     name_prefix="Synonym",
+    #     key_column_name="Test name"
+    # )
+    # for distance_type in DistanceType:
+    #     logger.info(f"Making top-5 model tables overall for {distance_type.name}")
+    #     table_top_n_models(
+    #         results=results_df,
+    #         top_n=5,
+    #         key_column_values=TEST_NAMES,
+    #         test_statistic_name="Score",
+    #         name_prefix="Synonym",
+    #         key_column_name="Test name",
+    #         distance_type=distance_type
+    #     )
+    #
+    # cosine_vs_correlation_scores(results_df, figures_base_dir, TEST_NAMES, "Score", "Synonym", ticks_as_percentages=True)
 
 
 if __name__ == "__main__":
