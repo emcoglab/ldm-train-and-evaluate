@@ -278,6 +278,7 @@ def score_vs_radius_line_graph(results: DataFrame,
                                figures_base_dir: str,
                                distance_type: DistanceType,
                                bayes_factor_decorations: bool=False,
+                               additional_h_line_at: float=None,
                                ylim=None,
                                ticks_as_percenages: bool=False):
 
@@ -357,6 +358,9 @@ def score_vs_radius_line_graph(results: DataFrame,
 
     if ylim is not None:
         grid.set(ylim=ylim)
+
+    if additional_h_line_at is not None:
+        grid.map(pyplot.axhline, y=additional_h_line_at, ls=":", c=".5", label="", marker="")
 
     if bayes_factor_decorations:
         grid.map(pyplot.axhline, y=1,              linestyle="solid",  marker="", color="xkcd:bright red")

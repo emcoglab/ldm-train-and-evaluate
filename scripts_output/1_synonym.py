@@ -95,6 +95,8 @@ def main():
             figures_base_dir=figures_base_dir,
             distance_type=distance_type,
             ticks_as_percenages=True,
+            # Chance line
+            additional_h_line_at=0.25,
             ylim=(0, 1)
         )
 
