@@ -18,13 +18,13 @@ caiwingfield.net
 import logging
 import os
 import sys
-from typing import Set, List
+from typing import Set, List, Callable
 
-import pandas
+from pandas import DataFrame, read_csv
 import statsmodels.formula.api as sm
 
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
-from ..core.evaluation.regression import SppData, RegressionResult, CalgaryData
+from ..core.evaluation.regression import RegressionResult, CalgaryData
 from ..core.model.base import VectorSemanticModel
 from ..core.model.count import LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
 from ..core.model.predict import SkipGramModel, CbowModel
@@ -40,9 +40,9 @@ def main():
 
     save_wordlist(calgary_data.vocabulary)
 
-    add_all_model_predictors(calgary_data)
+    add_lexical_predictors(calgary_data)
 
-    add_elexicon_predictors(calgary_data)
+    add_all_model_predictors(calgary_data)
 
     calgary_data.export_csv()
 
@@ -53,10 +53,10 @@ def save_wordlist(vocab: Set[str]):
     """
     Saves the vocab to a file
     """
-    wordlist_path = os.path.join(Preferences.spp_results_dir, 'wordlist.txt')
+    wordlist_path = os.path.join(Preferences.calgary_results_dir, 'wordlist.txt')
     separator = " "
 
-    logger.info(f"Saving SPP word list to {wordlist_path}.")
+    logger.info(f"Saving Calgary word list to {wordlist_path}.")
 
     with open(wordlist_path, mode="w", encoding="utf-8") as wordlist_file:
         for word in sorted(vocab):
@@ -84,8 +84,7 @@ def add_all_model_predictors(calgary_data: CalgaryData):
 
             for model in count_models:
                 for distance_type in DistanceType:
-                    for reference_word in calgary_data.reference_words:
-                        calgary_data.add_model_predictor(model, distance_type, reference_word=reference_word, memory_map=True)
+                    calgary_data.add_model_predictor(model, distance_type, memory_map=True)
                 model.untrain()
 
             del count_models
@@ -101,8 +100,7 @@ def add_all_model_predictors(calgary_data: CalgaryData):
 
                 for model in predict_models:
                     for distance_type in DistanceType:
-                        for reference_word in calgary_data.reference_words:
-                            calgary_data.add_model_predictor(model, distance_type, reference_word=reference_word, memory_map=True)
+                        calgary_data.add_model_predictor(model, distance_type, memory_map=True)
                     model.untrain()
 
                 del predict_models
@@ -120,13 +118,16 @@ def regression_wrapper(calgary_data: CalgaryData):
     ]
 
     baseline_variable_names = [
-        "TargetLength",
-        "elex_target_LgSUBTLWF",
-        "elex_target_OLD",
-        "elex_target_PLD",
-        "elex_target_NSyll",
-        "concrete_OrthLD",
-        "abstract_OrthLD"
+        # Elexicon
+        "elex_length",
+        "elex_LgSUBTLWF",
+        "elex_OLD",
+        "elex_PLD",
+        "elex_NSyll",
+        # Computed
+        # "concrete_OrthLD",
+        # "abstract_OrthLD",
+        "minimum_reference_OrthLD"
     ]
 
     results = run_all_model_regressions(calgary_data.dataframe, dependent_variable_names, baseline_variable_names)
@@ -142,7 +143,7 @@ def regression_wrapper(calgary_data: CalgaryData):
             results_file.write(separator.join(result.fields) + '\n')
 
 
-def run_single_model_regression(all_data: pandas.DataFrame,
+def run_single_model_regression(all_data: DataFrame,
                                 distance_type: DistanceType,
                                 dv_name: str,
                                 model: VectorSemanticModel,
@@ -177,7 +178,7 @@ def run_single_model_regression(all_data: pandas.DataFrame,
     )
 
 
-def run_all_model_regressions(all_data: pandas.DataFrame,
+def run_all_model_regressions(all_data: DataFrame,
                               dependent_variable_names: List[str],
                               baseline_variable_names: List[str]):
 
@@ -230,90 +231,80 @@ def run_all_model_regressions(all_data: pandas.DataFrame,
     return results
 
 
-def add_elexicon_predictors(calgary_data: CalgaryData):
+def add_lexical_predictors(calgary_data: CalgaryData):
 
-    elexicon_dataframe: pandas.DataFrame = pandas.read_csv(Preferences.spp_elexicon_csv, header=0, encoding="utf-8")
+    elexicon_dataframe: DataFrame = read_csv(Preferences.calgary_elexicon_csv, header=0, encoding="utf-8")
 
     # Make sure the words are lowercase, as we'll use them as merging keys
     elexicon_dataframe['Word'] = elexicon_dataframe['Word'].str.lower()
 
     predictors_to_add = [
+        "Length"
         "LgSUBTLWF",
         "OLD",
         "PLD",
         "NSyll"
     ]
 
+    # Add Elexicon predictors
+
     for predictor_name in predictors_to_add:
         add_elexicon_predictor(calgary_data, elexicon_dataframe, predictor_name)
-        add_elexicon_predictor(calgary_data, elexicon_dataframe, predictor_name)
 
-    # Add prime-target Levenshtein distance
+    # Add Levenshtein distances to reference words
 
-    def levenshtein_distance_local(word_pair):
-        word_1, word_2 = word_pair
-        return levenshtein_distance(word_1, word_2)
+    def levenshtein_distance_reference(ref_word: str) -> Callable:
+        def levenshtein_distance_local(word: str) -> float:
+            return levenshtein_distance(word, ref_word)
+        return levenshtein_distance_local
 
-    # Add Levenshtein distance column to data frame
-    levenshtein_column_name = "OrthLD"
-    if calgary_data.predictor_exists_with_name(levenshtein_column_name):
-        logger.info("Levenshtein-distance predictor already added to Calgary data.")
-    else:
-        logger.info("Adding Levenshtein-distance predictor to Calgary data.")
+    # Add Levenshtein distance columns to data frame
 
-        word_pairs = calgary_data.dataframe[["Word"]].copy()
-        word_pairs[levenshtein_column_name] = word_pairs[["Word"]].apply(levenshtein_distance_local, axis=1)
+    ref_levenshtein_column_names = []
+    for reference_word in calgary_data.reference_words:
 
-        calgary_data.add_word_pair_keyed_predictor(word_pairs, merge_on=word_columns)
+        levenshtein_column_name = f"{reference_word}_OrthLD"
+        ref_levenshtein_column_names.append(levenshtein_column_name)
 
-    # Add Levenshtein priming distance column to data frame
-    priming_levenshtein_column_name = "PrimeTarget_OrthLD_Priming"
-    if calgary_data.predictor_exists_with_name(priming_levenshtein_column_name):
-        logger.info("Levenshtein-distance priming predictor already added to SPP data.")
-    else:
-        logger.info("Adding Levenshtein-distance priming predictor to SPP data.")
+        if calgary_data.predictor_exists_with_name(levenshtein_column_name):
+            logger.info(f"{reference_word} Levenshtein-distance predictor already added to Calgary data.")
+        else:
+            logger.info(f"Adding {reference_word} Levenshtein-distance predictor to Calgary data.")
 
-        priming_word_columns = ["MatchedPrimeWord", "TargetWord"]
-        matched_word_pairs = calgary_data.dataframe[priming_word_columns].copy()
+            ref_old_column = calgary_data.dataframe[["Word"]].copy()
+            ref_old_column[levenshtein_column_name] = ref_old_column[["Word"]].apply(levenshtein_distance_reference(reference_word), axis=1)
 
-        # The priming OLD is the difference between related and matched unrelated pair OLDs
-        matched_word_pairs[priming_levenshtein_column_name] = matched_word_pairs[priming_word_columns].apply(
-            levenshtein_distance_local, axis=1) - calgary_data.dataframe[levenshtein_column_name]
+            calgary_data.add_word_keyed_predictor(ref_old_column, key_name="Word", predictor_name=levenshtein_column_name)
 
-        calgary_data.add_word_pair_keyed_predictor(matched_word_pairs, merge_on=priming_word_columns)
+    # Add the minimum of the OLDs to the reference words
+
+    min_old_column = calgary_data.dataframe[["Word"].extend(ref_levenshtein_column_names)].copy()
+    min_old_column["minimum_reference_OrthLD"] = min_old_column[ref_levenshtein_column_names].min(axis=1)
+
+    calgary_data.add_word_keyed_predictor(min_old_column, key_name="Word", predictor_name="minimum_reference_OrthLD")
 
 
-def add_elexicon_predictor(spp_data: SppData,
-                           elexicon_dataframe: pandas.DataFrame,
-                           predictor_name: str,
-                           prime_or_target: str):
-    assert (prime_or_target in ["Prime", "Target"])
+def add_elexicon_predictor(calgary_data: CalgaryData,
+                           elexicon_dataframe: DataFrame,
+                           predictor_name: str):
 
-    # elex_prime_<predictor_name> or
-    # elex_target_<predictor_name>
-    new_predictor_name = f"elex_{prime_or_target.lower()}_" + predictor_name
+    # elex_<predictor_name>
+    new_predictor_name = f"elex_" + predictor_name
 
-    # PrimeWord or
-    # TargetWord
-    key_name = f"{prime_or_target}Word"
+    key_name = f"Word"
 
     # Don't bother training the model until we know we need it
-    if spp_data.predictor_exists_with_name(new_predictor_name):
-        logger.info(f"Elexicon predictor '{new_predictor_name}' already added to SPP data.")
+    if calgary_data.predictor_exists_with_name(new_predictor_name):
+        logger.info(f"Elexicon predictor '{new_predictor_name}' already added to Calgary data.")
     else:
 
-        logger.info(f"Adding Elexicon predictor '{new_predictor_name} to SPP data.")
+        logger.info(f"Adding Elexicon predictor '{new_predictor_name} to Calgary data.")
 
-        # Dataframe with two columns: 'Word', [predictor_name]
         predictor = elexicon_dataframe[["Word", predictor_name]]
 
-        # We'll join on PrimeWord first
-        predictor = predictor.rename(columns={
-            "Word": key_name,
-            predictor_name: new_predictor_name
-        })
+        predictor = predictor.rename(columns={predictor_name: new_predictor_name})
 
-        spp_data.add_word_keyed_predictor(predictor, key_name, new_predictor_name)
+        calgary_data.add_word_keyed_predictor(predictor, key_name, new_predictor_name)
 
 
 if __name__ == "__main__":

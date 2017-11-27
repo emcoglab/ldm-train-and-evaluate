@@ -108,8 +108,8 @@ class RegressionData(metaclass=ABCMeta):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     @property
+    @abstractmethod
     def vocabulary(self) -> Set[str]:
         """
         The set of words used in the SPP data.
@@ -347,10 +347,9 @@ class CalgaryData(RegressionData):
     @classmethod
     def predictor_name_for_model(cls,
                                  model: VectorSemanticModel,
-                                 distance_type: DistanceType,
-                                 reference_word: str) -> str:
+                                 distance_type: DistanceType) -> str:
 
-        unsafe_name = f"{model.name}_{distance_type.name}_{reference_word}"
+        unsafe_name = f"{model.name}_{distance_type.name}"
 
         # Remove unsafe characters
         unsafe_name = re.sub(r"[(),=]", "", unsafe_name)
@@ -367,13 +366,12 @@ class CalgaryData(RegressionData):
     def add_model_predictor(self,
                             model: VectorSemanticModel,
                             distance_type: DistanceType,
-                            reference_word: str,
                             memory_map: bool = False):
         """
         Adds a data column containing predictors from a semantic model.
         """
 
-        predictor_name = self.predictor_name_for_model(model, distance_type, reference_word)
+        predictor_name = self.predictor_name_for_model(model, distance_type)
 
         # Skip existing predictors
         if self.predictor_exists_with_name(predictor_name):
@@ -385,18 +383,19 @@ class CalgaryData(RegressionData):
             # Since we're going to use the model, make sure it's trained
             model.train(memory_map=memory_map)
 
-            def model_distance_or_none(word):
+            def min_model_distance_or_none(word):
                 """
                 Get the model distance between a pair of words, or None, if one of the words doesn't exist.
                 """
                 try:
-                    return model.distance_between(word, reference_word, distance_type)
+                    reference_distances = [model.distance_between(word, reference_word, distance_type) for reference_word in self.reference_words]
+                    return min(reference_distances)
                 except WordNotFoundError as er:
                     logger.warning(er.message)
                     return None
 
             # Add model distance column to data frame
-            model_distance = self.dataframe[["Word"]].apply(model_distance_or_none, axis=1)
+            model_distance = self.dataframe[["Word"]].apply(min_model_distance_or_none, axis=1)
 
             self.dataframe[predictor_name] = model_distance
 

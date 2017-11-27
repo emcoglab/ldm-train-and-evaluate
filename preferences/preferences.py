@@ -123,27 +123,28 @@ class Preferences(object):
     test_dir                  = "/Volumes/Data/evaluation/tests/"
 
     # Synonym tests
-    toefl_question_path       = os.path.join(test_dir, "TOEFL_BrEng_&_substitutions/toefl.qst")
-    toefl_answer_path         = os.path.join(test_dir, "TOEFL_BrEng_&_substitutions/toefl.ans")
-    esl_test_path             = os.path.join(test_dir, "ESL_BrEng/esl.txt")
-    mcq_test_path             = os.path.join(test_dir, "LBM vocab MCQ/newMCQ.txt")
+    toefl_question_path       = os.path.join(test_dir, "TOEFL_BrEng_&_substitutions", "toefl.qst")
+    toefl_answer_path         = os.path.join(test_dir, "TOEFL_BrEng_&_substitutions", "toefl.ans")
+    esl_test_path             = os.path.join(test_dir, "ESL_BrEng", "esl.txt")
+    mcq_test_path             = os.path.join(test_dir, "LBM vocab MCQ", "newMCQ.txt")
 
     # Word association tests
     # similarity/relatedness judgements
     simlex_path               = os.path.join(test_dir, "SimLex-999 BrEng/SimLex-999.txt")
-    wordsim_similarity_path   = os.path.join(test_dir, "WordSim353/wordsim_similarity_goldstandard.txt")
-    wordsim_relatedness_path  = os.path.join(test_dir, "WordSim353/wordsim_relatedness_goldstandard.txt")
-    men_path                  = os.path.join(test_dir, "MEN BrEng/MEN_dataset_natural_form_full")
+    wordsim_similarity_path   = os.path.join(test_dir, "WordSim353", "wordsim_similarity_goldstandard.txt")
+    wordsim_relatedness_path  = os.path.join(test_dir, "WordSim353", "wordsim_relatedness_goldstandard.txt")
+    men_path                  = os.path.join(test_dir, "MEN BrEng", "MEN_dataset_natural_form_full")
     # word association production
-    colour_association_path   = os.path.join(test_dir, "Colour association/Appendix 1 (cleaned).csv")
-    thematic_association_path = os.path.join(test_dir, "Thematic relatedness/13428_2015_679_MOESM2_ESM (corrected).csv")
+    colour_association_path   = os.path.join(test_dir, "Colour association", "Appendix 1 (cleaned).csv")
+    thematic_association_path = os.path.join(test_dir, "Thematic relatedness", "13428_2015_679_MOESM2_ESM (corrected).csv")
 
     # Semantic priming data
-    spp_path_xls              = os.path.join(test_dir, "SPP/Hutchinson et al. (2013) SPP BrEng & substitutions.xls")  # Semantic priming data: source xls file
-    spp_elexicon_csv          = os.path.join(test_dir, "SPP/elexicon/I148613.csv")  # Additional Elexicon predictors csv
+    spp_path_xls              = os.path.join(test_dir, "SPP", "Hutchinson et al. (2013) SPP BrEng & substitutions.xls")  # Semantic priming data: source xls file
+    spp_elexicon_csv          = os.path.join(test_dir, "SPP", "elexicon", "I148613.csv")  # Additional Elexicon predictors csv
 
     # Norms
-    calgary_path_xlsx         = os.path.join(test_dir, "Pexman et al. (2017) concrete:abstract decisions/13428_2016_720_MOESM2_ESM.xlsx")
+    calgary_path_xlsx         = os.path.join(test_dir, "Calgary", "13428_2016_720_MOESM2_ESM.xlsx")
+    calgary_elexicon_csv      = os.path.join(test_dir, "Calgary", "elexicon", "I148613.csv")
 
     # TEST RESULTS
     
@@ -152,9 +153,9 @@ class Preferences(object):
     synonym_results_dir       = os.path.join(results_dir, "synonyms/")
     association_results_dir   = os.path.join(results_dir, "association/")
     spp_results_dir           = os.path.join(results_dir, "SPP/")
-    spp_path_pickle           = os.path.join(results_dir, "SPP/Hutchinson et al. (2013) SPP.pickle")  # Semantic priming data: pickled version for faster loading
+    spp_path_pickle           = os.path.join(results_dir, "SPP", "Hutchinson et al. (2013) SPP.pickle")  # Semantic priming data: pickled version for faster loading
     calgary_results_dir       = os.path.join(results_dir, "Calgary/")
-    calgary_path_pickle       = os.path.join(results_dir, "Calgary/13428_2016_720_MOESM2_ESM.pickle")
+    calgary_path_pickle       = os.path.join(results_dir, "Calgary", "13428_2016_720_MOESM2_ESM.pickle")
 
     # FIGURES
 
