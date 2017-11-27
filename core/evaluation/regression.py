@@ -305,6 +305,106 @@ class SppData(RegressionData):
                 self._save()
 
 
+class CalgaryData(RegressionData):
+    """
+    Calgary data.
+    """
+
+    def __init__(self,
+                 save_progress: bool = True,
+                 force_reload:  bool = False):
+        super().__init__(name="Calgary",
+                         pickle_path=Preferences.calgary_path_pickle,
+                         results_dir=Preferences.calgary_results_dir,
+                         save_progress=save_progress,
+                         force_reload=force_reload)
+
+    @classmethod
+    def _load_from_source_xls(cls) -> pandas.DataFrame:
+        """
+        Load data from excel file, dealing with errors in source material.
+        """
+        xls = pandas.ExcelFile(Preferences.calgary_path_xlsx)
+        word_data = xls.parse("Sheet1")
+
+        word_data: pandas.DataFrame = word_data.copy()
+
+        # Convert all to strings (to avoid False becoming a bool 😭)
+        word_data["Word"] = word_data["Word"].apply(str)
+
+        # Convert all to lower case
+        word_data["Word"] = word_data["Word"].str.lower()
+
+        return word_data
+
+    @property
+    def vocabulary(self) -> Set[str]:
+        """
+        The set of words used in the SPP data.
+        """
+        return set(self.dataframe["Word"])
+
+    @classmethod
+    def predictor_name_for_model(cls,
+                                 model: VectorSemanticModel,
+                                 distance_type: DistanceType,
+                                 reference_word: str) -> str:
+
+        unsafe_name = f"{model.name}_{distance_type.name}_{reference_word}"
+
+        # Remove unsafe characters
+        unsafe_name = re.sub(r"[(),=]", "", unsafe_name)
+
+        # Convert hyphens and spaces to underscores
+        safe_name = re.sub(r"[-\s]", "_", unsafe_name)
+
+        return safe_name
+
+    @property
+    def reference_words(self) -> List[str]:
+        return ["concrete", "abstract"]
+
+    def add_model_predictor(self,
+                            model: VectorSemanticModel,
+                            distance_type: DistanceType,
+                            reference_word: str,
+                            memory_map: bool = False):
+        """
+        Adds a data column containing predictors from a semantic model.
+        """
+
+        predictor_name = self.predictor_name_for_model(model, distance_type, reference_word)
+
+        # Skip existing predictors
+        if self.predictor_exists_with_name(predictor_name):
+            logger.info(f"Model predictor '{predictor_name}' already added")
+
+        else:
+            logger.info(f"Adding '{predictor_name}' model predictor")
+
+            # Since we're going to use the model, make sure it's trained
+            model.train(memory_map=memory_map)
+
+            def model_distance_or_none(word):
+                """
+                Get the model distance between a pair of words, or None, if one of the words doesn't exist.
+                """
+                try:
+                    return model.distance_between(word, reference_word, distance_type)
+                except WordNotFoundError as er:
+                    logger.warning(er.message)
+                    return None
+
+            # Add model distance column to data frame
+            model_distance = self.dataframe[["Word"]].apply(model_distance_or_none, axis=1)
+
+            self.dataframe[predictor_name] = model_distance
+
+            # Save in current state
+            if self._save_progress:
+                self._save()
+
+
 class RegressionResult(object):
     """
     The result of a priming regression.

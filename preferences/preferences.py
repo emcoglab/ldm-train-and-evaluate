@@ -143,6 +143,7 @@ class Preferences(object):
     spp_elexicon_csv          = os.path.join(test_dir, "SPP/elexicon/I148613.csv")  # Additional Elexicon predictors csv
 
     # Norms
+    calgary_path_xlsx         = os.path.join(test_dir, "Pexman et al. (2017) concrete:abstract decisions/13428_2016_720_MOESM2_ESM.xlsx")
 
     # TEST RESULTS
     
@@ -152,6 +153,8 @@ class Preferences(object):
     association_results_dir   = os.path.join(results_dir, "association/")
     spp_results_dir           = os.path.join(results_dir, "SPP/")
     spp_path_pickle           = os.path.join(results_dir, "SPP/Hutchinson et al. (2013) SPP.pickle")  # Semantic priming data: pickled version for faster loading
+    calgary_results_dir       = os.path.join(results_dir, "Calgary/")
+    calgary_path_pickle       = os.path.join(results_dir, "Calgary/13428_2016_720_MOESM2_ESM.pickle")
 
     # FIGURES
 
