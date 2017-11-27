@@ -36,21 +36,31 @@ logger = logging.getLogger(__name__)
 
 # Utility functions
 
+def ticklabel_as_percentage(label):
+    label_text = label.get_text()
+    # Need to replace dashes with hyphens to help float conversion work properly
+    label_text = label_text.replace("−", "-")
+    # Some labels may be empty
+    if not label_text:
+        return ""
+    else:
+        return '{:3.0f}%'.format(float(label_text) * 100)
+
+
 def xticks_as_percentages(grid):
     try:
         xtick_labels = grid.axes[0][0].get_xticklabels()
-    # TODO: Figure out what error this would be
-    except:
+    except TypeError:
         xtick_labels = grid.axes[0].get_xticklabels()
-    grid.set_xticklabels(['{:3.0f}%'.format(float(label.get_text()) * 100) for label in xtick_labels])
+    grid.set_xticklabels(list(map(ticklabel_as_percentage, xtick_labels)))
 
 
 def yticks_as_percentages(grid):
     try:
         ytick_labels = grid.axes[0][0].get_yticklabels()
-    except:
+    except TypeError:
         ytick_labels = grid.axes[0].get_yticklabels()
-    grid.set_yticklabels(['{:3.0f}%'.format(float(label.get_text()) * 100) for label in ytick_labels])
+    grid.set_yticklabels(list(map(ticklabel_as_percentage, ytick_labels)))
 
 
 # Specific output graphs
@@ -186,7 +196,7 @@ def model_performance_bar_graphs(results: DataFrame,
 
     figures_dir = os.path.join(figures_base_dir, "model performance bar graphs")
 
-    value_cap = 1e20
+    value_cap = 1e25
 
     seaborn.set_style("ticks")
 
@@ -445,6 +455,11 @@ def compare_param_values_bf(test_results: DataFrame,
     Produces figures for the comparison.
     :param test_results: Test results
     :param parameter_name: The name of the parameter to take. Should be a column name of `test_results`
+    :param bf_statistic_name:
+    :param figures_base_dir:
+    :param key_column_name:
+    :param key_column_values:
+    :param name_prefix:
     :param parameter_values: The possible values the parameter can take
     :param model_name_func: function which takes a row of `test_results` and produces a name for the model.
                             Should produce a name which is the same for each `param_value` of `param_name`, and is
