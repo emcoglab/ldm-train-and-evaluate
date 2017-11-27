@@ -16,42 +16,49 @@ caiwingfield.net
 """
 
 import logging
+import math
 import os
 import pickle
 import re
-import math
-
+from abc import ABCMeta, abstractmethod
 from typing import List, Set
 
 import pandas
 
-from ..model.predict import PredictVectorModel
 from ..model.base import VectorSemanticModel
-from ..utils.maths import DistanceType
+from ..model.predict import PredictVectorModel
 from ..utils.exceptions import WordNotFoundError
+from ..utils.maths import DistanceType
 from ...preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
 
-class SppData(object):
+class RegressionData(metaclass=ABCMeta):
     """
-    Semantic Priming Project data.
+    Regression data.
     """
-
     def __init__(self,
+                 name: str,
+                 pickle_path: str,
+                 results_dir: str,
                  save_progress: bool = True,
                  force_reload:  bool = False):
+
+        self.name = name
+
+        self._pickle_path = pickle_path
+        self._results_dir = results_dir
 
         self._save_progress = save_progress
 
         # self._all_data backs self.dataframe
         # Load data if possible
         if self._could_load and not force_reload:
-            logger.info("Loading previously saved SPP data")
+            logger.info(f"Loading previously saved {name} data")
             self._all_data = self._load()
         else:
-            logger.info("Loading SPP data from source xls file")
+            logger.info(f"Loading {name} data from source xls file")
             self._all_data = self._load_from_source_xls()
 
         assert self._all_data is not None
@@ -63,81 +70,51 @@ class SppData(object):
     def dataframe(self) -> pandas.DataFrame:
         return self._all_data
 
-    @classmethod
-    def _load(cls) -> pandas.DataFrame:
+    def _load(self) -> pandas.DataFrame:
         """
         Load previously saved data.
         """
-        with open(Preferences.spp_path_pickle, mode="rb") as spp_file:
-            return pickle.load(spp_file)
+        with open(self._pickle_path, mode="rb") as pickle_file:
+            return pickle.load(pickle_file)
 
     def _save(self):
         """
         Save and overwrite data.
         """
         assert self._all_data is not None
-        with open(Preferences.spp_path_pickle, mode="wb") as spp_file:
-            pickle.dump(self._all_data, spp_file)
+        with open(self._pickle_path, mode="wb") as pickle_file:
+            pickle.dump(self._all_data, pickle_file)
 
     def export_csv(self):
         """
         Export the current dataframe as a csv.
         """
         assert self._all_data is not None
-        results_csv_path = os.path.join(Preferences.spp_results_dir, "model_predictors.csv")
-        with open(results_csv_path, mode="w", encoding="utf-8") as spp_file:
-            self.dataframe.to_csv(spp_file)
-
-    def export_csv_first_associate_only(self):
-        """
-        Export the current dataframe as a csv, but only rows for the first associate primes.
-        """
-        assert self._all_data is not None
-        results_csv_path = os.path.join(Preferences.spp_results_dir, "model_predictors_first_associate_only.csv")
-        first_assoc_data = self._all_data.query('PrimeType == "first_associate"')
-        with open(results_csv_path, mode="w", encoding="utf-8") as spp_file:
-            first_assoc_data.to_csv(spp_file)
+        results_csv_path = os.path.join(self._results_dir, "model_predictors.csv")
+        with open(results_csv_path, mode="w", encoding="utf-8") as results_file:
+            self.dataframe.to_csv(results_file)
 
     @property
     def _could_load(self) -> bool:
         """
         Whether data has been previously saved.
         """
-        return os.path.isfile(Preferences.spp_path_pickle)
+        return os.path.isfile(self._pickle_path)
 
-    @classmethod
-    def _load_from_source_xls(cls) -> pandas.DataFrame:
+    @abstractmethod
+    def _load_from_source_xls(self) -> pandas.DataFrame:
         """
         Load data from excel file, dealing with errors in source material.
         """
-        xls = pandas.ExcelFile(Preferences.spp_path_xls)
-        prime_target_data = xls.parse("Prime-Target Data")
+        raise NotImplementedError()
 
-        prime_target_data: pandas.DataFrame = prime_target_data.copy()
-
-        # Convert all to strings (to avoid False becoming a bool 😭)
-        prime_target_data["TargetWord"] = prime_target_data["TargetWord"].apply(str)
-        prime_target_data["PrimeWord"] = prime_target_data["PrimeWord"].apply(str)
-        prime_target_data["MatchedPrimeWord"] = prime_target_data["MatchedPrimeWord"].apply(str)
-
-        # Convert all to lower case
-        prime_target_data["TargetWord"] = prime_target_data["TargetWord"].str.lower()
-        prime_target_data["PrimeWord"] = prime_target_data["PrimeWord"].str.lower()
-        prime_target_data["MatchedPrimeWord"] = prime_target_data["MatchedPrimeWord"].str.lower()
-
-        return prime_target_data
-
+    @abstractmethod
     @property
     def vocabulary(self) -> Set[str]:
         """
         The set of words used in the SPP data.
         """
-        vocab: Set[str] = set()
-
-        vocab = vocab.union(set(self.dataframe["PrimeWord"]))
-        vocab = vocab.union(set(self.dataframe["TargetWord"]))
-
-        return vocab
+        raise NotImplementedError()
 
     def missing_words(self, model: VectorSemanticModel) -> List[str]:
         """
@@ -160,6 +137,90 @@ class SppData(object):
         Whether the named predictor is already added.
         """
         return self.dataframe.keys().contains(predictor_name)
+
+    def add_word_keyed_predictor(self, predictor: pandas.DataFrame, key_name: str, predictor_name: str):
+        """
+        Adds a word-keyed predictor column.
+        :param predictor: Should have a column named `key_name`, used to left-join with the main dataframe, and a column named `predictor_name`, containing the actual values..
+        :param predictor_name:
+        :param key_name:
+        :return:
+        """
+
+        # Skip the predictor if at already exists
+        if self.predictor_exists_with_name(predictor_name):
+            logger.info(f"Predictor '{predictor_name} already exists")
+            return
+
+        self._all_data = pandas.merge(self.dataframe, predictor, on=key_name, how="left")
+
+        # Save in current state
+        if self._save_progress:
+            self._save()
+
+    def add_word_pair_keyed_predictor(self, predictor: pandas.DataFrame, merge_on):
+        """
+        Adds a predictor column keyed from a prime-target pair.
+        """
+
+        self._all_data = pandas.merge(self.dataframe, predictor, on=merge_on, how="left")
+
+        # Save in current state
+        if self._save_progress:
+            self._save()
+
+
+class SppData(RegressionData):
+    """
+    Semantic Priming Project data.
+    """
+
+    def __init__(self,
+                 save_progress: bool = True,
+                 force_reload:  bool = False):
+        super().__init__(name="SPP",
+                         pickle_path=Preferences.spp_path_pickle,
+                         results_dir=Preferences.spp_results_dir,
+                         save_progress=save_progress,
+                         force_reload=force_reload)
+
+    def export_csv_first_associate_only(self):
+        """
+        Export the current dataframe as a csv, but only rows for the first associate primes.
+        """
+        assert self._all_data is not None
+        results_csv_path = os.path.join(self._results_dir, "model_predictors_first_associate_only.csv")
+        first_assoc_data = self._all_data.query('PrimeType == "first_associate"')
+        with open(results_csv_path, mode="w", encoding="utf-8") as results_file:
+            first_assoc_data.to_csv(results_file)
+
+    @classmethod
+    def _load_from_source_xls(cls) -> pandas.DataFrame:
+        xls = pandas.ExcelFile(Preferences.spp_path_xls)
+        prime_target_data = xls.parse("Prime-Target Data")
+
+        prime_target_data: pandas.DataFrame = prime_target_data.copy()
+
+        # Convert all to strings (to avoid False becoming a bool 😭)
+        prime_target_data["TargetWord"] = prime_target_data["TargetWord"].apply(str)
+        prime_target_data["PrimeWord"] = prime_target_data["PrimeWord"].apply(str)
+        prime_target_data["MatchedPrimeWord"] = prime_target_data["MatchedPrimeWord"].apply(str)
+
+        # Convert all to lower case
+        prime_target_data["TargetWord"] = prime_target_data["TargetWord"].str.lower()
+        prime_target_data["PrimeWord"] = prime_target_data["PrimeWord"].str.lower()
+        prime_target_data["MatchedPrimeWord"] = prime_target_data["MatchedPrimeWord"].str.lower()
+
+        return prime_target_data
+
+    @property
+    def vocabulary(self) -> Set[str]:
+        vocab: Set[str] = set()
+
+        vocab = vocab.union(set(self.dataframe["PrimeWord"]))
+        vocab = vocab.union(set(self.dataframe["TargetWord"]))
+
+        return vocab
 
     @classmethod
     def predictor_name_for_model(cls,
@@ -243,42 +304,8 @@ class SppData(object):
             if self._save_progress:
                 self._save()
 
-    def add_word_keyed_predictor(self, predictor: pandas.DataFrame, key_name: str, predictor_name: str):
-        """
-        Adds a word-keyed predictor column.
-        :param predictor: Should have a column named `key_name`, used to left-join with the main dataframe, and a column named `predictor_name`, containing the actual values..
-        :param predictor_name:
-        :param key_name:
-        :return:
-        """
 
-        # Skip the predictor if at already exists
-        if self.predictor_exists_with_name(predictor_name):
-            logger.info(f"Predictor '{predictor_name} already exists")
-            return
-
-        self._all_data = pandas.merge(self.dataframe, predictor, on=key_name, how="left")
-
-        # Save in current state
-        if self._save_progress:
-            self._save()
-
-    def add_word_pair_keyed_predictor(self, predictor: pandas.DataFrame, merge_on=None):
-        """
-        Adds a predictor column keyed from a prime-target pair.
-        """
-
-        if merge_on is None:
-            merge_on = ["PrimeWord", "TargetWord"]
-
-        self._all_data = pandas.merge(self.dataframe, predictor, on=merge_on, how="left")
-
-        # Save in current state
-        if self._save_progress:
-            self._save()
-
-
-class SppRegressionResult(object):
+class RegressionResult(object):
     """
     The result of a priming regression.
     """

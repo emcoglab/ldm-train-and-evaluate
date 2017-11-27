@@ -17,7 +17,7 @@ caiwingfield.net
 
 import unittest
 
-from ..core.evaluation.priming import SppData
+from ..core.evaluation.regression import SppData
 
 
 class TestSppData(unittest.TestCase):

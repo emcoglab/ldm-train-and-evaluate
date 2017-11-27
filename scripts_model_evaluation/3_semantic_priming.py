@@ -24,7 +24,7 @@ import pandas
 import statsmodels.formula.api as sm
 
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
-from ..core.evaluation.priming import SppData, SppRegressionResult
+from ..core.evaluation.regression import SppData, RegressionResult
 from ..core.model.base import VectorSemanticModel
 from ..core.model.count import LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
 from ..core.model.predict import SkipGramModel, CbowModel
@@ -54,7 +54,7 @@ def save_wordlist(vocab: Set[str]):
     """
     Saves the vocab to a file
     """
-    wordlist_path = os.path.join(Preferences.spp_results_dir, 'spp_wordlist.txt')
+    wordlist_path = os.path.join(Preferences.spp_results_dir, 'wordlist.txt')
     separator = " "
 
     logger.info(f"Saving SPP word list to {wordlist_path}.")
@@ -66,7 +66,7 @@ def save_wordlist(vocab: Set[str]):
         wordlist_file.write("\n")
 
 
-def add_all_model_predictors(spp_data):
+def add_all_model_predictors(spp_data: SppData):
     for corpus_metadata in Preferences.source_corpus_metas:
 
         token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
@@ -87,6 +87,7 @@ def add_all_model_predictors(spp_data):
                 for distance_type in DistanceType:
                     spp_data.add_model_predictor(model, distance_type, for_priming_effect=False, memory_map=True)
                     spp_data.add_model_predictor(model, distance_type, for_priming_effect=True, memory_map=True)
+                model.untrain()
 
             del count_models
 
@@ -103,6 +104,7 @@ def add_all_model_predictors(spp_data):
                     for distance_type in DistanceType:
                         spp_data.add_model_predictor(model, distance_type, for_priming_effect=False, memory_map=True)
                         spp_data.add_model_predictor(model, distance_type, for_priming_effect=True, memory_map=True)
+                    model.untrain()
 
                 del predict_models
 
@@ -166,7 +168,7 @@ def regression_wrapper(spp_data: SppData):
     separator = ","
     with open(results_path, mode="w", encoding="utf-8") as results_file:
         # Print header
-        results_file.write(separator.join(SppRegressionResult.headings()) + "\n")
+        results_file.write(separator.join(RegressionResult.headings()) + "\n")
         # Print results
         for result in results:
             results_file.write(separator.join(result.fields) + '\n')
@@ -194,7 +196,7 @@ def run_single_model_regression(all_data: pandas.DataFrame,
         formula=model_formula,
         data=all_data).fit()
 
-    return SppRegressionResult(
+    return RegressionResult(
         dv_name,
         model,
         distance_type,
@@ -213,7 +215,7 @@ def run_all_model_regressions(all_data: pandas.DataFrame,
                               baseline_variable_names: List[str],
                               for_priming_effect: bool):
 
-    results : List[SppRegressionResult] = []
+    results : List[RegressionResult] = []
 
     for corpus_metadata in Preferences.source_corpus_metas:
 
