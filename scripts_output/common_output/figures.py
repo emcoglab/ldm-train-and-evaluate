@@ -354,11 +354,6 @@ def score_vs_radius_line_graph(results: DataFrame,
         margin_titles=True,
         legend_out=True,
         size=3.5)
-    grid.map(pyplot.plot, "Window radius", test_statistic_name)
-
-    # Format yticks as percentages
-    if ticks_as_percenages:
-        yticks_as_percentages(grid)
 
     if ylim is not None:
         grid.set(ylim=ylim)
@@ -368,6 +363,12 @@ def score_vs_radius_line_graph(results: DataFrame,
         grid.map(pyplot.axhline, y=BF_THRESHOLD,   linestyle="dotted", marker="", color="xkcd:bright red")
         grid.map(pyplot.axhline, y=1/BF_THRESHOLD, linestyle="dotted", marker="", color="xkcd:bright red")
         grid.set(yscale="log")
+
+    grid.map(pyplot.plot, "Window radius", test_statistic_name)
+
+    # Format yticks as percentages
+    if ticks_as_percenages:
+        yticks_as_percentages(grid)
 
     grid.add_legend(bbox_to_anchor=(1.15, 0.5))
 
@@ -403,6 +404,7 @@ def score_vs_embedding_size_line_graph(results: DataFrame,
 
         seaborn.set_style("ticks")
         seaborn.set_context(context="paper", font_scale=1)
+
         grid = seaborn.FacetGrid(
             filtered_df,
             row=key_column_name, col="Corpus",
@@ -412,15 +414,15 @@ def score_vs_embedding_size_line_graph(results: DataFrame,
             legend_out=True
         )
 
-        grid.map(pyplot.plot, "Embedding size", test_statistic_name, marker="o")
+        if ylim is not None:
+            grid.set(ylim=ylim)
 
         if additional_h_line_at is not None:
             grid.map(pyplot.axhline, y=additional_h_line_at, ls=":", c=".5", label="")
 
-        grid.set(xticks=Preferences.predict_embedding_sizes)
+        grid.map(pyplot.plot, "Embedding size", test_statistic_name, marker="o")
 
-        if ylim is not None:
-            grid.set(ylim=ylim)
+        grid.set(xticks=Preferences.predict_embedding_sizes)
 
         if ticks_as_percentages:
             yticks_as_percentages(grid)
