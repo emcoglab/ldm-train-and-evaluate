@@ -127,7 +127,7 @@ def regression_wrapper(calgary_data: CalgaryData):
         # Computed
         # "concrete_OrthLD",
         # "abstract_OrthLD",
-        "minimum_reference_OrthLD"
+        # "minimum_reference_OrthLD"
     ]
 
     results = run_all_model_regressions(calgary_data.dataframe, dependent_variable_names, baseline_variable_names)
