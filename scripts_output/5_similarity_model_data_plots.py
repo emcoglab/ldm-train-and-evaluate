@@ -51,7 +51,7 @@ def main():
     ]
 
     # Assemble models
-    models: List[DistributionalSemanticModel]
+    models: List[DistributionalSemanticModel] = []
     for corpus_metadata in Preferences.source_corpus_metas:
         token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
         freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
@@ -81,15 +81,18 @@ def main():
                 # Load appropriate data
                 combined_transcript: DataFrame = DataFrame()
                 for test in test_battery:
-                    transcript = DataFrame.from_csv(path.join(Preferences.association_results_dir, f"transcript test={test.name} model={model.name} distance={distance_type.name}"))
+                    transcript = DataFrame.from_csv(
+                        path=path.join(Preferences.association_results_dir, "transcripts", f"transcript test={test.name} model={model.name} distance={distance_type.name}.csv"),
+                        header=0, index_col=None)
                     transcript["Test name"] = test.name
 
                     combined_transcript = combined_transcript.append(transcript)
 
                 # Make the plot
+                logger.info(f"Making {arbitrary_distinction} model-data plot for {model.name} {distance_type}")
                 model_data_scatter_plot(
                     transcript=combined_transcript,
-                    name_prefix=arbitrary_distinction,
+                    name_prefix=f"{arbitrary_distinction} {model.name} {distance_type.name}",
                     figures_dir=figures_dir
                 )
 

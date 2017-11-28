@@ -135,7 +135,7 @@ class AssociationTester(object):
                 distance))
 
         # Save transcript
-        transcript_csv_path = path.join(Preferences.association_results_dir, f"transcript test={test.name} model={model.name} distance={distance_type.name}")
+        transcript_csv_path = path.join(Preferences.association_results_dir, "transcripts", f"transcript test={test.name} model={model.name} distance={distance_type.name}.csv")
         DataFrame.from_dict({
             "Word 1"         : [j.word_1 for j in human_judgements],
             "Word 2"         : [j.word_2 for j in human_judgements],
