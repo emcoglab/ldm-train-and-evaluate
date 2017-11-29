@@ -114,7 +114,7 @@ def regression_wrapper(calgary_data: CalgaryData):
 
     dependent_variable_names = [
         "zRTclean_mean",
-        "ACC"
+        # "ACC"
     ]
 
     baseline_variable_names = [

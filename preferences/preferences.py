@@ -144,7 +144,7 @@ class Preferences(object):
 
     # Norms
     calgary_path_xlsx         = os.path.join(test_dir, "Calgary", "13428_2016_720_MOESM2_ESM.xlsx")
-    calgary_elexicon_csv      = os.path.join(test_dir, "Calgary", "elexicon", "I148613.csv")
+    calgary_elexicon_csv      = os.path.join(test_dir, "Calgary", "elexicon", "I150145.csv")
 
     # TEST RESULTS
     

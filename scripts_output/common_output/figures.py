@@ -596,10 +596,6 @@ def compare_param_values_bf(test_results: DataFrame,
     all_win_counts = DataFrame(win_counts_all_tests, columns=[key_column_name, parameter_name, "Number of times (joint-)best"])
     all_win_fractions = DataFrame(win_fraction_all_tests, columns=[key_column_name, parameter_name, "Fraction of times (joint-)best"])
 
-    # Save values to csv
-    all_win_counts.to_csv(os.path.join(Preferences.summary_dir, f"{name_prefix} {parameter_name.lower()} win counts.csv"), index=False)
-    all_win_fractions.to_csv(os.path.join(Preferences.summary_dir, f"{name_prefix} {parameter_name.lower()} win fractions.csv"), index=False)
-
     # Bar graph for all DVs
     seaborn.set_style("ticks")
     seaborn.set_context(context="paper", font_scale=1)
