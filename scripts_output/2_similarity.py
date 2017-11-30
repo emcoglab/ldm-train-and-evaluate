@@ -163,46 +163,46 @@ def main():
                 name_prefix=f"{artificial_distinction} ({correlation_type.name})"
             )
 
+            compare_param_values_bf(
+                parameter_name="Window radius",
+                test_results=results_df[results_df["Correlation type"] == correlation_type.name],
+                bf_statistic_name="B10 approx",
+                figures_base_dir=figures_base_dir,
+                name_prefix=f"{artificial_distinction} ({correlation_type.name})",
+                key_column_name="Test name",
+                key_column_values=test_names,
+                parameter_values=Preferences.window_radii,
+                model_name_func=model_name_without_radius
+            )
+            compare_param_values_bf(
+                parameter_name="Embedding size",
+                test_results=results_df[results_df["Correlation type"] == correlation_type.name],
+                bf_statistic_name="B10 approx",
+                figures_base_dir=figures_base_dir,
+                name_prefix=f"{artificial_distinction} ({correlation_type.name})",
+                key_column_name="Test name",
+                key_column_values=test_names,
+                parameter_values=Preferences.predict_embedding_sizes,
+                model_name_func=model_name_without_embedding_size,
+                row_filter=predict_models_only
+            )
+            compare_param_values_bf(
+                parameter_name="Distance type",
+                test_results=results_df[results_df["Correlation type"] == correlation_type.name],
+                bf_statistic_name="B10 approx",
+                figures_base_dir=figures_base_dir,
+                name_prefix=f"{artificial_distinction} ({correlation_type.name})",
+                key_column_name="Test name",
+                key_column_values=test_names,
+                parameter_values=[d.name for d in DistanceType],
+                model_name_func=model_name_without_distance
+            )
+
         pearson_vs_spearman_scores(
             results=results_df,
             figures_base_dir=figures_base_dir,
             test_names=test_names,
             name_prefix=artificial_distinction
-        )
-
-        compare_param_values_bf(
-            parameter_name="Window radius",
-            test_results=results_df,
-            bf_statistic_name="B10 approx",
-            figures_base_dir=figures_base_dir,
-            name_prefix=artificial_distinction,
-            key_column_name="Test name",
-            key_column_values=test_names,
-            parameter_values=Preferences.window_radii,
-            model_name_func=model_name_without_radius
-        )
-        compare_param_values_bf(
-            parameter_name="Embedding size",
-            test_results=results_df,
-            bf_statistic_name="B10 approx",
-            figures_base_dir=figures_base_dir,
-            name_prefix=artificial_distinction,
-            key_column_name="Test name",
-            key_column_values=test_names,
-            parameter_values=Preferences.predict_embedding_sizes,
-            model_name_func=model_name_without_embedding_size,
-            row_filter=predict_models_only
-        )
-        compare_param_values_bf(
-            parameter_name="Distance type",
-            test_results=results_df,
-            bf_statistic_name="B10 approx",
-            figures_base_dir=figures_base_dir,
-            name_prefix=artificial_distinction,
-            key_column_name="Test name",
-            key_column_values=test_names,
-            parameter_values=[d.name for d in DistanceType],
-            model_name_func=model_name_without_distance
         )
 
 
