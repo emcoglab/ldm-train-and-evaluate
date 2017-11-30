@@ -395,9 +395,7 @@ class CalgaryData(RegressionData):
                     return None
 
             # Add model distance column to data frame
-            model_distance = self.dataframe[["Word"]].apply(min_model_distance_or_none, axis=1)
-
-            self.dataframe[predictor_name] = model_distance
+            self.dataframe[predictor_name] = self.dataframe["Word"].apply(min_model_distance_or_none)
 
             # Save in current state
             if self._save_progress:

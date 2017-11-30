@@ -239,7 +239,7 @@ def add_lexical_predictors(calgary_data: CalgaryData):
     elexicon_dataframe['Word'] = elexicon_dataframe['Word'].str.lower()
 
     predictors_to_add = [
-        "Length"
+        "Length",
         "LgSUBTLWF",
         "OLD",
         "PLD",
@@ -278,7 +278,7 @@ def add_lexical_predictors(calgary_data: CalgaryData):
 
     # Add the minimum of the OLDs to the reference words
 
-    min_old_column = calgary_data.dataframe[["Word"].extend(ref_levenshtein_column_names)].copy()
+    min_old_column = calgary_data.dataframe[["Word"] + ref_levenshtein_column_names].copy()
     min_old_column["minimum_reference_OrthLD"] = min_old_column[ref_levenshtein_column_names].min(axis=1)
 
     calgary_data.add_word_keyed_predictor(min_old_column, key_name="Word", predictor_name="minimum_reference_OrthLD")

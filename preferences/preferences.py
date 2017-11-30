@@ -143,8 +143,8 @@ class Preferences(object):
     spp_elexicon_csv          = os.path.join(test_dir, "SPP", "elexicon", "I148613.csv")  # Additional Elexicon predictors csv
 
     # Norms
-    calgary_path_xlsx         = os.path.join(test_dir, "Calgary", "13428_2016_720_MOESM2_ESM.xlsx")
-    calgary_elexicon_csv      = os.path.join(test_dir, "Calgary", "elexicon", "I150145.csv")
+    calgary_path_xlsx         = os.path.join(test_dir, "Calgary", "13428_2016_720_MOESM2_ESM BrEng.xlsx")
+    calgary_elexicon_csv      = os.path.join(test_dir, "Calgary", "elexicon", "I150188.csv")
 
     # TEST RESULTS
     
