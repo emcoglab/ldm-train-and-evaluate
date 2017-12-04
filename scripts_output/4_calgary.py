@@ -91,7 +91,7 @@ def main():
             bayes_factor_decorations=False,
             distance_type=distance_type,
             figures_base_dir=figures_base_dir,
-            # ylim=(0, None)
+            ylim=(0, None)
         )
         score_vs_radius_line_graph(
             results=graphs_df,

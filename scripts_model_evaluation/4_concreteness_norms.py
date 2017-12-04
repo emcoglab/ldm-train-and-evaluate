@@ -155,6 +155,9 @@ def run_single_model_regression_min_distance(all_data: DataFrame,
 
     model_predictor_name = CalgaryData.predictor_name_for_model_min_distance(model, distance_type)
 
+    # drop rows with missing data in any relevant column, as this may vary from column to column
+    regression_data = all_data[[dv_name] + baseline_variable_names + [model_predictor_name]].dropna(how="any")
+
     logger.info(f"Running {dv_name} minimum-distance regressions for model {model_predictor_name}")
 
     # Formulae
@@ -163,10 +166,10 @@ def run_single_model_regression_min_distance(all_data: DataFrame,
 
     baseline_regression = sm.ols(
         formula=baseline_formula,
-        data=all_data).fit()
+        data=regression_data).fit()
     model_regression = sm.ols(
         formula=model_formula,
-        data=all_data).fit()
+        data=regression_data).fit()
 
     return RegressionResult(
         dv_name,
@@ -191,6 +194,9 @@ def run_single_model_regression_fixed_distance(all_data: DataFrame,
 
     model_predictor_name = CalgaryData.predictor_name_for_model_fixed_distance(model, distance_type, reference_word)
 
+    # drop rows with missing data in any relevant column, as this may vary from column to column
+    regression_data = all_data[[dv_name] + baseline_variable_names + [model_predictor_name]].dropna(how="any")
+
     logger.info(f"Running {dv_name} fixed-distance regressions for model {model_predictor_name} and {reference_word}")
 
     # Formulae
@@ -199,10 +205,10 @@ def run_single_model_regression_fixed_distance(all_data: DataFrame,
 
     baseline_regression = sm.ols(
         formula=baseline_formula,
-        data=all_data).fit()
+        data=regression_data).fit()
     model_regression = sm.ols(
         formula=model_formula,
-        data=all_data).fit()
+        data=regression_data).fit()
 
     return RegressionResult(
         dv_name,

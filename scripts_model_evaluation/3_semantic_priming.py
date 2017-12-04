@@ -183,6 +183,9 @@ def run_single_model_regression(all_data: pandas.DataFrame,
 
     model_predictor_name = SppData.predictor_name_for_model(model, distance_type, for_priming_effect)
 
+    # drop rows with missing data in any relevant column, as this may vary from column to column
+    regression_data = all_data[[dv_name] + baseline_variable_names + [model_predictor_name]].dropna(how="any")
+
     logger.info(f"Running {dv_name} regressions for model {model_predictor_name}")
 
     # Formulae
@@ -191,10 +194,10 @@ def run_single_model_regression(all_data: pandas.DataFrame,
 
     baseline_regression = sm.ols(
         formula=baseline_formula,
-        data=all_data).fit()
+        data=regression_data).fit()
     model_regression = sm.ols(
         formula=model_formula,
-        data=all_data).fit()
+        data=regression_data).fit()
 
     return RegressionResult(
         dv_name,

@@ -153,10 +153,12 @@ class AssociationTester(object):
                 # Estimate Bayes factor from regression, as advised in
                 # Jarosz & Wiley (2014) "What Are the Odds? A Practical Guide to Computing and Reporting Bayes Factors".
                 # Journal of Problem Solving 7. doi:10.7771/1932-6246.1167. p. 5.
-                data = DataFrame.from_dict({
+                data: DataFrame = DataFrame.from_dict({
                     "human": [j.association_strength for j in human_judgements],
                     "model": [j.association_strength for j in model_judgements]
                 })
+                # Remove rows with missing results, as they wouldn't be missing in the baseline case.
+                data = data.dropna(how="any")
                 # Compare variance explained (correlation squared) with two predictors versus one predictor (intercept)
                 model_bic    = sm.ols(formula="human ~ model", data=data).fit().bic
                 baseline_bic = sm.ols(formula="human ~ 1",     data=data).fit().bic
@@ -174,6 +176,8 @@ class AssociationTester(object):
                     "human": scipy.stats.rankdata([j.association_strength for j in human_judgements]),
                     "model": scipy.stats.rankdata([j.association_strength for j in model_judgements])
                 })
+                # Remove rows with missing results, as they wouldn't be missing in the baseline case.
+                data = data.dropna(how="any")
                 model_bic    = sm.ols(formula="human ~ model", data=data).fit().bic
                 baseline_bic = sm.ols(formula="human ~ 1",     data=data).fit().bic
                 b10_approx = numpy.exp((baseline_bic - model_bic) / 2)
