@@ -370,11 +370,27 @@ class CalgaryData(RegressionData):
         return set(self.dataframe["Word"])
 
     @classmethod
-    def predictor_name_for_model(cls,
-                                 model: VectorSemanticModel,
-                                 distance_type: DistanceType) -> str:
+    def predictor_name_for_model_min_distance(cls,
+                                              model: VectorSemanticModel,
+                                              distance_type: DistanceType) -> str:
 
-        unsafe_name = f"{model.name}_{distance_type.name}"
+        unsafe_name = f"{model.name}_{distance_type.name}_min_distance"
+
+        # Remove unsafe characters
+        unsafe_name = re.sub(r"[(),=]", "", unsafe_name)
+
+        # Convert hyphens and spaces to underscores
+        safe_name = re.sub(r"[-\s]", "_", unsafe_name)
+
+        return safe_name
+
+    @classmethod
+    def predictor_name_for_model_fixed_distance(cls,
+                                                model: VectorSemanticModel,
+                                                distance_type: DistanceType,
+                                                reference_word: str) -> str:
+
+        unsafe_name = f"{model.name}_{distance_type.name}_{reference_word}_distance"
 
         # Remove unsafe characters
         unsafe_name = re.sub(r"[(),=]", "", unsafe_name)
@@ -388,19 +404,20 @@ class CalgaryData(RegressionData):
     def reference_words(self) -> List[str]:
         return ["concrete", "abstract"]
 
-    def add_model_predictor(self,
-                            model: VectorSemanticModel,
-                            distance_type: DistanceType,
-                            memory_map: bool = False):
+    def add_model_predictor_min_distance(self,
+                                         model: VectorSemanticModel,
+                                         distance_type: DistanceType,
+                                         memory_map: bool = False):
         """
         Adds a data column containing predictors from a semantic model.
         """
 
-        predictor_name = self.predictor_name_for_model(model, distance_type)
+        predictor_name = self.predictor_name_for_model_min_distance(model, distance_type)
 
         # Skip existing predictors
         if self.predictor_exists_with_name(predictor_name):
             logger.info(f"Model predictor '{predictor_name}' already added")
+            return
 
         else:
             logger.info(f"Adding '{predictor_name}' model predictor")
@@ -421,6 +438,46 @@ class CalgaryData(RegressionData):
 
             # Add model distance column to data frame
             self.dataframe[predictor_name] = self.dataframe["Word"].apply(min_model_distance_or_none)
+
+            # Save in current state
+            if self._save_progress:
+                self._save_pickle()
+
+    def add_model_predictor_fixed_distance(self,
+                                           model: VectorSemanticModel,
+                                           distance_type: DistanceType,
+                                           reference_word: str,
+                                           memory_map: bool = False):
+        """
+        Adds a data column containing predictors from a semantic model.
+        """
+
+        predictor_name = f"{self.predictor_name_for_model_fixed_distance(model, distance_type, reference_word)}"
+
+        # Skip existing predictors
+        if self.predictor_exists_with_name(predictor_name):
+            logger.info(f"Model predictor '{predictor_name}' already added")
+            return
+
+        else:
+            logger.info(f"Adding '{predictor_name}' model predictor")
+
+            # Since we're going to use the model, make sure it's trained
+            model.train(memory_map=memory_map)
+
+            def fixed_model_distance_or_none(word):
+                """
+                Get the model distance between a pair of words, or None, if one of the words doesn't exist.
+                """
+                try:
+                    reference_distance = model.distance_between(word, reference_word, distance_type)
+                    return reference_distance
+                except WordNotFoundError as er:
+                    logger.warning(er.message)
+                    return None
+
+            # Add model distance column to data frame
+            self.dataframe[predictor_name] = self.dataframe["Word"].apply(fixed_model_distance_or_none)
 
             # Save in current state
             if self._save_progress:

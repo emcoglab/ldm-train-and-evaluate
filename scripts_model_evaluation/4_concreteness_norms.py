@@ -84,7 +84,9 @@ def add_all_model_predictors(calgary_data: CalgaryData):
 
             for model in count_models:
                 for distance_type in DistanceType:
-                    calgary_data.add_model_predictor(model, distance_type, memory_map=True)
+                    calgary_data.add_model_predictor_min_distance(model, distance_type, memory_map=True)
+                    calgary_data.add_model_predictor_fixed_distance(model, distance_type, reference_word="concrete", memory_map=True)
+                    calgary_data.add_model_predictor_fixed_distance(model, distance_type, reference_word="abstract", memory_map=True)
                 model.untrain()
 
             del count_models
@@ -100,7 +102,9 @@ def add_all_model_predictors(calgary_data: CalgaryData):
 
                 for model in predict_models:
                     for distance_type in DistanceType:
-                        calgary_data.add_model_predictor(model, distance_type, memory_map=True)
+                        calgary_data.add_model_predictor_min_distance(model, distance_type, memory_map=True)
+                        calgary_data.add_model_predictor_fixed_distance(model, distance_type, reference_word="concrete", memory_map=True)
+                        calgary_data.add_model_predictor_fixed_distance(model, distance_type, reference_word="abstract", memory_map=True)
                     model.untrain()
 
                 del predict_models
@@ -143,15 +147,51 @@ def regression_wrapper(calgary_data: CalgaryData):
             results_file.write(separator.join(result.fields) + '\n')
 
 
-def run_single_model_regression(all_data: DataFrame,
-                                distance_type: DistanceType,
-                                dv_name: str,
-                                model: VectorSemanticModel,
-                                baseline_variable_names: List[str]):
+def run_single_model_regression_min_distance(all_data: DataFrame,
+                                             distance_type: DistanceType,
+                                             dv_name: str,
+                                             model: VectorSemanticModel,
+                                             baseline_variable_names: List[str]):
 
-    model_predictor_name = CalgaryData.predictor_name_for_model(model, distance_type)
+    model_predictor_name = CalgaryData.predictor_name_for_model_min_distance(model, distance_type)
 
-    logger.info(f"Running {dv_name} regressions for model {model_predictor_name}")
+    logger.info(f"Running {dv_name} minimum-distance regressions for model {model_predictor_name}")
+
+    # Formulae
+    baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
+    model_formula = f"{baseline_formula} + {model_predictor_name}"
+
+    baseline_regression = sm.ols(
+        formula=baseline_formula,
+        data=all_data).fit()
+    model_regression = sm.ols(
+        formula=model_formula,
+        data=all_data).fit()
+
+    return RegressionResult(
+        dv_name,
+        model,
+        distance_type,
+        baseline_regression.rsquared,
+        baseline_regression.bic,
+        model_regression.rsquared,
+        model_regression.bic,
+        model_regression.tvalues[model_predictor_name],
+        model_regression.pvalues[model_predictor_name],
+        model_regression.df_resid
+    )
+
+
+def run_single_model_regression_fixed_distance(all_data: DataFrame,
+                                               distance_type: DistanceType,
+                                               dv_name: str,
+                                               model: VectorSemanticModel,
+                                               reference_word: str,
+                                               baseline_variable_names: List[str]):
+
+    model_predictor_name = CalgaryData.predictor_name_for_model_fixed_distance(model, distance_type, reference_word)
+
+    logger.info(f"Running {dv_name} fixed-distance regressions for model {model_predictor_name} and {reference_word}")
 
     # Formulae
     baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
@@ -203,7 +243,11 @@ def run_all_model_regressions(all_data: DataFrame,
             for model in count_models:
                 for distance_type in DistanceType:
                     for dv_name in dependent_variable_names:
-                        result = run_single_model_regression(all_data, distance_type, dv_name, model, baseline_variable_names)
+                        result = run_single_model_regression_min_distance(all_data, distance_type, dv_name, model, baseline_variable_names)
+                        results.append(result)
+                        result = run_single_model_regression_fixed_distance(all_data, distance_type, dv_name, model, "concrete", baseline_variable_names)
+                        results.append(result)
+                        result = run_single_model_regression_fixed_distance(all_data, distance_type, dv_name, model, "abstract", baseline_variable_names)
                         results.append(result)
 
                 # release memory
@@ -222,7 +266,11 @@ def run_all_model_regressions(all_data: DataFrame,
                 for model in predict_models:
                     for distance_type in DistanceType:
                         for dv_name in dependent_variable_names:
-                            result = run_single_model_regression(all_data, distance_type, dv_name, model, baseline_variable_names)
+                            result = run_single_model_regression_min_distance(all_data, distance_type, dv_name, model, baseline_variable_names)
+                            results.append(result)
+                            result = run_single_model_regression_fixed_distance(all_data, distance_type, dv_name, model, "concrete", baseline_variable_names)
+                            results.append(result)
+                            result = run_single_model_regression_fixed_distance(all_data, distance_type, dv_name, model, "abstract", baseline_variable_names)
                             results.append(result)
 
                     # release memory
