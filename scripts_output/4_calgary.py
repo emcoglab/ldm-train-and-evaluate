@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 DV_NAMES = [
     "zRTclean_mean",
-    "ACC"
+    # "ACC"
 ]
 
 
@@ -48,7 +48,6 @@ figures_base_dir = os.path.join(Preferences.figures_dir, "concreteness")
 def main():
 
     regression_results = load_data()
-    regression_results = add_model_category_column(regression_results)
 
     # Add rsquared increase column
     regression_results["R-squared increase"] = regression_results["Model R-squared"] - regression_results["Baseline R-squared"]
@@ -92,7 +91,7 @@ def main():
             bayes_factor_decorations=False,
             distance_type=distance_type,
             figures_base_dir=figures_base_dir,
-            ylim=(0, None)
+            # ylim=(0, None)
         )
         score_vs_radius_line_graph(
             results=graphs_df,
@@ -284,7 +283,7 @@ def load_data() -> DataFrame:
     """
     Load a DataFrame from a collection of CSV fragments.
     """
-    results_dir = Preferences.spp_results_dir
+    results_dir = Preferences.calgary_results_dir
     separator = ","
 
     with open(os.path.join(results_dir, "regression.csv"), mode="r", encoding="utf-8") as regression_file:

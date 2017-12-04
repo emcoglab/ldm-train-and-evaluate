@@ -119,7 +119,7 @@ def regression_wrapper(calgary_data: CalgaryData):
 
     baseline_variable_names = [
         # Elexicon
-        "elex_length",
+        "elex_Length",
         "elex_LgSUBTLWF",
         "elex_OLD",
         "elex_PLD",
@@ -271,15 +271,17 @@ def add_lexical_predictors(calgary_data: CalgaryData):
         else:
             logger.info(f"Adding {reference_word} Levenshtein-distance predictor to Calgary data.")
 
-            ref_old_column = calgary_data.dataframe[["Word"]].copy()
-            ref_old_column[levenshtein_column_name] = ref_old_column[["Word"]].apply(levenshtein_distance_reference(reference_word), axis=1)
+            ref_old_predictor = calgary_data.dataframe[["Word"]].copy()
+            ref_old_predictor[levenshtein_column_name] = ref_old_predictor["Word"].apply(levenshtein_distance_reference(reference_word))
 
-            calgary_data.add_word_keyed_predictor(ref_old_column, key_name="Word", predictor_name=levenshtein_column_name)
+            calgary_data.add_word_keyed_predictor(ref_old_predictor, key_name="Word", predictor_name=levenshtein_column_name)
 
     # Add the minimum of the OLDs to the reference words
 
     min_old_column = calgary_data.dataframe[["Word"] + ref_levenshtein_column_names].copy()
     min_old_column["minimum_reference_OrthLD"] = min_old_column[ref_levenshtein_column_names].min(axis=1)
+    # Take only column we want to actually add, plus the merge key
+    min_old_column = min_old_column[["Word", "minimum_reference_OrthLD"]]
 
     calgary_data.add_word_keyed_predictor(min_old_column, key_name="Word", predictor_name="minimum_reference_OrthLD")
 

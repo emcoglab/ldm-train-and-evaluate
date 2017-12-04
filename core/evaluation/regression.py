@@ -57,6 +57,9 @@ class RegressionData(metaclass=ABCMeta):
         if self._could_load and not force_reload:
             logger.info(f"Loading previously saved {name} data")
             self._all_data = self._load()
+        elif self._could_load_csv and not force_reload:
+            logger.warning(f"Could not find previously saved data, attempting to rebuild from csv")
+            self._all_data = self._load_from_csv()
         else:
             logger.info(f"Loading {name} data from source xls file")
             self._all_data = self._load_from_source_xls()
@@ -64,7 +67,7 @@ class RegressionData(metaclass=ABCMeta):
         assert self._all_data is not None
 
         if self._save_progress:
-            self._save()
+            self._save_pickle()
 
     @property
     def dataframe(self) -> pandas.DataFrame:
@@ -77,7 +80,7 @@ class RegressionData(metaclass=ABCMeta):
         with open(self._pickle_path, mode="rb") as pickle_file:
             return pickle.load(pickle_file)
 
-    def _save(self):
+    def _save_pickle(self):
         """
         Save and overwrite data.
         """
@@ -85,14 +88,29 @@ class RegressionData(metaclass=ABCMeta):
         with open(self._pickle_path, mode="wb") as pickle_file:
             pickle.dump(self._all_data, pickle_file)
 
+    @property
+    def _csv_path(self):
+        """
+        The filename of the exported CSV.
+        """
+        return os.path.join(self._results_dir, "model_predictors.csv")
+
     def export_csv(self):
         """
         Export the current dataframe as a csv.
         """
         assert self._all_data is not None
-        results_csv_path = os.path.join(self._results_dir, "model_predictors.csv")
-        with open(results_csv_path, mode="w", encoding="utf-8") as results_file:
-            self.dataframe.to_csv(results_file)
+
+        with open(self._csv_path, mode="w", encoding="utf-8") as results_file:
+            self.dataframe.to_csv(results_file, index=False)
+
+    def _load_from_csv(self) -> pandas.DataFrame:
+        """
+        Load previously saved data from a CSV.
+        """
+        df = pandas.read_csv(self._csv_path, header=0, index_col=None,
+                             dtype={"Word": str})
+        return df
 
     @property
     def _could_load(self) -> bool:
@@ -100,6 +118,13 @@ class RegressionData(metaclass=ABCMeta):
         Whether data has been previously saved.
         """
         return os.path.isfile(self._pickle_path)
+
+    @property
+    def _could_load_csv(self) -> bool:
+        """
+        Whether the data has previously been exported as a csv.
+        """
+        return os.path.isfile(self._csv_path)
 
     @abstractmethod
     def _load_from_source_xls(self) -> pandas.DataFrame:
@@ -136,7 +161,7 @@ class RegressionData(metaclass=ABCMeta):
         """
         Whether the named predictor is already added.
         """
-        return self.dataframe.keys().contains(predictor_name)
+        return predictor_name in self.dataframe.columns.values
 
     def add_word_keyed_predictor(self, predictor: pandas.DataFrame, key_name: str, predictor_name: str):
         """
@@ -156,7 +181,7 @@ class RegressionData(metaclass=ABCMeta):
 
         # Save in current state
         if self._save_progress:
-            self._save()
+            self._save_pickle()
 
     def add_word_pair_keyed_predictor(self, predictor: pandas.DataFrame, merge_on):
         """
@@ -167,7 +192,7 @@ class RegressionData(metaclass=ABCMeta):
 
         # Save in current state
         if self._save_progress:
-            self._save()
+            self._save_pickle()
 
 
 class SppData(RegressionData):
@@ -302,7 +327,7 @@ class SppData(RegressionData):
 
             # Save in current state
             if self._save_progress:
-                self._save()
+                self._save_pickle()
 
 
 class CalgaryData(RegressionData):
@@ -399,7 +424,7 @@ class CalgaryData(RegressionData):
 
             # Save in current state
             if self._save_progress:
-                self._save()
+                self._save_pickle()
 
 
 class RegressionResult(object):
