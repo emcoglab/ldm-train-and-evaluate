@@ -67,7 +67,7 @@ class RegressionData(metaclass=ABCMeta):
         assert self._all_data is not None
 
         if self._save_progress:
-            self._save_pickle()
+            self.save()
 
     @property
     def dataframe(self) -> pandas.DataFrame:
@@ -82,7 +82,7 @@ class RegressionData(metaclass=ABCMeta):
 
     def _save_pickle(self):
         """
-        Save and overwrite data.
+        Save and overwrite data in pickle format.
         """
         assert self._all_data is not None
         with open(self._pickle_path, mode="wb") as pickle_file:
@@ -95,7 +95,7 @@ class RegressionData(metaclass=ABCMeta):
         """
         return os.path.join(self._results_dir, "model_predictors.csv")
 
-    def export_csv(self):
+    def _export_csv(self):
         """
         Export the current dataframe as a csv.
         """
@@ -132,6 +132,13 @@ class RegressionData(metaclass=ABCMeta):
         Load data from excel file, dealing with errors in source material.
         """
         raise NotImplementedError()
+
+    def save(self):
+        """
+        Save and overwrite data.
+        """
+        self._save_pickle()
+        self._export_csv()
 
     @property
     @abstractmethod
@@ -181,7 +188,7 @@ class RegressionData(metaclass=ABCMeta):
 
         # Save in current state
         if self._save_progress:
-            self._save_pickle()
+            self.save()
 
     def add_word_pair_keyed_predictor(self, predictor: pandas.DataFrame, merge_on):
         """
@@ -192,7 +199,7 @@ class RegressionData(metaclass=ABCMeta):
 
         # Save in current state
         if self._save_progress:
-            self._save_pickle()
+            self.save()
 
 
 class SppData(RegressionData):
@@ -327,7 +334,7 @@ class SppData(RegressionData):
 
             # Save in current state
             if self._save_progress:
-                self._save_pickle()
+                self.save()
 
 
 class CalgaryData(RegressionData):
@@ -441,7 +448,7 @@ class CalgaryData(RegressionData):
 
             # Save in current state
             if self._save_progress:
-                self._save_pickle()
+                self.save()
 
     def add_model_predictor_fixed_distance(self,
                                            model: VectorSemanticModel,
@@ -481,7 +488,7 @@ class CalgaryData(RegressionData):
 
             # Save in current state
             if self._save_progress:
-                self._save_pickle()
+                self.save()
 
 
 class RegressionResult(object):

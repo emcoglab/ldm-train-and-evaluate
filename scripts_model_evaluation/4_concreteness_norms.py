@@ -44,8 +44,6 @@ def main():
 
     add_all_model_predictors(calgary_data)
 
-    calgary_data.export_csv()
-
     regression_wrapper(calgary_data)
 
 

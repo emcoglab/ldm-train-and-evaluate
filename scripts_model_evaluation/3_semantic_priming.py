@@ -44,7 +44,6 @@ def main():
 
     add_elexicon_predictors(spp_data)
 
-    spp_data.export_csv()
     spp_data.export_csv_first_associate_only()
 
     regression_wrapper(spp_data)
