@@ -82,9 +82,9 @@ def add_all_model_predictors(calgary_data: CalgaryData):
 
             for model in count_models:
                 for distance_type in DistanceType:
+                    for reference_word in calgary_data.reference_words:
+                        calgary_data.add_model_predictor_fixed_distance(model, distance_type, reference_word=reference_word, memory_map=True)
                     calgary_data.add_model_predictor_min_distance(model, distance_type, memory_map=True)
-                    calgary_data.add_model_predictor_fixed_distance(model, distance_type, reference_word="concrete", memory_map=True)
-                    calgary_data.add_model_predictor_fixed_distance(model, distance_type, reference_word="abstract", memory_map=True)
                 model.untrain()
 
             del count_models
@@ -100,9 +100,9 @@ def add_all_model_predictors(calgary_data: CalgaryData):
 
                 for model in predict_models:
                     for distance_type in DistanceType:
+                        for reference_word in calgary_data.reference_words:
+                            calgary_data.add_model_predictor_fixed_distance(model, distance_type, reference_word=reference_word, memory_map=True)
                         calgary_data.add_model_predictor_min_distance(model, distance_type, memory_map=True)
-                        calgary_data.add_model_predictor_fixed_distance(model, distance_type, reference_word="concrete", memory_map=True)
-                        calgary_data.add_model_predictor_fixed_distance(model, distance_type, reference_word="abstract", memory_map=True)
                     model.untrain()
 
                 del predict_models

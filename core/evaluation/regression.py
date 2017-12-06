@@ -416,35 +416,26 @@ class CalgaryData(RegressionData):
                                          distance_type: DistanceType,
                                          memory_map: bool = False):
         """
-        Adds a data column containing predictors from a semantic model.
+        Adds column containing minimum distance to reference words.
+        Assumes that columns containing reference word distances already exist.
         """
 
-        predictor_name = self.predictor_name_for_model_min_distance(model, distance_type)
+        reference_predictor_names = [self.predictor_name_for_model_fixed_distance(model, distance_type, reference_word) for reference_word in self.reference_words]
+        min_predictor_name = self.predictor_name_for_model_min_distance(model, distance_type)
 
         # Skip existing predictors
-        if self.predictor_exists_with_name(predictor_name):
-            logger.info(f"Model predictor '{predictor_name}' already added")
+        if self.predictor_exists_with_name(min_predictor_name):
+            logger.info(f"Model predictor '{min_predictor_name}' already added")
             return
 
         else:
-            logger.info(f"Adding '{predictor_name}' model predictor")
+            logger.info(f"Adding '{min_predictor_name}' model predictor")
 
             # Since we're going to use the model, make sure it's trained
             model.train(memory_map=memory_map)
 
-            def min_model_distance_or_none(word):
-                """
-                Get the model distance between a pair of words, or None, if one of the words doesn't exist.
-                """
-                try:
-                    reference_distances = [model.distance_between(word, reference_word, distance_type) for reference_word in self.reference_words]
-                    return min(reference_distances)
-                except WordNotFoundError as er:
-                    logger.warning(er.message)
-                    return None
-
             # Add model distance column to data frame
-            self.dataframe[predictor_name] = self.dataframe["Word"].apply(min_model_distance_or_none)
+            self.dataframe[min_predictor_name] = self.dataframe[reference_predictor_names].min(axis=1)
 
             # Save in current state
             if self._save_progress:
