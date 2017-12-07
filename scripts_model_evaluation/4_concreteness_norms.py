@@ -170,7 +170,7 @@ def run_single_model_regression_min_distance(all_data: DataFrame,
         data=regression_data).fit()
 
     return RegressionResult(
-        dv_name,
+        f"{dv_name}_min_distance",
         model,
         distance_type,
         baseline_regression.rsquared,
@@ -209,7 +209,7 @@ def run_single_model_regression_fixed_distance(all_data: DataFrame,
         data=regression_data).fit()
 
     return RegressionResult(
-        dv_name,
+        f"{dv_name}_{reference_word}_distance",
         model,
         distance_type,
         baseline_regression.rsquared,
@@ -247,11 +247,11 @@ def run_all_model_regressions(all_data: DataFrame,
             for model in count_models:
                 for distance_type in DistanceType:
                     for dv_name in dependent_variable_names:
-                        result = run_single_model_regression_min_distance(all_data, distance_type, dv_name, model, baseline_variable_names)
-                        results.append(result)
                         result = run_single_model_regression_fixed_distance(all_data, distance_type, dv_name, model, "concrete", baseline_variable_names)
                         results.append(result)
                         result = run_single_model_regression_fixed_distance(all_data, distance_type, dv_name, model, "abstract", baseline_variable_names)
+                        results.append(result)
+                        result = run_single_model_regression_min_distance(all_data, distance_type, dv_name, model, baseline_variable_names)
                         results.append(result)
 
                 # release memory
@@ -270,11 +270,11 @@ def run_all_model_regressions(all_data: DataFrame,
                 for model in predict_models:
                     for distance_type in DistanceType:
                         for dv_name in dependent_variable_names:
-                            result = run_single_model_regression_min_distance(all_data, distance_type, dv_name, model, baseline_variable_names)
-                            results.append(result)
                             result = run_single_model_regression_fixed_distance(all_data, distance_type, dv_name, model, "concrete", baseline_variable_names)
                             results.append(result)
                             result = run_single_model_regression_fixed_distance(all_data, distance_type, dv_name, model, "abstract", baseline_variable_names)
+                            results.append(result)
+                            result = run_single_model_regression_min_distance(all_data, distance_type, dv_name, model, baseline_variable_names)
                             results.append(result)
 
                     # release memory

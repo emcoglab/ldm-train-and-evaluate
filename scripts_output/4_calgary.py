@@ -37,7 +37,9 @@ from ..preferences.preferences import Preferences
 logger = logging.getLogger(__name__)
 
 DV_NAMES = [
-    "zRTclean_mean",
+    "zRTclean_mean_min_distance",
+    "zRTclean_mean_concrete_distance",
+    "zRTclean_mean_abstract_distance",
     # "ACC"
 ]
 
@@ -58,7 +60,7 @@ def main():
 
         # Model performance bar graphs
         for radius in Preferences.window_radii:
-            logger.info(f"Making model performance bar graphs for r={radius}")
+            logger.info(f"Making model performance bar graphs for r={radius}, d={distance_type.name}")
             model_performance_bar_graphs(
                 results=graphs_df,
                 window_radius=radius,
@@ -82,7 +84,7 @@ def main():
             )
 
         # Score vs radius line graphs
-        logger.info(f"Making score-v-radius graphs")
+        logger.info(f"Making score-v-radius graphs, d={distance_type.name}")
         score_vs_radius_line_graph(
             results=graphs_df,
             key_column_name="Dependent variable",
