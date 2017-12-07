@@ -196,7 +196,7 @@ def model_performance_bar_graphs(results: DataFrame,
 
     figures_dir = os.path.join(figures_base_dir, "model performance bar graphs")
 
-    value_cap = 1e25
+    value_cap = 1e50
 
     seaborn.set_style("ticks")
 
