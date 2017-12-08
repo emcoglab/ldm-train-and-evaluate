@@ -215,13 +215,13 @@ def model_performance_bar_graphs(results: DataFrame,
     if bayes_factor_graph and (value_cap is not None):
         filtered_df[test_statistic_name] = filtered_df[test_statistic_name].apply(lambda x: min(x, value_cap))
 
-    seaborn.set_context(context="paper", font_scale=1)
+    seaborn.set_context(context="paper", font_scale=0.5)
 
     grid = seaborn.FacetGrid(
         filtered_df,
         row=key_column_name, col="Corpus",
         margin_titles=True,
-        size=2.5)
+        size=2)
 
     grid.set_xticklabels(rotation=-90)
 
@@ -260,6 +260,8 @@ def model_performance_bar_graphs(results: DataFrame,
         grid.map(pyplot.axhline, y=BF_THRESHOLD,   linestyle="dotted", color="xkcd:bright red")
         grid.map(pyplot.axhline, y=1/BF_THRESHOLD, linestyle="dotted", color="xkcd:bright red")
         grid.set(yscale="log")
+
+    grid.fig.tight_layout()
 
     pyplot.subplots_adjust(top=0.92)
     grid.fig.suptitle(f"Model scores for radius {window_radius} using {distance_type.name} distance")
@@ -611,9 +613,16 @@ def compare_param_values_bf(test_results: DataFrame,
     # Heatmap for all DVs
 
     heatmap_df = all_win_fractions.pivot(index=key_column_name, columns=parameter_name, values="Fraction of times (joint-)best")
-    plot = seaborn.heatmap(heatmap_df, square=True, cmap=seaborn.light_palette("green", as_cmap=True))
+    plot = seaborn.heatmap(heatmap_df,
+                           square=True,
+                           linewidths=0.5,
+                           # cbar_kws={"shrink": .5},
+                           cmap=seaborn.light_palette("green", as_cmap=True))
     pyplot.xticks(rotation=90)
     pyplot.yticks(rotation=0)
+
+    plot.figure.set_size_inches(3, 2)
+    pyplot.tight_layout()
 
     # Colorbar has % labels
     old_labels = plot.collections[0].colorbar.ax.get_yticklabels()
