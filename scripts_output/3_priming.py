@@ -65,11 +65,7 @@ figures_base_dir = os.path.join(Preferences.figures_dir, "priming")
 
 def main():
 
-    regression_results = load_data()
-    regression_results = add_model_category_column(regression_results)
-
-    # Add rsquared increase column
-    regression_results["R-squared increase"] = regression_results["Model R-squared"] - regression_results["Baseline R-squared"]
+    regression_results: DataFrame = load_data()
 
     # Get info about the dv, used for filtering
     graphs_df: DataFrame = regression_results.copy()
@@ -100,7 +96,7 @@ def main():
                         bayes_factor_graph=False,
                         distance_type=distance_type,
                         figures_base_dir=figures_base_dir,
-                        ylim=(0, None)
+                        # ylim=(0, None)
                     )
                     model_performance_bar_graphs(
                         results=filtered_df,
