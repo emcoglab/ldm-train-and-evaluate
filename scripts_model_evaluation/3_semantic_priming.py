@@ -208,6 +208,7 @@ def run_single_model_regression(all_data: pandas.DataFrame,
         model_regression.bic,
         model_regression.tvalues[model_predictor_name],
         model_regression.pvalues[model_predictor_name],
+        model_regression.params[model_predictor_name],
         model_regression.df_resid
     )
 

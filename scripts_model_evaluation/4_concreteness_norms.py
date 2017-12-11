@@ -179,6 +179,7 @@ def run_single_model_regression_min_distance(all_data: DataFrame,
         model_regression.bic,
         model_regression.tvalues[model_predictor_name],
         model_regression.pvalues[model_predictor_name],
+        model_regression.params[model_predictor_name],
         model_regression.df_resid
     )
 
@@ -218,6 +219,7 @@ def run_single_model_regression_fixed_distance(all_data: DataFrame,
         model_regression.bic,
         model_regression.tvalues[model_predictor_name],
         model_regression.pvalues[model_predictor_name],
+        model_regression.params[model_predictor_name],
         model_regression.df_resid
     )
 

@@ -496,7 +496,9 @@ class RegressionResult(object):
                  model_bic: float,
                  model_t: float,
                  model_p: float,
-                 df: int):
+                 model_beta: float,
+                 df: int
+                 ):
 
         # Dependent variable
         self.dv_name         = dv_name
@@ -519,9 +521,10 @@ class RegressionResult(object):
         self.model_bic       = model_bic
         self.b10_approx      = math.exp((baseline_bic - model_bic) / 2)
 
-        # t, p
+        # t, p, beta
         self.model_t         = model_t
         self.model_p         = model_p
+        self.model_beta      = model_beta
 
         # Degrees of freedom
         self.df              = df
@@ -547,6 +550,7 @@ class RegressionResult(object):
             'B10 approx',
             't',
             'p',
+            'beta',
             'df'
         ]
 
@@ -567,5 +571,6 @@ class RegressionResult(object):
             str(self.b10_approx),
             str(self.model_t),
             str(self.model_p),
+            str(self.model_beta),
             str(self.df)
         ]
