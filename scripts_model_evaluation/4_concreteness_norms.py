@@ -259,8 +259,10 @@ def run_dual_model_regression_both_distances(all_data: DataFrame,
         baseline_regression.bic,
         model_regression.rsquared,
         model_regression.bic,
-        # These params are related to single predictors, so have no use here.
-        None, None, None,
+        # TODO: this is not a good way to deal with this
+        "; ".join([f"{predictor}: {model_regression.tvalues[predictor]}" for predictor in model_predictor_names]),
+        "; ".join([f"{predictor}: {model_regression.pvalues[predictor]}" for predictor in model_predictor_names]),
+        "; ".join([f"{predictor}: {model_regression.params[predictor]}" for predictor in model_predictor_names]),
         model_regression.df_resid
     )
 
