@@ -74,6 +74,7 @@ def add_all_model_predictors(calgary_data: CalgaryData):
             # COUNT MODELS
 
             count_models = [
+                # TODO: these model initialisers should be able to have TIDs and FDs _optionally_ passed, or load them internally
                 LogNgramModel(corpus_metadata, window_radius, token_index),
                 ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
                 ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
@@ -84,7 +85,8 @@ def add_all_model_predictors(calgary_data: CalgaryData):
                 for distance_type in DistanceType:
                     for reference_word in calgary_data.reference_words:
                         calgary_data.add_model_predictor_fixed_distance(model, distance_type, reference_word=reference_word, memory_map=True)
-                    calgary_data.add_model_predictor_min_distance(model, distance_type, memory_map=True)
+                    calgary_data.add_model_predictor_min_distance(model, distance_type)
+                    calgary_data.add_model_predictor_diff_distance(model, distance_type)
                 model.untrain()
 
             del count_models
@@ -102,7 +104,8 @@ def add_all_model_predictors(calgary_data: CalgaryData):
                     for distance_type in DistanceType:
                         for reference_word in calgary_data.reference_words:
                             calgary_data.add_model_predictor_fixed_distance(model, distance_type, reference_word=reference_word, memory_map=True)
-                        calgary_data.add_model_predictor_min_distance(model, distance_type, memory_map=True)
+                        calgary_data.add_model_predictor_min_distance(model, distance_type)
+                        calgary_data.add_model_predictor_diff_distance(model, distance_type)
                     model.untrain()
 
                 del predict_models
@@ -184,6 +187,84 @@ def run_single_model_regression_min_distance(all_data: DataFrame,
     )
 
 
+def run_single_model_regression_diff_distance(all_data: DataFrame,
+                                              distance_type: DistanceType,
+                                              dv_name: str,
+                                              model: VectorSemanticModel,
+                                              baseline_variable_names: List[str]):
+
+    model_predictor_name = CalgaryData.predictor_name_for_model_diff_distance(model, distance_type)
+
+    # drop rows with missing data in any relevant column, as this may vary from column to column
+    regression_data = all_data[[dv_name] + baseline_variable_names + [model_predictor_name]].dropna(how="any")
+
+    logger.info(f"Running {dv_name} distance-difference regressions for model {model_predictor_name}")
+
+    # Formulae
+    baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
+    model_formula = f"{baseline_formula} + {model_predictor_name}"
+
+    baseline_regression = sm.ols(
+        formula=baseline_formula,
+        data=regression_data).fit()
+    model_regression = sm.ols(
+        formula=model_formula,
+        data=regression_data).fit()
+
+    return RegressionResult(
+        f"{dv_name}_diff_distance",
+        model,
+        distance_type,
+        baseline_regression.rsquared,
+        baseline_regression.bic,
+        model_regression.rsquared,
+        model_regression.bic,
+        model_regression.tvalues[model_predictor_name],
+        model_regression.pvalues[model_predictor_name],
+        model_regression.params[model_predictor_name],
+        model_regression.df_resid
+    )
+
+
+def run_dual_model_regression_both_distances(all_data: DataFrame,
+                                             distance_type: DistanceType,
+                                             dv_name: str,
+                                             model: VectorSemanticModel,
+                                             reference_words: List[str],
+                                             baseline_variable_names: List[str]):
+
+    model_predictor_names = [CalgaryData.predictor_name_for_model_fixed_distance(model, distance_type, reference_word) for reference_word in reference_words]
+
+    # drop rows with missing data in any relevant column, as this may vary from column to column
+    regression_data = all_data[[dv_name] + baseline_variable_names + model_predictor_names].dropna(how="any")
+
+    logger.info(f"Running {dv_name} dual-model regressions")
+
+    # Formulae
+    baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
+    model_formula = f"{baseline_formula} + {' + '.join(model_predictor_names)}"
+
+    baseline_regression = sm.ols(
+        formula=baseline_formula,
+        data=regression_data).fit()
+    model_regression = sm.ols(
+        formula=model_formula,
+        data=regression_data).fit()
+
+    return RegressionResult(
+        f"{dv_name}_dual_distance",
+        model,
+        distance_type,
+        baseline_regression.rsquared,
+        baseline_regression.bic,
+        model_regression.rsquared,
+        model_regression.bic,
+        # These params are related to single predictors, so have no use here.
+        None, None, None,
+        model_regression.df_resid
+    )
+
+
 def run_single_model_regression_fixed_distance(all_data: DataFrame,
                                                distance_type: DistanceType,
                                                dv_name: str,
@@ -255,6 +336,11 @@ def run_all_model_regressions(all_data: DataFrame,
                         results.append(result)
                         result = run_single_model_regression_min_distance(all_data, distance_type, dv_name, model, baseline_variable_names)
                         results.append(result)
+                        result = run_single_model_regression_diff_distance(all_data, distance_type, dv_name, model, baseline_variable_names)
+                        results.append(result)
+                        # TODO: this shouldn't need to be hard-coded
+                        result = run_dual_model_regression_both_distances(all_data, distance_type, dv_name, model, ["concrete", "abstract"], baseline_variable_names)
+                        results.append(result)
 
                 # release memory
                 model.untrain()
@@ -277,6 +363,11 @@ def run_all_model_regressions(all_data: DataFrame,
                             result = run_single_model_regression_fixed_distance(all_data, distance_type, dv_name, model, "abstract", baseline_variable_names)
                             results.append(result)
                             result = run_single_model_regression_min_distance(all_data, distance_type, dv_name, model, baseline_variable_names)
+                            results.append(result)
+                            result = run_single_model_regression_diff_distance(all_data, distance_type, dv_name, model, baseline_variable_names)
+                            results.append(result)
+                            # TODO: this shouldn't need to be hard-coded
+                            result = run_dual_model_regression_both_distances(all_data, distance_type, dv_name, model, ["concrete", "abstract"], baseline_variable_names)
                             results.append(result)
 
                     # release memory

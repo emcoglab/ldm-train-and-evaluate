@@ -392,6 +392,21 @@ class CalgaryData(RegressionData):
         return safe_name
 
     @classmethod
+    def predictor_name_for_model_diff_distance(cls,
+                                               model: VectorSemanticModel,
+                                               distance_type: DistanceType) -> str:
+
+        unsafe_name = f"{model.name}_{distance_type.name}_diff_distance"
+
+        # Remove unsafe characters
+        unsafe_name = re.sub(r"[(),=]", "", unsafe_name)
+
+        # Convert hyphens and spaces to underscores
+        safe_name = re.sub(r"[-\s]", "_", unsafe_name)
+
+        return safe_name
+
+    @classmethod
     def predictor_name_for_model_fixed_distance(cls,
                                                 model: VectorSemanticModel,
                                                 distance_type: DistanceType,
@@ -413,8 +428,7 @@ class CalgaryData(RegressionData):
 
     def add_model_predictor_min_distance(self,
                                          model: VectorSemanticModel,
-                                         distance_type: DistanceType,
-                                         memory_map: bool = False):
+                                         distance_type: DistanceType):
         """
         Adds column containing minimum distance to reference words.
         Assumes that columns containing reference word distances already exist.
@@ -431,11 +445,31 @@ class CalgaryData(RegressionData):
         else:
             logger.info(f"Adding '{min_predictor_name}' model predictor")
 
-            # Since we're going to use the model, make sure it's trained
-            model.train(memory_map=memory_map)
-
             # Add model distance column to data frame
             self.dataframe[min_predictor_name] = self.dataframe[reference_predictor_names].min(axis=1)
+
+            # Save in current state
+            if self._save_progress:
+                self.save()
+
+    def add_model_predictor_diff_distance(self,
+                                          model: VectorSemanticModel,
+                                          distance_type: DistanceType):
+        """
+        Adds a column containing the difference between the distances of the two reference words.
+        """
+        diff_predictor_name = self.predictor_name_for_model_diff_distance(model, distance_type)
+
+        # Skip existing predictors
+        if self.predictor_exists_with_name(diff_predictor_name):
+            logger.info(f"Model predictor '{diff_predictor_name}' already added")
+            return
+
+        else:
+            logger.info(f"Adding '{diff_predictor_name}' model predictor")
+
+            # TODO: there must be a better way to do this than have it hard-coded...
+            self.dataframe[diff_predictor_name] = self.dataframe[self.predictor_name_for_model_fixed_distance(model, distance_type, "concrete")] - self.dataframe[self.predictor_name_for_model_fixed_distance(model, distance_type, "abstract")]
 
             # Save in current state
             if self._save_progress:
