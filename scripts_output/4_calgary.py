@@ -95,7 +95,7 @@ def main():
             bayes_factor_decorations=False,
             distance_type=distance_type,
             figures_base_dir=figures_base_dir,
-            # ylim=(0, None)
+    #             ylim=(0, None)
         )
         score_vs_radius_line_graph(
             results=graphs_df,
@@ -234,7 +234,7 @@ def model_comparison_matrix(spp_results_df: DataFrame, dv_name: str, radius: int
     filtered_df["Model name"] = filtered_df.apply(
         lambda r:
         f"{r['Distance type']} {r['Model type']} {r['Embedding size']:.0f}"
-        if not numpy.math.isnan(r['Embedding size'])
+        if not pandas.isnull(r['Embedding size'])
         else f"{r['Distance type']} {r['Model type']}",
         axis=1
     )

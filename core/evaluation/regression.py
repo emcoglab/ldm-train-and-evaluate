@@ -359,8 +359,6 @@ class CalgaryData(RegressionData):
         xls = pandas.ExcelFile(Preferences.calgary_path_xlsx)
         word_data = xls.parse("Sheet1")
 
-        word_data: pandas.DataFrame = word_data.copy()
-
         # Convert all to strings (to avoid False becoming a bool 😭)
         word_data["Word"] = word_data["Word"].apply(str)
 
