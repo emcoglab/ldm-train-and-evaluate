@@ -24,7 +24,7 @@ from .common_output.figures import cosine_vs_correlation_scores, model_performan
     score_vs_radius_line_graph, score_vs_embedding_size_line_graph, pearson_vs_spearman_scores, compare_param_values_bf
 from .common_output.tables import table_top_n_models
 from ..core.evaluation.association import AssociationResults, SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, \
-    MenSimilarity, ColourEmotionAssociation, ThematicRelatedness
+    MenSimilarity, ThematicRelatedness
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType, CorrelationType
 from ..preferences.preferences import Preferences
@@ -49,17 +49,23 @@ def main():
     def model_name_without_embedding_size(r):
         return f"{r['Model type']} r={r['Window radius']} {r['Distance type']} {r['Corpus']} ({r['Correlation type']})"
 
-    # We make an artificial distinction between similarity data
+    # We make an artificial distinction between similarity data,
+    # relatedness data,
     # and similarity-based association norms,
-    # but we treat them both the same
-    for artificial_distinction in ["Similarity", "Norms"]:
+    # even though each is analysed in the same way.
+    for artificial_distinction in ["Similarity", "Relatedness", "Norms"]:
+
+        logger.info(f"Output for {artificial_distinction}")
 
         figures_base_dir = os.path.join(Preferences.figures_dir, artificial_distinction.lower())
 
         if artificial_distinction == "Similarity":
             test_names = [
                 SimlexSimilarity().name,
-                WordsimSimilarity().name,
+                WordsimSimilarity().name
+            ]
+        elif artificial_distinction == "Relatedness":
+            test_names = [
                 WordsimRelatedness().name,
                 MenSimilarity().name
             ]
@@ -67,7 +73,7 @@ def main():
             test_names = [
                 # ColourEmotionAssociation().name,
                 ThematicRelatedness().name,
-                ThematicRelatedness(only_use_response=1).name
+                # ThematicRelatedness(only_use_response=1).name
             ]
         else:
             raise ValueError()
