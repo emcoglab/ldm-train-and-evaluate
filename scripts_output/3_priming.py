@@ -161,40 +161,44 @@ def main():
 
     b_corr_cos_distributions(regression_results)
 
-    compare_param_values_bf(
-        parameter_name="Window radius",
-        test_results=regression_results,
-        bf_statistic_name="B10 approx",
-        key_column_name="Dependent variable",
-        key_column_values=DV_NAMES,
-        figures_base_dir=figures_base_dir,
-        name_prefix="Priming",
-        parameter_values=Preferences.window_radii,
-        model_name_func=model_name_without_radius
-    )
-    compare_param_values_bf(
-        parameter_name="Embedding size",
-        test_results=regression_results,
-        bf_statistic_name="B10 approx",
-        key_column_name="Dependent variable",
-        key_column_values=DV_NAMES,
-        figures_base_dir=figures_base_dir,
-        name_prefix="Priming",
-        parameter_values=Preferences.predict_embedding_sizes,
-        model_name_func=model_name_without_embedding_size,
-        row_filter=predict_models_only
-    )
-    compare_param_values_bf(
-        parameter_name="Distance type",
-        test_results=regression_results,
-        bf_statistic_name="B10 approx",
-        key_column_name="Dependent variable",
-        key_column_values=DV_NAMES,
-        figures_base_dir=figures_base_dir,
-        name_prefix="Priming",
-        parameter_values=[d.name for d in DistanceType],
-        model_name_func=model_name_without_distance
-    )
+    for dv_set in ["LDT", "NT"]:
+
+        dv_names_this_set = [dv_name for dv_name in DV_NAMES if dv_set in dv_name]
+
+        compare_param_values_bf(
+            parameter_name="Window radius",
+            test_results=regression_results,
+            bf_statistic_name="B10 approx",
+            key_column_name="Dependent variable",
+            key_column_values=dv_names_this_set,
+            figures_base_dir=figures_base_dir,
+            name_prefix=f"Priming {dv_set}",
+            parameter_values=Preferences.window_radii,
+            model_name_func=model_name_without_radius
+        )
+        compare_param_values_bf(
+            parameter_name="Embedding size",
+            test_results=regression_results,
+            bf_statistic_name="B10 approx",
+            key_column_name="Dependent variable",
+            key_column_values=dv_names_this_set,
+            figures_base_dir=figures_base_dir,
+            name_prefix=f"Priming {dv_set}",
+            parameter_values=Preferences.predict_embedding_sizes,
+            model_name_func=model_name_without_embedding_size,
+            row_filter=predict_models_only
+        )
+        compare_param_values_bf(
+            parameter_name="Distance type",
+            test_results=regression_results,
+            bf_statistic_name="B10 approx",
+            key_column_name="Dependent variable",
+            key_column_values=dv_names_this_set,
+            figures_base_dir=figures_base_dir,
+            name_prefix=f"Priming {dv_set}",
+            parameter_values=[d.name for d in DistanceType],
+            model_name_func=model_name_without_distance
+        )
 
 
 def b_corr_cos_distributions(regression_df: DataFrame):
