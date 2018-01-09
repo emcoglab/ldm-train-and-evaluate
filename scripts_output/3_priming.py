@@ -39,22 +39,22 @@ logger = logging.getLogger(__name__)
 DV_NAMES = [
 
     "LDT_200ms_Z",
-    "LDT_200ms_Acc",
+    # "LDT_200ms_Acc",
     # "LDT_1200ms_Z",
     # "LDT_1200ms_Acc",
 
     "LDT_200ms_Z_Priming",
-    "LDT_200ms_Acc_Priming",
+    # "LDT_200ms_Acc_Priming",
     # "LDT_1200ms_Z_Priming",
     # "LDT_1200ms_Acc_Priming",
 
     "NT_200ms_Z",
-    "NT_200ms_Acc",
+    # "NT_200ms_Acc",
     # "NT_1200ms_Z",
     # "NT_1200ms_Acc",
 
     "NT_200ms_Z_Priming",
-    "NT_200ms_Acc_Priming",
+    # "NT_200ms_Acc_Priming",
     # "NT_1200ms_Z_Priming",
     # "NT_1200ms_Acc_Priming"
 ]

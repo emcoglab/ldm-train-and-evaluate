@@ -37,11 +37,11 @@ from ..preferences.preferences import Preferences
 logger = logging.getLogger(__name__)
 
 DV_NAMES = [
-    "zRTclean_mean_min_distance",
-    "zRTclean_mean_concrete_distance",
-    "zRTclean_mean_abstract_distance",
+    # "zRTclean_mean_min_distance",
+    # "zRTclean_mean_concrete_distance",
+    # "zRTclean_mean_abstract_distance",
     "zRTclean_mean_diff_distance",
-    "zRTclean_mean_dual_distance",
+    # "zRTclean_mean_dual_distance",
     # "ACC"
 ]
 
