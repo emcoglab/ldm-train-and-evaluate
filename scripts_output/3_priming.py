@@ -74,6 +74,8 @@ def main():
     graphs_df["dv_soa"] = graphs_df.apply(lambda r: 200 if "_200ms" in r["Dependent variable"]       else 1200, axis=1)
     graphs_df["dv_priming"] = graphs_df.apply(lambda r: True if "Priming" in r["Dependent variable"]      else False, axis=1)
     for distance_type in DistanceType:
+        # TODO: this will continue to produce figures for (e.g.) SOA 1200 even when that has been removed from the set
+        # TODO: of DVs in `DV_NAMES`. It should filter by those first to make re-running faster.
         # Group DVs
         for soa in [200, 1200]:
             for test_type in ["LDT", "NT"]:
