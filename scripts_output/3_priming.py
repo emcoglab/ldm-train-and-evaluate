@@ -74,17 +74,18 @@ def main():
     graphs_df["dv_soa"] = graphs_df.apply(lambda r: 200 if "_200ms" in r["Dependent variable"]       else 1200, axis=1)
     graphs_df["dv_priming"] = graphs_df.apply(lambda r: True if "Priming" in r["Dependent variable"]      else False, axis=1)
     for distance_type in DistanceType:
-        # TODO: this will continue to produce figures for (e.g.) SOA 1200 even when that has been removed from the set
-        # TODO: of DVs in `DV_NAMES`. It should filter by those first to make re-running faster.
+
         # Group DVs
         for soa in [200, 1200]:
             for test_type in ["LDT", "NT"]:
+
                 # Filter on this subset of DVs
+                dv_names_this_set = [dv_name for dv_name in DV_NAMES if dv_name.startswith(test_type) and f"_{soa}ms" in dv_name]
+                if not dv_names_this_set:
+                    continue
+
                 filtered_df: DataFrame = graphs_df.copy()
-                filtered_df = filtered_df[
-                    (filtered_df["dv_test_type"] == test_type)
-                    & (filtered_df["dv_soa"] == soa)
-                ]
+                filtered_df = filtered_df[filtered_df["Dependent variable"].isin(dv_names_this_set)]
 
                 # Model performance bar graphs
                 for radius in Preferences.window_radii:
@@ -93,6 +94,7 @@ def main():
                         results=filtered_df,
                         window_radius=radius,
                         key_column_name="Dependent variable",
+                        key_column_values=dv_names_this_set,
                         test_statistic_name="R-squared increase",
                         name_prefix=f"Priming ({test_type} {soa}ms)",
                         bayes_factor_graph=False,
@@ -104,6 +106,7 @@ def main():
                         results=filtered_df,
                         window_radius=radius,
                         key_column_name="Dependent variable",
+                        key_column_values=dv_names_this_set,
                         test_statistic_name="B10 approx",
                         name_prefix=f"Priming ({test_type} {soa}ms)",
                         bayes_factor_graph=True,

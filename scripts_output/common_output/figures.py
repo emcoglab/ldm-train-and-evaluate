@@ -185,6 +185,7 @@ def pearson_vs_spearman_scores(results: DataFrame,
 def model_performance_bar_graphs(results: DataFrame,
                                  window_radius: int,
                                  key_column_name: str,
+                                 key_column_values: List,
                                  test_statistic_name: str,
                                  name_prefix: str,
                                  figures_base_dir: str,
@@ -203,6 +204,7 @@ def model_performance_bar_graphs(results: DataFrame,
     filtered_df: DataFrame = results.copy()
     filtered_df = filtered_df[filtered_df["Window radius"] == window_radius]
     filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
+    filtered_df = filtered_df[filtered_df[key_column_name].isin(key_column_values)]
 
     # Don't want to show PPMI (10000)
     # This only applies for synonym tests, but it doesn't cause a problem if it's not present
