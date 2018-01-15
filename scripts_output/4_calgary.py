@@ -37,12 +37,16 @@ from ..preferences.preferences import Preferences
 logger = logging.getLogger(__name__)
 
 DV_NAMES = [
-    # "zRTclean_mean_min_distance",
-    # "zRTclean_mean_concrete_distance",
-    # "zRTclean_mean_abstract_distance",
+    "zRTclean_mean_min_distance",
+    "zRTclean_mean_concrete_distance",
+    "zRTclean_mean_abstract_distance",
     "zRTclean_mean_diff_distance",
-    # "zRTclean_mean_dual_distance",
-    # "ACC"
+    "zRTclean_mean_dual_distance",
+    "Concrete_response_proportion_min_distance",
+    "Concrete_response_proportion_concrete_distance",
+    "Concrete_response_proportion_abstract_distance",
+    "Concrete_response_proportion_diff_distance",
+    "Concrete_response_proportion_dual_distance",
 ]
 
 
@@ -92,16 +96,18 @@ def main():
         score_vs_radius_line_graph(
             results=graphs_df,
             key_column_name="Dependent variable",
+            key_column_values=DV_NAMES,
             test_statistic_name="R-squared increase",
             name_prefix="Concreteness",
             bayes_factor_decorations=False,
             distance_type=distance_type,
             figures_base_dir=figures_base_dir,
-    #             ylim=(0, None)
+            # ylim=(0, None)
         )
         score_vs_radius_line_graph(
             results=graphs_df,
             key_column_name="Dependent variable",
+            key_column_values=DV_NAMES,
             test_statistic_name="B10 approx",
             name_prefix="Concreteness",
             bayes_factor_decorations=True,
@@ -193,17 +199,22 @@ def b_corr_cos_distributions(regression_df: DataFrame):
             cos_df = cos_df[cos_df["Model name"] == model_name]
             cos_df = cos_df[cos_df["Distance type"] == "cosine"]
 
-            corr_df: DataFrame = filtered_df.copy()
-            corr_df = corr_df[corr_df["Model name"] == model_name]
-            corr_df = corr_df[corr_df["Distance type"] == "correlation"]
+            cor_df: DataFrame = filtered_df.copy()
+            cor_df = cor_df[cor_df["Model name"] == model_name]
+            cor_df = cor_df[cor_df["Distance type"] == "correlation"]
 
             # barf
             bf_cos = list(cos_df["B10 approx"])[0]
-            bf_corr = list(corr_df["B10 approx"])[0]
+            bf_cor = list(cor_df["B10 approx"])[0]
 
-            bf_cos_cor = bf_cos / bf_corr
+            # The relative Bayes factor for cos over cor
+            bf_cos_cor = bf_cos / bf_cor
 
-            distribution.append(math.log10(bf_cos_cor))
+            # The distribution stores the log of it
+            distribution.append(numpy.log10(bf_cos_cor))
+
+        # Drop nans and infs (when one/both of bf_cor and bf_cos has gone to inf)
+        distribution = [d for d in distribution if not numpy.isnan(d) and not numpy.isinf(d)]
 
         seaborn.set_context(context="paper", font_scale=1)
         plot = seaborn.distplot(distribution, kde=False, color="b")
@@ -250,10 +261,11 @@ def model_comparison_matrix(spp_results_df: DataFrame, dv_name: str, radius: int
 
     # values - values[:, None] gives col-row
     # which is equivalent to row > col
-    bf_matrix = filtered_df["Model BIC"].values - filtered_df["Model BIC"].values[:, None]
+    bf_matrix = (filtered_df["Model BIC"].values - filtered_df["Model BIC"].values[:, None])/2
 
-    bf_matrix = numpy.exp(bf_matrix)
-    bf_matrix = numpy.log10(bf_matrix)
+    # Using laws of logarithms, rather than computing log(e^above) we compute above * log e
+    bf_matrix = bf_matrix * numpy.log10(numpy.exp(1))
+
     n_rows, n_columns = bf_matrix.shape
 
     bf_matrix_df = DataFrame(bf_matrix, filtered_df.index, filtered_df.index)
@@ -275,7 +287,7 @@ def model_comparison_matrix(spp_results_df: DataFrame, dv_name: str, radius: int
     pyplot.xticks(rotation=-90)
     pyplot.yticks(rotation=0)
 
-    figure_name = f"priming heatmap {dv_name} r={radius} {corpus_name}.png"
+    figure_name = f"concreteness heatmap {dv_name} r={radius} {corpus_name}.png"
     figure_title = f"log(BF(row,col)) for {dv_name} ({corpus_name}, r={radius})"
 
     ax.set_title(figure_title)

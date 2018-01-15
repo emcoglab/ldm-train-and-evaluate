@@ -277,6 +277,7 @@ def model_performance_bar_graphs(results: DataFrame,
 
 def score_vs_radius_line_graph(results: DataFrame,
                                key_column_name: str,
+                               key_column_values: List,
                                test_statistic_name: str,
                                name_prefix: str,
                                figures_base_dir: str,
@@ -290,6 +291,7 @@ def score_vs_radius_line_graph(results: DataFrame,
 
     filtered_df: DataFrame = results.copy()
     filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
+    filtered_df = filtered_df[filtered_df[key_column_name].isin(key_column_values)]
 
     # Don't need corpus, radius or distance, as they're fixed for each plot
     filtered_df["Model name"] = filtered_df.apply(model_name_without_corpus_or_distance_or_radius, axis=1)

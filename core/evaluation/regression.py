@@ -16,13 +16,13 @@ caiwingfield.net
 """
 
 import logging
-import math
 import os
 import pickle
 import re
 from abc import ABCMeta, abstractmethod
 from typing import List, Set
 
+import numpy
 import pandas
 
 from ..model.base import VectorSemanticModel
@@ -350,6 +350,7 @@ class CalgaryData(RegressionData):
                          results_dir=Preferences.calgary_results_dir,
                          save_progress=save_progress,
                          force_reload=force_reload)
+        self._add_response_columns()
 
     @classmethod
     def _load_from_source_xls(cls) -> pandas.DataFrame:
@@ -366,6 +367,37 @@ class CalgaryData(RegressionData):
         word_data["Word"] = word_data["Word"].str.lower()
 
         return word_data
+
+    def _add_response_columns(self):
+        """
+        Adds a columns containing the fraction of respondents who answered concrete or abstract.
+        """
+
+        def concreteness_proportion(r) -> float:
+            # If the word is Brysbaert-concrete, the accuracy equals the fraction of responders who decided "concrete"
+            if r["WordType"] == "Concrete":
+                return r["ACC"]
+            # If the word is Brysbaert-abstract, the complement of the accuracy equals the fraction of responders who decided "concrete"
+            else:
+                return 1 - r["ACC"]
+
+        def abstractness_proportion(r) -> float:
+            return 1-concreteness_proportion(r)
+
+        if self.predictor_exists_with_name("Concrete_response_proportion"):
+            logger.info("Concrete_response_proportion column already exists")
+        else:
+            logger.info("Adding Concrete_response_proportion column")
+            self.dataframe["Concrete_response_proportion"] = self.dataframe.apply(concreteness_proportion, axis=1)
+
+        if self.predictor_exists_with_name("Abstract_response_proportion"):
+            logger.info("Abstract_response_proportion column already exists")
+        else:
+            logger.info("Adding Abstract_response_proportion column")
+            self.dataframe["Abstract_response_proportion"] = self.dataframe.apply(abstractness_proportion, axis=1)
+
+        if self._save_progress:
+            self.save()
 
     @property
     def vocabulary(self) -> Set[str]:
@@ -533,33 +565,36 @@ class RegressionResult(object):
                  ):
 
         # Dependent variable
-        self.dv_name         = dv_name
+        self.dv_name          = dv_name
 
         # Baseline R^2 from lexical factors
-        self.baseline_r2     = baseline_r2
+        self.baseline_r2      = baseline_r2
 
         # Model info
-        self.model_type_name = model.model_type.name
-        self.embedding_size  = model.embedding_size if isinstance(model, PredictVectorModel) else None
-        self.window_radius   = model.window_radius
-        self.distance_type   = distance_type
-        self.corpus_name     = model.corpus_meta.name
+        self.model_type_name  = model.model_type.name
+        self.embedding_size   = model.embedding_size if isinstance(model, PredictVectorModel) else None
+        self.window_radius    = model.window_radius
+        self.distance_type    = distance_type
+        self.corpus_name      = model.corpus_meta.name
 
         # R^2 with the inclusion of the model predictors
-        self.model_r2        = model_r2
+        self.model_r2         = model_r2
 
         # Bayes information criteria and Bayes factors
-        self.baseline_bic    = baseline_bic
-        self.model_bic       = model_bic
-        self.b10_approx      = math.exp((baseline_bic - model_bic) / 2)
+        self.baseline_bic     = baseline_bic
+        self.model_bic        = model_bic
+        self.b10_approx       = numpy.exp((baseline_bic - model_bic) / 2)
+        # Sometimes when BICs get big, B10 ends up at inf; but it's approx log10 should be finite
+        # (and useful for ordering as log is monotonic increasing)
+        self.b10_log_fallback = ((baseline_bic - model_bic) / 2) * numpy.log10(numpy.exp(1))
 
         # t, p, beta
-        self.model_t         = model_t
-        self.model_p         = model_p
-        self.model_beta      = model_beta
+        self.model_t          = model_t
+        self.model_p          = model_p
+        self.model_beta       = model_beta
 
         # Degrees of freedom
-        self.df              = df
+        self.df               = df
 
     @property
     def model_r2_increase(self) -> float:
@@ -580,6 +615,7 @@ class RegressionResult(object):
             'Baseline BIC',
             'Model BIC',
             'B10 approx',
+            'log10 B10 approx',
             't',
             'p',
             'beta',
@@ -601,6 +637,7 @@ class RegressionResult(object):
             str(self.baseline_bic),
             str(self.model_bic),
             str(self.b10_approx),
+            str(self.b10_log_fallback),
             str(self.model_t),
             str(self.model_p),
             str(self.model_beta),

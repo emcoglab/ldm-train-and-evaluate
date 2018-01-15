@@ -119,17 +119,18 @@ def regression_wrapper(calgary_data: CalgaryData):
 
     dependent_variable_names = [
         "zRTclean_mean",
+        "Concrete_response_proportion",
         # "ACC"
     ]
 
     baseline_variable_names = [
-        # Elexicon
+        # Elexicon predictors:
         "elex_Length",
         "elex_LgSUBTLWF",
         "elex_OLD",
         "elex_PLD",
         "elex_NSyll",
-        # Computed
+        # Computed predictors:
         # "concrete_OrthLD",
         # "abstract_OrthLD",
         # "minimum_reference_OrthLD"
