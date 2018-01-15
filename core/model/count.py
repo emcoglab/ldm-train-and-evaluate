@@ -382,6 +382,50 @@ class LogNgramModel(CountVectorModel):
         self._model.eliminate_zeros()
 
 
+class LogSummedNgramModel(CountVectorModel):
+    """
+    A model where the distance between word w and u is not the distance between their log n-gram vectors, but is the
+    u-entry in the v-vector (which equals the v-entry in the u-vector as the log co-occurrence matrix is symmetric.
+
+    log [ n(c,t) + 1 ]
+
+    c: context token
+    t: target token
+    """
+
+    def __init__(self,
+                 corpus_meta: CorpusMetadata,
+                 window_radius: int,
+                 token_indices: TokenIndexDictionary):
+        super().__init__(VectorSemanticModel.ModelType.summed_log_ngram,
+                         corpus_meta, window_radius, token_indices)
+
+    def _retrain(self):
+        # Get the ngram model
+        ngram_model = NgramCountModel(self.corpus_meta, self.window_radius, self.token_indices)
+        ngram_model.train()
+
+        self._model = ngram_model.matrix
+        del ngram_model
+        # Apply log to entries in the ngram matrix
+        self._model.data = numpy.log10(self._model.data + 1)
+        self._model.eliminate_zeros()
+
+    def distance_between(self, word_1, word_2, distance_type: DistanceType, truncate_vectors_at_length: int = None):
+
+        if truncate_vectors_at_length is not None:
+            raise NotImplementedError("truncate_vectors_at_length is not supported for the summed n-gram model")
+
+        val1 = self.vector_for_word(word_1)[0, self.token_indices.token2id[word_2]]
+        val2 = self.vector_for_word(word_2)[0, self.token_indices.token2id[word_1]]
+
+        # Symmetry check
+        if not (val1 == val2):
+            raise ValueError()
+
+        return val1
+
+
 class NgramProbabilityModel(CountVectorModel):
     """
     A model where vectors consist of the probability that a given context is found within a window around the target.
@@ -505,7 +549,7 @@ class ConditionalProbabilityModel(CountVectorModel):
 
 class ContextProbabilityModel(CountScalarModel):
     """
-    A model where ~vectors~ consist of the probability that any token is the target.
+    A model where scalars consist of the probability that any token is the target.
 
     p(c) = Sum_t n(c,t) / NW
 

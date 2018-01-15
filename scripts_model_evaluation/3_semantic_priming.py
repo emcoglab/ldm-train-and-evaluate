@@ -26,7 +26,8 @@ import statsmodels.formula.api as sm
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.evaluation.regression import SppData, RegressionResult
 from ..core.model.base import VectorSemanticModel
-from ..core.model.count import LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
+from ..core.model.count import LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel, \
+    LogSummedNgramModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType, levenshtein_distance
@@ -77,6 +78,7 @@ def add_all_model_predictors(spp_data: SppData):
 
             count_models = [
                 LogNgramModel(corpus_metadata, window_radius, token_index),
+                LogSummedNgramModel(corpus_metadata, window_radius, token_index),
                 ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
                 ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
                 PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
@@ -231,6 +233,7 @@ def run_all_model_regressions(all_data: pandas.DataFrame,
 
             count_models = [
                 LogNgramModel(corpus_metadata, window_radius, token_index),
+                LogSummedNgramModel(corpus_metadata, window_radius, token_index),
                 ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
                 ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
                 PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)

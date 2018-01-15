@@ -51,6 +51,7 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
         ngram_unsummed = auto()
         ngram = auto()
         log_ngram = auto()
+        summed_log_ngram = auto()
         ngram_probability = auto()
         token_probability = auto()
         context_probability = auto()
@@ -73,6 +74,8 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             elif self is VectorSemanticModel.ModelType.ngram:
                 return VectorSemanticModel.MetaType.count
             elif self is VectorSemanticModel.ModelType.log_ngram:
+                return VectorSemanticModel.MetaType.count
+            elif self is VectorSemanticModel.ModelType.summed_log_ngram:
                 return VectorSemanticModel.MetaType.count
             elif self is VectorSemanticModel.ModelType.ngram_probability:
                 return VectorSemanticModel.MetaType.count
@@ -107,6 +110,8 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
                 return "ngram"
             elif self is DistributionalSemanticModel.ModelType.log_ngram:
                 return "log_ngram"
+            elif self is DistributionalSemanticModel.ModelType.summed_log_ngram:
+                return "summed_log_ngram"
             elif self is DistributionalSemanticModel.ModelType.ngram_probability:
                 return "ngram_probability"
             elif self is DistributionalSemanticModel.ModelType.token_probability:
@@ -138,6 +143,8 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
                 return "n-gram (summed)"
             elif self is VectorSemanticModel.ModelType.log_ngram:
                 return "log n-gram"
+            elif self is VectorSemanticModel.ModelType.summed_log_ngram:
+                return "summed log n-gram"
             elif self is VectorSemanticModel.ModelType.ngram_probability:
                 return "n-gram probability"
             elif self is VectorSemanticModel.ModelType.token_probability:
@@ -169,6 +176,8 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
                 return cls.ngram
             elif slug == "log n-gram":
                 return cls.log_ngram
+            elif slug == "summed log n-gram":
+                return cls.summed_log_ngram
             elif slug == "n-gram probability":
                 return cls.ngram_probability
             elif slug == "token probability":
