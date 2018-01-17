@@ -416,14 +416,11 @@ class LogSummedNgramModel(CountVectorModel):
         if truncate_vectors_at_length is not None:
             raise NotImplementedError("truncate_vectors_at_length is not supported for the summed n-gram model")
 
-        val1 = self.vector_for_word(word_1)[0, self.token_indices.token2id[word_2]]
-        val2 = self.vector_for_word(word_2)[0, self.token_indices.token2id[word_1]]
-
-        # Symmetry check
-        if not (val1 == val2):
-            raise ValueError()
-
-        return val1
+        # The matrix is symmetric so we could equally use the word_1-entry in the word_2-vector
+        try:
+            return self.vector_for_word(word_1)[0, self.token_indices.token2id[word_2]]
+        except KeyError:
+            raise WordNotFoundError(f"One of the words '{word_1}' or '{word_2}' was not found.")
 
 
 class NgramProbabilityModel(CountVectorModel):

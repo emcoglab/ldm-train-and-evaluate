@@ -119,6 +119,7 @@ def main():
                 score_vs_radius_line_graph(
                     results=filtered_df,
                     key_column_name="Dependent variable",
+                    key_column_values=dv_names_this_set,
                     test_statistic_name="R-squared increase",
                     name_prefix=f"Priming ({test_type} {soa}ms)",
                     bayes_factor_decorations=False,
@@ -129,6 +130,7 @@ def main():
                 score_vs_radius_line_graph(
                     results=filtered_df,
                     key_column_name="Dependent variable",
+                    key_column_values=dv_names_this_set,
                     test_statistic_name="B10 approx",
                     name_prefix=f"Priming ({test_type} {soa}ms)",
                     bayes_factor_decorations=True,
@@ -148,7 +150,7 @@ def main():
         results=regression_results,
         top_n=5,
         key_column_values=DV_NAMES,
-        test_statistic_name="B10 approx",
+        sort_by_column="B10 approx",
         name_prefix="Priming",
         key_column_name="Dependent variable"
     )
@@ -158,7 +160,7 @@ def main():
             results=regression_results,
             top_n=5,
             key_column_values=DV_NAMES,
-            test_statistic_name="B10 approx",
+            sort_by_column="B10 approx",
             name_prefix="Priming",
             key_column_name="Dependent variable",
             distance_type=distance_type

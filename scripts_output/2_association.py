@@ -133,6 +133,7 @@ def main():
                 score_vs_radius_line_graph(
                     results=results_df[results_df["Correlation type"] == correlation_type.name],
                     key_column_name="Test name",
+                    key_column_values=test_names,
                     test_statistic_name="Correlation",
                     name_prefix=f"{artificial_distinction} ({correlation_type.name})",
                     figures_base_dir=figures_base_dir,
@@ -147,7 +148,7 @@ def main():
                 results=results_df[results_df["Correlation type"] == correlation_type.name],
                 top_n=5,
                 key_column_values=test_names,
-                test_statistic_name="Correlation",
+                sort_by_column="Correlation",
                 name_prefix=f"{artificial_distinction} ({correlation_type.name})",
                 key_column_name="Test name"
             )
@@ -157,7 +158,7 @@ def main():
                     results=results_df[results_df["Correlation type"] == correlation_type.name],
                     top_n=5,
                     key_column_values=test_names,
-                    test_statistic_name="Correlation",
+                    sort_by_column="Correlation",
                     name_prefix=f"{artificial_distinction} ({correlation_type.name})",
                     key_column_name="Test name",
                     distance_type=distance_type

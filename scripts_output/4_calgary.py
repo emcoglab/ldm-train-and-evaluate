@@ -127,7 +127,7 @@ def main():
         results=regression_results,
         top_n=5,
         key_column_values=DV_NAMES,
-        test_statistic_name="B10 approx",
+        sort_by_column="log10 B10 approx",
         name_prefix="Concreteness",
         key_column_name="Dependent variable"
     )
@@ -137,7 +137,7 @@ def main():
             results=regression_results,
             top_n=5,
             key_column_values=DV_NAMES,
-            test_statistic_name="B10 approx",
+            sort_by_column="log10 B10 approx",
             name_prefix="Concreteness",
             key_column_name="Dependent variable",
             distance_type=distance_type

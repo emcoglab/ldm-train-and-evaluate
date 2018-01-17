@@ -92,6 +92,7 @@ def main():
         score_vs_radius_line_graph(
             results=results_df,
             key_column_name="Test name",
+            key_column_values=TEST_NAMES,
             test_statistic_name="Score",
             name_prefix="Synonym",
             figures_base_dir=figures_base_dir,
@@ -108,7 +109,7 @@ def main():
         results=results_df,
         top_n=5,
         key_column_values=TEST_NAMES,
-        test_statistic_name="Score",
+        sort_by_column="Score",
         name_prefix="Synonym",
         key_column_name="Test name"
     )
@@ -118,7 +119,7 @@ def main():
             results=results_df,
             top_n=5,
             key_column_values=TEST_NAMES,
-            test_statistic_name="Score",
+            sort_by_column="Score",
             name_prefix="Synonym",
             key_column_name="Test name",
             distance_type=distance_type

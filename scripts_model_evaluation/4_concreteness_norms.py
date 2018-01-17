@@ -26,7 +26,8 @@ import statsmodels.formula.api as sm
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.evaluation.regression import RegressionResult, CalgaryData
 from ..core.model.base import VectorSemanticModel
-from ..core.model.count import LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
+from ..core.model.count import LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel, \
+    LogSummedNgramModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType, levenshtein_distance
@@ -75,6 +76,7 @@ def add_all_model_predictors(calgary_data: CalgaryData):
 
             count_models = [
                 # TODO: these model initialisers should be able to have TIDs and FDs _optionally_ passed, or load them internally
+                LogSummedNgramModel(corpus_metadata, window_radius, token_index),
                 LogNgramModel(corpus_metadata, window_radius, token_index),
                 ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
                 ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),

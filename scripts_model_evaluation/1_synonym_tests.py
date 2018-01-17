@@ -20,7 +20,8 @@ import sys
 
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.evaluation.synonym import ToeflTest, EslTest, LbmMcqTest, SynonymTester, SynonymResults
-from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
+from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel, \
+    LogSummedNgramModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..core.utils.maths import DistanceType
 from ..core.utils.logging import log_message, date_format
@@ -51,6 +52,7 @@ def main():
 
             count_models = [
                 LogNgramModel(corpus_metadata, window_radius, token_index),
+                LogSummedNgramModel(corpus_metadata, window_radius, token_index),
                 ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
                 ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
                 PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
@@ -94,7 +96,7 @@ def main():
                 for model in predict_models:
                     for test in test_battery:
                         for distance_type in DistanceType:
-                            if not results.results_exist_for(test.name, model, distance_type, truncate_length):
+                            if not results.results_exist_for(test.name, model, distance_type):
                                 model.train(memory_map=True)
                                 results.extend_with_results(SynonymTester.administer_test(test, model, distance_type))
                                 results.save()

@@ -28,7 +28,7 @@ def table_top_n_models(results: DataFrame,
                        top_n: int,
                        key_column_name: str,
                        key_column_values: List[str],
-                       test_statistic_name: str,
+                       sort_by_column: str,
                        name_prefix: str,
                        distance_type: DistanceType = None):
 
@@ -45,7 +45,7 @@ def table_top_n_models(results: DataFrame,
             filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
 
         # Assume that "higher is better", so we want to sort values descending
-        top_models = filtered_df.sort_values(test_statistic_name, ascending=False).reset_index(drop=True).head(top_n)
+        top_models = filtered_df.sort_values(sort_by_column, ascending=False).reset_index(drop=True).head(top_n)
 
         table = table.append(top_models)
 

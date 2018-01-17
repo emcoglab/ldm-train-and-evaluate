@@ -231,8 +231,11 @@ def model_performance_bar_graphs(results: DataFrame,
         yticks_as_percentages(grid)
 
     # Plot the bars
-    grid.map(seaborn.barplot, "Model name", test_statistic_name, order=[
-        "log n-gram",
+    grid.map(
+        seaborn.barplot, "Model name", test_statistic_name,
+        order=[
+            "summed log n-gram",
+            "log n-gram",
         "Conditional probability",
         "Probability ratio",
         "PPMI",
@@ -246,7 +249,8 @@ def model_performance_bar_graphs(results: DataFrame,
         "CBOW 200",
         "CBOW 300",
         "CBOW 500",
-    ])
+        ]
+    )
 
     if extra_h_line_at is not None:
         # Plot the chance line
