@@ -18,15 +18,16 @@ caiwingfield.net
 import logging
 import os
 import sys
-from typing import Set, List
+from typing import Set, List, Optional
 
 import pandas
 import statsmodels.formula.api as sm
 
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.evaluation.regression import SppData, RegressionResult
-from ..core.model.base import VectorSemanticModel
+from ..core.model.base import DistributionalSemanticModel
 from ..core.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
+from ..core.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType, levenshtein_distance
@@ -72,6 +73,21 @@ def add_all_model_predictors(spp_data: SppData):
         freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 
         for window_radius in Preferences.window_radii:
+
+            # N-GRAM MODELS
+
+            ngram_models = [
+                LogNgramModel(corpus_metadata, window_radius, token_index),
+                PPMINgramModel(corpus_metadata, window_radius, token_index, freq_dist),
+                ProbabilityRatioNgramModel(corpus_metadata, window_radius, token_index, freq_dist)
+            ]
+
+            for model in ngram_models:
+                spp_data.add_model_predictor(model, None, for_priming_effect=False, memory_map=True)
+                spp_data.add_model_predictor(model, None, for_priming_effect=True, memory_map=True)
+                model.untrain()
+
+            del ngram_models
 
             # COUNT MODELS
 
@@ -174,9 +190,9 @@ def regression_wrapper(spp_data: SppData):
 
 
 def run_single_model_regression(all_data: pandas.DataFrame,
-                                distance_type: DistanceType,
+                                distance_type: Optional[DistanceType],
                                 dv_name: str,
-                                model: VectorSemanticModel,
+                                model: DistributionalSemanticModel,
                                 baseline_variable_names: List[str],
                                 for_priming_effect: bool):
 
@@ -227,11 +243,27 @@ def run_all_model_regressions(all_data: pandas.DataFrame,
 
         for window_radius in Preferences.window_radii:
 
+            # N-GRAM MODELS
+
+            ngram_models = [
+                LogNgramModel(corpus_metadata, window_radius, token_index),
+                PPMINgramModel(corpus_metadata, window_radius, token_index, freq_dist),
+                ProbabilityRatioNgramModel(corpus_metadata, window_radius, token_index, freq_dist)
+            ]
+
+            for model in ngram_models:
+                for dv_name in dependent_variable_names:
+                    result = run_single_model_regression(all_data, None, dv_name, model, baseline_variable_names, for_priming_effect)
+                    results.append(result)
+
+                # release memory
+                model.untrain()
+            del ngram_models
+
             # Count models
 
             count_models = [
                 LogCoOccurrenceCountModel(corpus_metadata, window_radius, token_index),
-                LogSummedNgramModel(corpus_metadata, window_radius, token_index),
                 ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
                 ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
                 PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)

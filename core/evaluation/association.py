@@ -19,7 +19,7 @@ import logging
 import re
 import csv
 from abc import ABCMeta, abstractmethod
-from typing import List
+from typing import List, Optional
 from os import path
 
 import numpy
@@ -28,7 +28,8 @@ import statsmodels.formula.api as sm
 from pandas import DataFrame
 
 from ..evaluation.results import EvaluationResults
-from ..model.base import VectorSemanticModel
+from ..model.base import DistributionalSemanticModel, VectorSemanticModel
+from ..model.ngram import NgramModel
 from ..utils.exceptions import WordNotFoundError
 from ..utils.maths import DistanceType, CorrelationType
 from ...preferences.preferences import Preferences
@@ -100,8 +101,8 @@ class AssociationTester(object):
     @staticmethod
     def administer_test(
             test: WordAssociationTest,
-            model: VectorSemanticModel,
-            distance_type: DistanceType
+            model: DistributionalSemanticModel,
+            distance_type: Optional[DistanceType]
             ) -> AssociationResults:
         """
         Administers a battery of tests against a model
@@ -118,10 +119,20 @@ class AssociationTester(object):
         model_judgements: List[WordAssociation] = []
         for human_judgement in test.association_list:
             try:
-                distance = model.distance_between(
-                    human_judgement.word_1,
-                    human_judgement.word_2,
-                    distance_type)
+                # Vector models compare words using distances
+                if isinstance(model, VectorSemanticModel):
+                    model_judgement = model.distance_between(
+                        human_judgement.word_1,
+                        human_judgement.word_2,
+                        distance_type)
+                # Ngram models compare words using associations
+                elif isinstance(model, NgramModel):
+                    model_judgement = model.association_between(
+                        human_judgement.word_1,
+                        human_judgement.word_2
+                    )
+                else:
+                    raise TypeError()
             except WordNotFoundError as er:
                 # If we can't find one of the words in the corpus, just ignore it.
                 logger.warning(er.message)
@@ -132,10 +143,15 @@ class AssociationTester(object):
             model_judgements.append(WordAssociation(
                 human_judgement.word_1,
                 human_judgement.word_2,
-                distance))
+                model_judgement))
 
         # Save transcript
-        transcript_csv_path = path.join(Preferences.association_results_dir, "transcripts", f"transcript test={test.name} model={model.name} distance={distance_type.name}.csv")
+        if distance_type is None:
+            transcript_csv_name = f"transcript test={test.name} model={model.name}.csv"
+        else:
+            transcript_csv_name = f"transcript test={test.name} model={model.name} distance={distance_type.name}.csv"
+
+        transcript_csv_path = path.join(Preferences.association_results_dir, "transcripts", transcript_csv_name)
         DataFrame.from_dict({
             "Word 1"         : [j.word_1 for j in human_judgements],
             "Word 2"         : [j.word_2 for j in human_judgements],

@@ -23,6 +23,7 @@ from ..core.evaluation.association import SimlexSimilarity, WordsimSimilarity, W
     AssociationTester, ColourEmotionAssociation, ThematicRelatedness, AssociationResults
 from ..core.model.count import PPMIModel, LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
+from ..core.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
 from ..core.utils.maths import DistanceType
 from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
@@ -50,6 +51,22 @@ def main():
         freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 
         for window_radius in Preferences.window_radii:
+
+            ngram_models = [
+                LogNgramModel(corpus_metadata, window_radius, token_index),
+                PPMINgramModel(corpus_metadata, window_radius, token_index, freq_dist),
+                ProbabilityRatioNgramModel(corpus_metadata, window_radius, token_index, freq_dist)
+            ]
+
+            for model in ngram_models:
+                for test in test_battery:
+                    if not results.results_exist_for(test.name, model, None):
+                        model.train(memory_map=True)
+                        results.extend_with_results(AssociationTester.administer_test(test, model, None))
+                        results.save()
+                # release memory
+                model.untrain()
+            del ngram_models
 
             # COUNT MODELS
 

@@ -20,12 +20,13 @@ import os
 import pickle
 import re
 from abc import ABCMeta, abstractmethod
-from typing import List, Set
+from typing import List, Set, Optional
 
 import numpy
 import pandas
 
-from ..model.base import VectorSemanticModel
+from ..model.base import VectorSemanticModel, DistributionalSemanticModel
+from ..model.ngram import NgramModel
 from ..model.predict import PredictVectorModel
 from ..utils.exceptions import WordNotFoundError
 from ..utils.maths import DistanceType
@@ -256,11 +257,14 @@ class SppData(RegressionData):
 
     @classmethod
     def predictor_name_for_model(cls,
-                                 model: VectorSemanticModel,
-                                 distance_type: DistanceType,
+                                 model: DistributionalSemanticModel,
+                                 distance_type: Optional[DistanceType],
                                  for_priming_effect: bool) -> str:
 
-        unsafe_name = f"{model.name}_{distance_type.name}"
+        if distance_type is None:
+            unsafe_name = f"{model.name}"
+        else:
+            unsafe_name = f"{model.name}_{distance_type.name}"
 
         # Remove unsafe characters
         unsafe_name = re.sub(r"[(),=]", "", unsafe_name)
@@ -274,8 +278,8 @@ class SppData(RegressionData):
         return safe_name
 
     def add_model_predictor(self,
-                            model: VectorSemanticModel,
-                            distance_type: DistanceType,
+                            model: DistributionalSemanticModel,
+                            distance_type: Optional[DistanceType],
                             for_priming_effect: bool,
                             memory_map: bool = False):
         """
@@ -298,13 +302,22 @@ class SppData(RegressionData):
                 # Make sure the non-priming model predictor exists already, as we'll be referencing it
                 assert self.predictor_exists_with_name(self.predictor_name_for_model(model, distance_type, for_priming_effect=False))
 
-            def model_distance_or_none(word_pair):
+            def model_association_or_none(word_pair):
                 """
-                Get the model distance between a pair of words, or None, if one of the words doesn't exist.
+                Get the association distance between a pair of words, or None, if one of the words doesn't exist.
                 """
                 word_1, word_2 = word_pair
                 try:
-                    return model.distance_between(word_1, word_2, distance_type)
+                    # Vector models compare words using distances
+                    if isinstance(model, VectorSemanticModel):
+                        # The above type check should ensure that the model has this method.
+                        # I think this warning and the following one are due to model being captured.
+                        return model.distance_between(word_1, word_2, distance_type)
+                    # Ngram models compare words using associations
+                    elif isinstance(model, NgramModel):
+                        return model.association_between(word_1, word_2)
+                    else:
+                        raise TypeError()
                 except WordNotFoundError as er:
                     logger.warning(er.message)
                     return None
@@ -319,18 +332,18 @@ class SppData(RegressionData):
             key_column = "MatchedPrimeWord" if for_priming_effect else "PrimeWord"
 
             # Add model distance column to data frame
-            model_distance = self.dataframe[
+            model_association = self.dataframe[
                 [key_column, "TargetWord"]
             ].apply(
-                model_distance_or_none,
+                model_association_or_none,
                 axis=1)
 
             # The priming predictor is the difference in model distance between the related and
             # matched-unrelated word pairs.
             if for_priming_effect:
-                self.dataframe[predictor_name] = model_distance - self.dataframe[self.predictor_name_for_model(model, distance_type, for_priming_effect=False)]
+                self.dataframe[predictor_name] = model_association - self.dataframe[self.predictor_name_for_model(model, distance_type, for_priming_effect=False)]
             else:
-                self.dataframe[predictor_name] = model_distance
+                self.dataframe[predictor_name] = model_association
 
             # Save in current state
             if self._save_progress:
@@ -408,25 +421,13 @@ class CalgaryData(RegressionData):
 
     @classmethod
     def predictor_name_for_model_min_distance(cls,
-                                              model: VectorSemanticModel,
-                                              distance_type: DistanceType) -> str:
+                                              model: DistributionalSemanticModel,
+                                              distance_type: Optional[DistanceType]) -> str:
 
-        unsafe_name = f"{model.name}_{distance_type.name}_min_distance"
-
-        # Remove unsafe characters
-        unsafe_name = re.sub(r"[(),=]", "", unsafe_name)
-
-        # Convert hyphens and spaces to underscores
-        safe_name = re.sub(r"[-\s]", "_", unsafe_name)
-
-        return safe_name
-
-    @classmethod
-    def predictor_name_for_model_diff_distance(cls,
-                                               model: VectorSemanticModel,
-                                               distance_type: DistanceType) -> str:
-
-        unsafe_name = f"{model.name}_{distance_type.name}_diff_distance"
+        if distance_type is None:
+            unsafe_name = f"{model.name}_min_distance"
+        else:
+            unsafe_name = f"{model.name}_{distance_type.name}_min_distance"
 
         # Remove unsafe characters
         unsafe_name = re.sub(r"[(),=]", "", unsafe_name)
@@ -437,12 +438,32 @@ class CalgaryData(RegressionData):
         return safe_name
 
     @classmethod
-    def predictor_name_for_model_fixed_distance(cls,
-                                                model: VectorSemanticModel,
-                                                distance_type: DistanceType,
-                                                reference_word: str) -> str:
+    def predictor_name_for_model_reference_difference(cls,
+                                                      model: DistributionalSemanticModel,
+                                                      distance_type: Optional[DistanceType]) -> str:
 
-        unsafe_name = f"{model.name}_{distance_type.name}_{reference_word}_distance"
+        if distance_type is None:
+            unsafe_name = f"{model.name}_diff_distance"
+        else:
+            unsafe_name = f"{model.name}_{distance_type.name}_diff_distance"
+
+        # Remove unsafe characters
+        unsafe_name = re.sub(r"[(),=]", "", unsafe_name)
+
+        # Convert hyphens and spaces to underscores
+        safe_name = re.sub(r"[-\s]", "_", unsafe_name)
+
+        return safe_name
+
+    @classmethod
+    def predictor_name_for_model_fixed_reference(cls,
+                                                 model: DistributionalSemanticModel,
+                                                 distance_type: Optional[DistanceType],
+                                                 reference_word: str) -> str:
+        if distance_type is None:
+            unsafe_name = f"{model.name}_{reference_word}_distance"
+        else:
+            unsafe_name = f"{model.name}_{distance_type.name}_{reference_word}_distance"
 
         # Remove unsafe characters
         unsafe_name = re.sub(r"[(),=]", "", unsafe_name)
@@ -457,14 +478,14 @@ class CalgaryData(RegressionData):
         return ["concrete", "abstract"]
 
     def add_model_predictor_min_distance(self,
-                                         model: VectorSemanticModel,
-                                         distance_type: DistanceType):
+                                         model: DistributionalSemanticModel,
+                                         distance_type: Optional[DistanceType]):
         """
         Adds column containing minimum distance to reference words.
         Assumes that columns containing reference word distances already exist.
         """
 
-        reference_predictor_names = [self.predictor_name_for_model_fixed_distance(model, distance_type, reference_word) for reference_word in self.reference_words]
+        reference_predictor_names = [self.predictor_name_for_model_fixed_reference(model, distance_type, reference_word) for reference_word in self.reference_words]
         min_predictor_name = self.predictor_name_for_model_min_distance(model, distance_type)
 
         # Skip existing predictors
@@ -482,13 +503,13 @@ class CalgaryData(RegressionData):
             if self._save_progress:
                 self.save()
 
-    def add_model_predictor_diff_distance(self,
-                                          model: VectorSemanticModel,
-                                          distance_type: DistanceType):
+    def add_model_predictor_reference_difference(self,
+                                                 model: DistributionalSemanticModel,
+                                                 distance_type: Optional[DistanceType]):
         """
         Adds a column containing the difference between the distances of the two reference words.
         """
-        diff_predictor_name = self.predictor_name_for_model_diff_distance(model, distance_type)
+        diff_predictor_name = self.predictor_name_for_model_reference_difference(model, distance_type)
 
         # Skip existing predictors
         if self.predictor_exists_with_name(diff_predictor_name):
@@ -499,22 +520,22 @@ class CalgaryData(RegressionData):
             logger.info(f"Adding '{diff_predictor_name}' model predictor")
 
             # TODO: there must be a better way to do this than have it hard-coded...
-            self.dataframe[diff_predictor_name] = self.dataframe[self.predictor_name_for_model_fixed_distance(model, distance_type, "concrete")] - self.dataframe[self.predictor_name_for_model_fixed_distance(model, distance_type, "abstract")]
+            self.dataframe[diff_predictor_name] = self.dataframe[self.predictor_name_for_model_fixed_reference(model, distance_type, "concrete")] - self.dataframe[self.predictor_name_for_model_fixed_reference(model, distance_type, "abstract")]
 
             # Save in current state
             if self._save_progress:
                 self.save()
 
-    def add_model_predictor_fixed_distance(self,
-                                           model: VectorSemanticModel,
-                                           distance_type: DistanceType,
-                                           reference_word: str,
-                                           memory_map: bool = False):
+    def add_model_predictor_fixed_reference(self,
+                                            model: DistributionalSemanticModel,
+                                            distance_type: Optional[DistanceType],
+                                            reference_word: str,
+                                            memory_map: bool = False):
         """
         Adds a data column containing predictors from a semantic model.
         """
 
-        predictor_name = f"{self.predictor_name_for_model_fixed_distance(model, distance_type, reference_word)}"
+        predictor_name = f"{self.predictor_name_for_model_fixed_reference(model, distance_type, reference_word)}"
 
         # Skip existing predictors
         if self.predictor_exists_with_name(predictor_name):
@@ -527,19 +548,27 @@ class CalgaryData(RegressionData):
             # Since we're going to use the model, make sure it's trained
             model.train(memory_map=memory_map)
 
-            def fixed_model_distance_or_none(word):
+            def fixed_model_association_or_none(word):
                 """
                 Get the model distance between a pair of words, or None, if one of the words doesn't exist.
                 """
                 try:
-                    reference_distance = model.distance_between(word, reference_word, distance_type)
-                    return reference_distance
+                    # Vector models compare words using distances
+                    if isinstance(model, VectorSemanticModel):
+                        # The above type check should ensure that the model has this method.
+                        # I think this warning and the following one are due to model being captured.
+                        return model.distance_between(word, reference_word, distance_type)
+                        # Ngram models compare words using associations
+                    elif isinstance(model, NgramModel):
+                        return model.association_between(word, reference_word)
+                    else:
+                        raise TypeError()
                 except WordNotFoundError as er:
                     logger.warning(er.message)
                     return None
 
             # Add model distance column to data frame
-            self.dataframe[predictor_name] = self.dataframe["Word"].apply(fixed_model_distance_or_none)
+            self.dataframe[predictor_name] = self.dataframe["Word"].apply(fixed_model_association_or_none)
 
             # Save in current state
             if self._save_progress:
@@ -552,8 +581,8 @@ class RegressionResult(object):
     """
     def __init__(self,
                  dv_name: str,
-                 model: VectorSemanticModel,
-                 distance_type: DistanceType,
+                 model: DistributionalSemanticModel,
+                 distance_type: Optional[DistanceType],
                  baseline_r2: float,
                  baseline_bic: float,
                  model_r2: float,
@@ -629,7 +658,7 @@ class RegressionResult(object):
             self.model_type_name,
             str(self.embedding_size) if self.embedding_size is not None else "",
             str(self.window_radius),
-            self.distance_type.name,
+            self.distance_type.name if self.distance_type is not None else "",
             self.corpus_name,
             str(self.baseline_r2),
             str(self.model_r2),

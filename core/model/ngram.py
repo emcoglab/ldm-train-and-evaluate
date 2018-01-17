@@ -48,6 +48,7 @@ class NgramModel(DistributionalSemanticModel, metaclass=ABCMeta):
         return self.underlying_count_model.is_trained
 
     def train(self, force_retrain: bool = False, memory_map: bool = False):
+        logger.info("Training underlying model")
         self.underlying_count_model.train(force_retrain, memory_map)
 
     def untrain(self):
