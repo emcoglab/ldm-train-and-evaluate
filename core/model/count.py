@@ -382,6 +382,8 @@ class LogNgramModel(CountVectorModel):
         self._model.eliminate_zeros()
 
 
+# TODO: This should not be a completely new model - it should just be an alternative way to check distances in any
+# TODO: count-based model.
 class LogSummedNgramModel(CountVectorModel):
     """
     A model where the distance between word w and u is not the distance between their log n-gram vectors, but is the
@@ -397,7 +399,7 @@ class LogSummedNgramModel(CountVectorModel):
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
                  token_indices: TokenIndexDictionary):
-        super().__init__(VectorSemanticModel.ModelType.summed_log_ngram,
+        super().__init__(VectorSemanticModel.ModelType.log_summed_ngram,
                          corpus_meta, window_radius, token_indices)
 
     def _retrain(self):

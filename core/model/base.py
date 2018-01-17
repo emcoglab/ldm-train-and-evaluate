@@ -51,7 +51,7 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
         ngram_unsummed = auto()
         ngram = auto()
         log_ngram = auto()
-        summed_log_ngram = auto()
+        log_summed_ngram = auto()
         ngram_probability = auto()
         token_probability = auto()
         context_probability = auto()
@@ -75,7 +75,7 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
                 return VectorSemanticModel.MetaType.count
             elif self is VectorSemanticModel.ModelType.log_ngram:
                 return VectorSemanticModel.MetaType.count
-            elif self is VectorSemanticModel.ModelType.summed_log_ngram:
+            elif self is VectorSemanticModel.ModelType.log_summed_ngram:
                 return VectorSemanticModel.MetaType.count
             elif self is VectorSemanticModel.ModelType.ngram_probability:
                 return VectorSemanticModel.MetaType.count
@@ -110,8 +110,8 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
                 return "ngram"
             elif self is DistributionalSemanticModel.ModelType.log_ngram:
                 return "log_ngram"
-            elif self is DistributionalSemanticModel.ModelType.summed_log_ngram:
-                return "summed_log_ngram"
+            elif self is DistributionalSemanticModel.ModelType.log_summed_ngram:
+                return "log_summed_ngram"
             elif self is DistributionalSemanticModel.ModelType.ngram_probability:
                 return "ngram_probability"
             elif self is DistributionalSemanticModel.ModelType.token_probability:
@@ -143,8 +143,8 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
                 return "n-gram (summed)"
             elif self is VectorSemanticModel.ModelType.log_ngram:
                 return "log n-gram"
-            elif self is VectorSemanticModel.ModelType.summed_log_ngram:
-                return "summed log n-gram"
+            elif self is VectorSemanticModel.ModelType.log_summed_ngram:
+                return "log summed n-gram"
             elif self is VectorSemanticModel.ModelType.ngram_probability:
                 return "n-gram probability"
             elif self is VectorSemanticModel.ModelType.token_probability:
@@ -168,25 +168,25 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             slug = slug.lower()
             if slug == "cbow":
                 return cls.cbow
-            elif slug == "skip-gram":
+            elif slug == "skipgram":
                 return cls.skip_gram
-            elif slug == "n-gram (unsummed)":
+            elif slug == "ngram_unsummed":
                 return cls.ngram_unsummed
-            elif slug == "n-gram (summed)":
+            elif slug == "ngram":
                 return cls.ngram
-            elif slug == "log n-gram":
+            elif slug == "log_ngram":
                 return cls.log_ngram
-            elif slug == "summed log n-gram":
-                return cls.summed_log_ngram
-            elif slug == "n-gram probability":
+            elif slug == "log_summed_ngram":
+                return cls.log_summed_ngram
+            elif slug == "ngram_probability":
                 return cls.ngram_probability
-            elif slug == "token probability":
+            elif slug == "token_probability":
                 return cls.token_probability
-            elif slug == "context probability":
+            elif slug == "context_probability":
                 return cls.context_probability
-            elif slug == "conditional probability":
+            elif slug == "conditional_probability":
                 return cls.conditional_probability
-            elif slug == "probability ratio":
+            elif slug == "probability_ratio":
                 return cls.probability_ratios
             elif slug == "ppmi":
                 return cls.ppmi

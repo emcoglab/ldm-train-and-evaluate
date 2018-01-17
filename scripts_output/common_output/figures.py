@@ -234,7 +234,7 @@ def model_performance_bar_graphs(results: DataFrame,
     grid.map(
         seaborn.barplot, "Model name", test_statistic_name,
         order=[
-            "summed log n-gram",
+            "log summed n-gram",
             "log n-gram",
         "Conditional probability",
         "Probability ratio",
