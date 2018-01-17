@@ -19,7 +19,7 @@ import logging
 import sys
 
 from ..core.corpus.indexing import TokenIndexDictionary
-from ..core.model.count import LogNgramModel
+from ..core.model.count import LogCoOccurrenceCountModel
 from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
 
@@ -31,7 +31,7 @@ def main():
     for meta in Preferences.source_corpus_metas:
         token_indices = TokenIndexDictionary.load(meta.index_path)
         for radius in Preferences.window_radii:
-            model = LogNgramModel(meta, radius, token_indices)
+            model = LogCoOccurrenceCountModel(meta, radius, token_indices)
             if not model.could_load:
                 model.train()
 

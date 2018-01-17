@@ -20,9 +20,9 @@ import sys
 
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.evaluation.synonym import ToeflTest, EslTest, LbmMcqTest, SynonymTester, SynonymResults
-from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel, \
-    LogSummedNgramModel
+from ..core.model.count import PPMIModel, LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
+from ..core.model.ngram import LogNgramModel
 from ..core.utils.maths import DistanceType
 from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
@@ -45,14 +45,29 @@ def main():
 
         token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
         freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
-
         for window_radius in Preferences.window_radii:
+
+            # NGRAM MODELS
+
+            ngram_models = [
+                LogNgramModel(corpus_metadata, window_radius, token_index),
+            ]
+
+            for model in ngram_models:
+                for test in test_battery:
+                    if not results.results_exist_for(test.name, model, None):
+                        model.train(memory_map=True)
+                        results.extend_with_results(SynonymTester.administer_test_with_similarity(test, model))
+                        results.save()
+
+                # release memory
+                model.untrain()
+            del ngram_models
 
             # COUNT MODELS
 
             count_models = [
-                LogNgramModel(corpus_metadata, window_radius, token_index),
-                LogSummedNgramModel(corpus_metadata, window_radius, token_index),
+                LogCoOccurrenceCountModel(corpus_metadata, window_radius, token_index),
                 ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
                 ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
                 PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
@@ -64,7 +79,7 @@ def main():
                         # TODO: horrifically inefficient: we load existing results each time
                         if not results.results_exist_for(test.name, model, distance_type):
                             model.train(memory_map=True)
-                            results.extend_with_results(SynonymTester.administer_test(test, model, distance_type))
+                            results.extend_with_results(SynonymTester.administer_test_with_distance(test, model, distance_type))
                             results.save()
 
                 # release memory
@@ -78,7 +93,7 @@ def main():
                 for distance_type in DistanceType:
                     if not results.results_exist_for(test.name, model, distance_type, truncate_length):
                         model.train(memory_map=True)
-                        results.extend_with_results(SynonymTester.administer_test(test, model, distance_type, truncate_length))
+                        results.extend_with_results(SynonymTester.administer_test_with_distance(test, model, distance_type, truncate_length))
                         results.save()
 
             # release memory
@@ -98,7 +113,7 @@ def main():
                         for distance_type in DistanceType:
                             if not results.results_exist_for(test.name, model, distance_type):
                                 model.train(memory_map=True)
-                                results.extend_with_results(SynonymTester.administer_test(test, model, distance_type))
+                                results.extend_with_results(SynonymTester.administer_test_with_distance(test, model, distance_type))
                                 results.save()
 
                     # release memory

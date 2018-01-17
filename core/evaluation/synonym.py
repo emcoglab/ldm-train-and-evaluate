@@ -22,11 +22,12 @@ from abc import ABCMeta, abstractmethod
 from copy import copy
 from typing import List
 
+from ..corpus.indexing import LetterIndexing
 from ..evaluation.results import EvaluationResults
 from ..model.base import VectorSemanticModel
+from ..model.ngram import NgramModel
 from ..utils.exceptions import WordNotFoundError
 from ..utils.maths import DistanceType, binomial_bayes_factor_one_sided
-from ..corpus.indexing import LetterIndexing
 from ...preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -309,7 +310,7 @@ class SynonymTester(object):
     """
 
     @staticmethod
-    def administer_test(
+    def administer_test_with_distance(
             test: SynonymTest,
             model: VectorSemanticModel,
             distance_type: DistanceType,
@@ -329,7 +330,7 @@ class SynonymTester(object):
 
         answers = []
         for question in test.question_list:
-            answer = SynonymTester.attempt_question(question, model, distance_type, truncate_vectors_at_length)
+            answer = SynonymTester.attempt_question_with_distance(question, model, distance_type, truncate_vectors_at_length)
 
             answers.append(answer)
 
@@ -353,8 +354,47 @@ class SynonymTester(object):
         return results
 
     @staticmethod
-    def attempt_question(question: SynonymTestQuestion, model: VectorSemanticModel, distance_type: DistanceType,
-                         truncate_vectors_at_length: int = None) -> AnsweredQuestion:
+    def administer_test_with_similarity(
+            test: SynonymTest,
+            model: NgramModel
+            ) -> SynonymResults:
+        """
+        Administers a test against a model
+        :param test:
+        :param model: Must be trained.
+        """
+
+        assert model.is_trained
+
+        results = SynonymResults()
+
+        answers = []
+        for question in test.question_list:
+            answer = SynonymTester.attempt_question_with_similarity(question, model)
+
+            answers.append(answer)
+
+        answer_paper = AnswerPaper(answers)
+
+        n_correct_answers = answer_paper.n_correct_answers
+        n_total_questions = answer_paper.n_correct_answers + answer_paper.n_incorrect_answers
+
+        chance_level = 0.25
+        b10 = binomial_bayes_factor_one_sided(n_total_questions, n_correct_answers, chance_level)
+
+        results.add_result(
+            test.name, model, None, {
+                "Correct answers"     : n_correct_answers,
+                "Total questions"     : n_total_questions,
+                "Score"               : answer_paper.score,
+                "B10"                 : b10
+            })
+
+        return results
+
+    @staticmethod
+    def attempt_question_with_distance(question: SynonymTestQuestion, model: VectorSemanticModel, distance_type: DistanceType,
+                                       truncate_vectors_at_length: int = None) -> AnsweredQuestion:
         """
         Attempt a question.
         :param question:
@@ -379,5 +419,31 @@ class SynonymTester(object):
             if guess_d < best_guess_d:
                 best_guess_i = option_i
                 best_guess_d = guess_d
+
+        return AnsweredQuestion(copy(question), best_guess_i)
+
+    @staticmethod
+    def attempt_question_with_similarity(question: SynonymTestQuestion, model: NgramModel) -> AnsweredQuestion:
+        """
+        Attempt a question.
+        :param question:
+        :param model:
+        :return: answer
+        """
+        # The current best guess
+        best_guess_i = -1
+        best_guess_a = -math.inf
+
+        for option_i, option in enumerate(question.options):
+            try:
+                guess_a = model.association_between(question.prompt, option)
+            except WordNotFoundError as er:
+                logger.warning(er.message)
+                # Make sure we don't pick this one
+                guess_a = math.inf
+
+            if guess_a > best_guess_a:
+                best_guess_i = option_i
+                best_guess_a = guess_a
 
         return AnsweredQuestion(copy(question), best_guess_i)

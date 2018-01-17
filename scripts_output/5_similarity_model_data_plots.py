@@ -28,7 +28,7 @@ from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
     ColourEmotionAssociation, ThematicRelatedness, WordAssociationTest
 from ..core.model.base import DistributionalSemanticModel
-from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel
+from ..core.model.count import PPMIModel, LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from .common_output.figures import model_data_scatter_plot
 from ..preferences.preferences import Preferences
@@ -58,7 +58,7 @@ def main():
         for window_radius in Preferences.window_radii:
             # Count models
             models.extend([
-                LogNgramModel(corpus_metadata, window_radius, token_index),
+                LogCoOccurrenceCountModel(corpus_metadata, window_radius, token_index),
                 ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
                 ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
                 PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)

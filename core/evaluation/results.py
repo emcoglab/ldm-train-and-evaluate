@@ -19,11 +19,11 @@ import pickle
 import logging
 
 from abc import ABCMeta
-from typing import List
+from typing import List, Optional
 
 import pandas
 
-from ..model.base import VectorSemanticModel
+from ..model.base import DistributionalSemanticModel
 from ..model.predict import PredictVectorModel
 from ..utils.maths import DistanceType
 
@@ -66,8 +66,8 @@ class EvaluationResults(metaclass=ABCMeta):
 
     def add_result(self,
                    test_name: str,
-                   model: VectorSemanticModel,
-                   distance_type: DistanceType,
+                   model: DistributionalSemanticModel,
+                   distance_type: Optional[DistanceType],
                    # a dictionary whose keys are the same as the results_column_names
                    result: dict,
                    append_to_model_name: str = None):
@@ -80,7 +80,7 @@ class EvaluationResults(metaclass=ABCMeta):
         result["Model type"] = model.model_type.name + (append_to_model_name if append_to_model_name is not None else "")
         result["Embedding size"] = model.embedding_size if isinstance(model, PredictVectorModel) else None
         result["Window radius"] = model.window_radius
-        result["Distance type"] = distance_type.name
+        result["Distance type"] = distance_type.name if distance_type is not None else ""
         result["Corpus"] = model.corpus_meta.name
 
         assert set(result.keys()) == set(self.column_names)
@@ -97,8 +97,8 @@ class EvaluationResults(metaclass=ABCMeta):
 
     def results_exist_for(self,
                           test_name: str,
-                          model: VectorSemanticModel,
-                          distance_type: DistanceType,
+                          model: DistributionalSemanticModel,
+                          distance_type: Optional[DistanceType],
                           truncate_vectors_at_length: int = None) -> bool:
         """
         Do results exist for this model?
@@ -109,7 +109,7 @@ class EvaluationResults(metaclass=ABCMeta):
                    (self.data["Model type"] == (model.model_type.name + (f" ({truncate_vectors_at_length})" if truncate_vectors_at_length is not None else ""))) &
                    ((self.data["Embedding size"] == model.embedding_size) if isinstance(model, PredictVectorModel) else pandas.isnull(self.data["Embedding size"])) &
                    (self.data["Window radius"] == model.window_radius) &
-                   (self.data["Distance type"] == distance_type.name) &
+                   ((self.data["Distance type"] == distance_type.name) if distance_type is not None else pandas.isnull(self.data["Distance type"])) &
                    (self.data["Corpus"] == model.corpus_meta.name)
                ].shape[0] > 0
 

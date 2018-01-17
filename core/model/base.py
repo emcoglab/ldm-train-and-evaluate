@@ -36,28 +36,34 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
     """
 
     class MetaType(Enum):
-        count = auto()
+        # vector models which count cooccurrences
+        count   = auto()
+        # vector models which predict cooccurrences
         predict = auto()
+        # models based on ngram-based lookups
+        ngram   = auto()
 
     class ModelType(Enum):
         """
         Representative of the type of a vector space model.
         """
         # Predict model
-        cbow = auto()
+        cbow      = auto()
         skip_gram = auto()
 
         # Count model
-        ngram_unsummed = auto()
-        ngram = auto()
+        unsummed_cooccurrence    = auto()
+        cooccurrence             = auto()
+        log_cooccurrence         = auto()
+        cooccurrence_probability = auto()
+        token_probability        = auto()
+        context_probability      = auto()
+        conditional_probability  = auto()
+        probability_ratios       = auto()
+        ppmi                     = auto()
+
+        # Ngram model
         log_ngram = auto()
-        log_summed_ngram = auto()
-        ngram_probability = auto()
-        token_probability = auto()
-        context_probability = auto()
-        conditional_probability = auto()
-        probability_ratios = auto()
-        ppmi = auto()
 
         @property
         def metatype(self):
@@ -65,32 +71,46 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             The metatype of this type.
             :return:
             """
+
             if self is VectorSemanticModel.ModelType.cbow:
                 return VectorSemanticModel.MetaType.predict
+
             elif self is VectorSemanticModel.ModelType.skip_gram:
                 return VectorSemanticModel.MetaType.predict
-            elif self is VectorSemanticModel.ModelType.ngram_unsummed:
+
+            elif self is VectorSemanticModel.ModelType.unsummed_cooccurrence:
                 return VectorSemanticModel.MetaType.count
-            elif self is VectorSemanticModel.ModelType.ngram:
+
+            elif self is VectorSemanticModel.ModelType.cooccurrence:
                 return VectorSemanticModel.MetaType.count
-            elif self is VectorSemanticModel.ModelType.log_ngram:
+
+            elif self is VectorSemanticModel.ModelType.log_cooccurrence:
                 return VectorSemanticModel.MetaType.count
-            elif self is VectorSemanticModel.ModelType.log_summed_ngram:
+
+            elif self is VectorSemanticModel.ModelType.cooccurrence_probability:
                 return VectorSemanticModel.MetaType.count
-            elif self is VectorSemanticModel.ModelType.ngram_probability:
-                return VectorSemanticModel.MetaType.count
+
             elif self is VectorSemanticModel.ModelType.token_probability:
                 return VectorSemanticModel.MetaType.count
+
             elif self is VectorSemanticModel.ModelType.context_probability:
                 return VectorSemanticModel.MetaType.count
+
             elif self is VectorSemanticModel.ModelType.conditional_probability:
                 return VectorSemanticModel.MetaType.count
+
             elif self is VectorSemanticModel.ModelType.probability_ratios:
                 return VectorSemanticModel.MetaType.count
+
             elif self is VectorSemanticModel.ModelType.pmi:
                 return VectorSemanticModel.MetaType.count
+
             elif self is VectorSemanticModel.ModelType.ppmi:
                 return VectorSemanticModel.MetaType.count
+
+            elif self is VectorSemanticModel.ModelType.log_ngram:
+                return VectorSemanticModel.MetaType.ngram
+
             else:
                 raise ValueError()
 
@@ -100,30 +120,43 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             A path-safe representation of the model type
             :return:
             """
+
             if self is DistributionalSemanticModel.ModelType.cbow:
                 return "cbow"
+
             elif self is DistributionalSemanticModel.ModelType.skip_gram:
                 return "skipgram"
-            elif self is DistributionalSemanticModel.ModelType.ngram_unsummed:
-                return "ngram_unsummed"
-            elif self is DistributionalSemanticModel.ModelType.ngram:
-                return "ngram"
-            elif self is DistributionalSemanticModel.ModelType.log_ngram:
-                return "log_ngram"
-            elif self is DistributionalSemanticModel.ModelType.log_summed_ngram:
-                return "log_summed_ngram"
-            elif self is DistributionalSemanticModel.ModelType.ngram_probability:
-                return "ngram_probability"
+
+            elif self is DistributionalSemanticModel.ModelType.unsummed_cooccurrence:
+                return "unsummed_cooccurrence"
+
+            elif self is DistributionalSemanticModel.ModelType.cooccurrence:
+                return "cooccurrence"
+
+            elif self is DistributionalSemanticModel.ModelType.log_cooccurrence:
+                return "log_cooccurrence"
+
+            elif self is DistributionalSemanticModel.ModelType.cooccurrence_probability:
+                return "cooccurrence_probability"
+
             elif self is DistributionalSemanticModel.ModelType.token_probability:
                 return "token_probability"
+
             elif self is DistributionalSemanticModel.ModelType.context_probability:
                 return "context_probability"
+
             elif self is DistributionalSemanticModel.ModelType.conditional_probability:
                 return "conditional_probability"
+
             elif self is DistributionalSemanticModel.ModelType.probability_ratios:
                 return "probability_ratios"
+
             elif self is DistributionalSemanticModel.ModelType.ppmi:
                 return "ppmi"
+
+            elif self is DistributionalSemanticModel.ModelType.log_ngram:
+                return "log_ngram"
+
             else:
                 raise ValueError()
 
@@ -137,16 +170,14 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
                 return "CBOW"
             elif self is VectorSemanticModel.ModelType.skip_gram:
                 return "Skip-gram"
-            elif self is VectorSemanticModel.ModelType.ngram_unsummed:
-                return "n-gram (unsummed)"
-            elif self is VectorSemanticModel.ModelType.ngram:
-                return "n-gram (summed)"
-            elif self is VectorSemanticModel.ModelType.log_ngram:
-                return "log n-gram"
-            elif self is VectorSemanticModel.ModelType.log_summed_ngram:
-                return "log summed n-gram"
-            elif self is VectorSemanticModel.ModelType.ngram_probability:
-                return "n-gram probability"
+            elif self is VectorSemanticModel.ModelType.unsummed_cooccurrence:
+                return "co-occurrence (unsummed)"
+            elif self is VectorSemanticModel.ModelType.cooccurrence:
+                return "co-occurrence"
+            elif self is VectorSemanticModel.ModelType.log_cooccurrence:
+                return "log co-occurrence"
+            elif self is VectorSemanticModel.ModelType.cooccurrence_probability:
+                return "co-occurrence probability"
             elif self is VectorSemanticModel.ModelType.token_probability:
                 return "Token probability"
             elif self is VectorSemanticModel.ModelType.context_probability:
@@ -157,6 +188,8 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
                 return "Probability ratio"
             elif self is VectorSemanticModel.ModelType.ppmi:
                 return "PPMI"
+            elif self is VectorSemanticModel.ModelType.log_ngram:
+                return "log n-gram"
             else:
                 raise ValueError()
 
@@ -170,16 +203,16 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
                 return cls.cbow
             elif slug == "skipgram":
                 return cls.skip_gram
-            elif slug == "ngram_unsummed":
-                return cls.ngram_unsummed
-            elif slug == "ngram":
-                return cls.ngram
+            elif slug == "unsummed_cooccurrence":
+                return cls.unsummed_cooccurrence
+            elif slug == "cooccurrence":
+                return cls.cooccurrence
+            elif slug == "log_cooccurrence":
+                return cls.log_cooccurrence
             elif slug == "log_ngram":
                 return cls.log_ngram
-            elif slug == "log_summed_ngram":
-                return cls.log_summed_ngram
-            elif slug == "ngram_probability":
-                return cls.ngram_probability
+            elif slug == "cooccurrence_probability":
+                return cls.cooccurrence_probability
             elif slug == "token_probability":
                 return cls.token_probability
             elif slug == "context_probability":
@@ -196,18 +229,23 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
         @classmethod
         def predict_types(cls):
             """
-            Lists the predict types
-            :return:
+            Lists the predict types.
             """
-            return [t for t in VectorSemanticModel.ModelType if t.metatype is VectorSemanticModel.MetaType.predict]
+            return [t for t in DistributionalSemanticModel.ModelType if t.metatype is DistributionalSemanticModel.MetaType.predict]
 
         @classmethod
         def count_types(cls):
             """
-            Lists the count types
-            :return:
+            Lists the count types.
             """
-            return [t for t in VectorSemanticModel.ModelType if t.metatype is VectorSemanticModel.MetaType.count]
+            return [t for t in DistributionalSemanticModel.ModelType if t.metatype is DistributionalSemanticModel.MetaType.count]
+
+        @classmethod
+        def ngram_types(cls):
+            """
+            Lists the ngram types.
+            """
+            return [t for t in DistributionalSemanticModel.ModelType if t.metatype is DistributionalSemanticModel.MetaType.ngram]
 
     def __init__(self, model_type: ModelType, corpus_meta: CorpusMetadata):
 

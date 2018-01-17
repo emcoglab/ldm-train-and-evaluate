@@ -21,8 +21,7 @@ import sys
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
     AssociationTester, ColourEmotionAssociation, ThematicRelatedness, AssociationResults
-from ..core.model.count import PPMIModel, LogNgramModel, ConditionalProbabilityModel, ProbabilityRatioModel, \
-    LogSummedNgramModel
+from ..core.model.count import PPMIModel, LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
 from ..core.utils.maths import DistanceType
 from ..core.utils.logging import log_message, date_format
@@ -55,8 +54,7 @@ def main():
             # COUNT MODELS
 
             count_models = [
-                LogNgramModel(corpus_metadata, window_radius, token_index),
-                LogSummedNgramModel(corpus_metadata, window_radius, token_index),
+                LogCoOccurrenceCountModel(corpus_metadata, window_radius, token_index),
                 ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
                 ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
                 PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)

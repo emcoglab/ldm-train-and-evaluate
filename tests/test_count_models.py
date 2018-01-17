@@ -20,23 +20,24 @@ import math
 
 import numpy
 
+from ..core.model.ngram import LogNgramModel
 from ..core.utils.constants import Chirality
 from ..core.utils.maths import DistanceType
 from ..core.corpus.corpus import BatchedCorpus
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
-from ..core.model.count import UnsummedNgramCountModel, NgramCountModel, LogNgramModel, ConditionalProbabilityModel, \
+from ..core.model.count import UnsummedCoOccurrenceCountModel, CoOccurrenceCountModel, LogCoOccurrenceCountModel, ConditionalProbabilityModel, \
     ProbabilityRatioModel, PPMIModel
 
 from .testing_materials.metadata import test_corpus_metadata
 
 
-class TestUnsummedNgramModel(unittest.TestCase):
-    def test_unsummed_ngram_r1_left_values(self):
-        model = UnsummedNgramCountModel(test_corpus_metadata,
-                                        window_radius=1,
-                                        token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
+class TestUnsummedCoOccurrenceModel(unittest.TestCase):
+    def test_unsummed_cooccurrence_r1_left_values(self):
+        model = UnsummedCoOccurrenceCountModel(test_corpus_metadata,
+                                               window_radius=1,
+                                               token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
                                             BatchedCorpus(test_corpus_metadata, 3))),
-                                        chirality=Chirality.left)
+                                               chirality=Chirality.left)
         model.train(force_retrain=True)
 
         self.assertTrue(numpy.array_equal(
@@ -49,12 +50,12 @@ class TestUnsummedNgramModel(unittest.TestCase):
             ])
         ))
 
-    def test_unsummed_ngram_r1_right_values(self):
-        model = UnsummedNgramCountModel(test_corpus_metadata,
-                                        window_radius=1,
-                                        token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
+    def test_unsummed_cooccurrence_r1_right_values(self):
+        model = UnsummedCoOccurrenceCountModel(test_corpus_metadata,
+                                               window_radius=1,
+                                               token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
                                             BatchedCorpus(test_corpus_metadata, 3))),
-                                        chirality=Chirality.right)
+                                               chirality=Chirality.right)
         model.train(force_retrain=True)
 
         self.assertTrue(numpy.array_equal(
@@ -68,11 +69,11 @@ class TestUnsummedNgramModel(unittest.TestCase):
         ))
 
 
-class TestSummedNgramModel(unittest.TestCase):
-    def test_summed_ngram_contains_abcd(self):
-        model = NgramCountModel(test_corpus_metadata,
-                                window_radius=1,
-                                token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
+class TestCoOccurrenceModel(unittest.TestCase):
+    def test_cooccurrence_contains_abcd(self):
+        model = CoOccurrenceCountModel(test_corpus_metadata,
+                                       window_radius=1,
+                                       token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
                                     BatchedCorpus(test_corpus_metadata, 3))))
         model.train(force_retrain=True)
 
@@ -81,19 +82,19 @@ class TestSummedNgramModel(unittest.TestCase):
         self.assertTrue(model.contains_word("C"))
         self.assertTrue(model.contains_word("D"))
 
-    def test_summed_ngram_does_not_contain_e(self):
-        model = NgramCountModel(test_corpus_metadata,
-                                window_radius=1,
-                                token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
+    def test_cooccurrence_does_not_contain_e(self):
+        model = CoOccurrenceCountModel(test_corpus_metadata,
+                                       window_radius=1,
+                                       token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
                                     BatchedCorpus(test_corpus_metadata, 3))))
         model.train(force_retrain=True)
 
         self.assertFalse(model.contains_word("E"))
 
-    def test_summed_ngram_r1_values(self):
-        model = NgramCountModel(test_corpus_metadata,
-                                window_radius=1,
-                                token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
+    def test_cooccurrence_r1_values(self):
+        model = CoOccurrenceCountModel(test_corpus_metadata,
+                                       window_radius=1,
+                                       token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
                                     BatchedCorpus(test_corpus_metadata, 3))))
         model.train(force_retrain=True)
 
@@ -107,10 +108,10 @@ class TestSummedNgramModel(unittest.TestCase):
             ])
         ))
 
-    def test_summed_ngram_r2_values(self):
-        model = NgramCountModel(test_corpus_metadata,
-                                window_radius=2,
-                                token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
+    def test_cooccurrence_r2_values(self):
+        model = CoOccurrenceCountModel(test_corpus_metadata,
+                                       window_radius=2,
+                                       token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
                                     BatchedCorpus(test_corpus_metadata, 3))))
         model.train(force_retrain=True)
 
@@ -124,10 +125,10 @@ class TestSummedNgramModel(unittest.TestCase):
             ])
         ))
 
-    def test_summed_ngram_r9_values(self):
-        model = NgramCountModel(test_corpus_metadata,
-                                window_radius=9,
-                                token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
+    def test_cooccurrence_r9_values(self):
+        model = CoOccurrenceCountModel(test_corpus_metadata,
+                                       window_radius=9,
+                                       token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
                                     BatchedCorpus(test_corpus_metadata, 3))))
         model.train(force_retrain=True)
 
@@ -141,10 +142,10 @@ class TestSummedNgramModel(unittest.TestCase):
             ])
         ))
 
-    def test_summed_ngram_r9_distance(self):
-        model = NgramCountModel(test_corpus_metadata,
-                                window_radius=9,
-                                token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
+    def test_cooccurrence_r9_distance(self):
+        model = CoOccurrenceCountModel(test_corpus_metadata,
+                                       window_radius=9,
+                                       token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
                                     BatchedCorpus(test_corpus_metadata, 3))))
         model.train(force_retrain=True)
 
@@ -154,11 +155,11 @@ class TestSummedNgramModel(unittest.TestCase):
         )
 
 
-class TestLogNgram(unittest.TestCase):
-    def test_log_ngram_r1_values(self):
-        model = LogNgramModel(test_corpus_metadata,
-                              window_radius=1,
-                              token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
+class TestLogCoOccurrence(unittest.TestCase):
+    def test_log_cooccurrece_r1_values(self):
+        model = LogCoOccurrenceCountModel(test_corpus_metadata,
+                                          window_radius=1,
+                                          token_indices=TokenIndexDictionary.from_freqdist(FreqDist.from_batched_corpus(
                                   BatchedCorpus(test_corpus_metadata, 3))))
         model.train(force_retrain=True)
 
@@ -253,6 +254,21 @@ class TestPPMI(unittest.TestCase):
             )
         except AssertionError:
             self.fail("AssertionError raised by numpy.testing.assert_array_almost_equal.")
+
+
+class TestNgram(unittest.TestCase):
+    def test_ngram_a_b(self):
+        fd = FreqDist.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
+        tid = TokenIndexDictionary.from_freqdist(fd)
+        model = LogNgramModel(test_corpus_metadata,
+                              window_radius=1,
+                              token_indices=tid)
+        model.train(force_retrain=True)
+
+        self.assertAlmostEqual(
+            model.association_between("A", "B"),
+            numpy.log10(3 + 1)
+        )
 
 
 if __name__ == '__main__':

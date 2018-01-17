@@ -232,7 +232,7 @@ class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
             return False
 
 
-class UnsummedNgramCountModel(CountVectorModel):
+class UnsummedCoOccurrenceCountModel(CountVectorModel):
     """
     A model where vectors consist of context counts at a fixed distance either on the left or right of a window.
     """
@@ -242,7 +242,7 @@ class UnsummedNgramCountModel(CountVectorModel):
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  chirality: Chirality):
-        super().__init__(DistributionalSemanticModel.ModelType.ngram_unsummed,
+        super().__init__(DistributionalSemanticModel.ModelType.unsummed_cooccurrence,
                          corpus_meta, window_radius, token_indices)
         self._chirality = chirality
 
@@ -314,7 +314,7 @@ class UnsummedNgramCountModel(CountVectorModel):
         self._model = self._model.tocsr()
 
 
-class NgramCountModel(CountVectorModel):
+class CoOccurrenceCountModel(CountVectorModel):
     """
     A model where vectors consist of the counts of context words within a window.
 
@@ -328,7 +328,7 @@ class NgramCountModel(CountVectorModel):
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
                  token_indices: TokenIndexDictionary):
-        super().__init__(VectorSemanticModel.ModelType.ngram, corpus_meta, window_radius, token_indices)
+        super().__init__(VectorSemanticModel.ModelType.cooccurrence, corpus_meta, window_radius, token_indices)
 
     def _retrain(self):
 
@@ -342,7 +342,7 @@ class NgramCountModel(CountVectorModel):
             # Accumulate both left and right occurrences
             for chirality in Chirality:
                 # Get each unsummed model
-                unsummed_model = UnsummedNgramCountModel(self.corpus_meta, radius, self.token_indices, chirality)
+                unsummed_model = UnsummedCoOccurrenceCountModel(self.corpus_meta, radius, self.token_indices, chirality)
                 unsummed_model.train()
 
                 # And add it to the current matrix
@@ -352,7 +352,7 @@ class NgramCountModel(CountVectorModel):
                 del unsummed_model
 
 
-class LogNgramModel(CountVectorModel):
+class LogCoOccurrenceCountModel(CountVectorModel):
     """
     A model where vectors consist of the log of context counts within a window.
     Uses the log (n+1) method to account for 0-and-1-frequency co-occurrences.
@@ -367,70 +367,22 @@ class LogNgramModel(CountVectorModel):
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
                  token_indices: TokenIndexDictionary):
-        super().__init__(VectorSemanticModel.ModelType.log_ngram,
+        super().__init__(VectorSemanticModel.ModelType.log_cooccurrence,
                          corpus_meta, window_radius, token_indices)
 
     def _retrain(self):
-        # Get the ngram model
-        ngram_model = NgramCountModel(self.corpus_meta, self.window_radius, self.token_indices)
+        # Get the cooccurrence model
+        ngram_model = CoOccurrenceCountModel(self.corpus_meta, self.window_radius, self.token_indices)
         ngram_model.train()
 
         self._model = ngram_model.matrix
         del ngram_model
-        # Apply log to entries in the ngram matrix
+        # Apply log to entries in the cooccurrence matrix
         self._model.data = numpy.log10(self._model.data + 1)
         self._model.eliminate_zeros()
 
 
-# TODO: This should not be a completely new model - it should just be an alternative way to check distances in any
-# TODO: count-based model.
-class LogSummedNgramModel(CountVectorModel):
-    """
-    A model where the distance between word w and u is not the distance between their log n-gram vectors, but is the
-    u-entry in the v-vector (which equals the v-entry in the u-vector as the log co-occurrence matrix is symmetric.
-
-    log [ n(c,t) + 1 ]
-
-    c: context token
-    t: target token
-    """
-
-    def __init__(self,
-                 corpus_meta: CorpusMetadata,
-                 window_radius: int,
-                 token_indices: TokenIndexDictionary):
-        super().__init__(VectorSemanticModel.ModelType.log_summed_ngram,
-                         corpus_meta, window_radius, token_indices)
-
-    def _retrain(self):
-        # Get the ngram model
-        ngram_model = NgramCountModel(self.corpus_meta, self.window_radius, self.token_indices)
-        ngram_model.train()
-
-        self._model = ngram_model.matrix
-        del ngram_model
-        # Apply log to entries in the ngram matrix
-        self._model.data = numpy.log10(self._model.data + 1)
-        self._model.eliminate_zeros()
-
-    def distance_between(self, word_1, word_2, distance_type: DistanceType, truncate_vectors_at_length: int = None):
-
-        if truncate_vectors_at_length is not None:
-            raise NotImplementedError("truncate_vectors_at_length is not supported for the summed n-gram model")
-
-        # The matrix is symmetric so we could equally use the word_1-entry in the word_2-vector
-        try:
-            # These value-based models measure similarity rather than distance.
-            # We fake the sign by just returning negative distance
-            # TODO: Figure out what to do about this.
-            similarity = self.vector_for_word(word_1)[0, self.token_indices.token2id[word_2]]
-            dist = -similarity
-            return dist
-        except KeyError:
-            raise WordNotFoundError(f"One of the words '{word_1}' or '{word_2}' was not found.")
-
-
-class NgramProbabilityModel(CountVectorModel):
+class CoOccurrenceProbabilityModel(CountVectorModel):
     """
     A model where vectors consist of the probability that a given context is found within a window around the target.
 
@@ -447,16 +399,16 @@ class NgramProbabilityModel(CountVectorModel):
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
-        super().__init__(VectorSemanticModel.ModelType.ngram_probability,
+        super().__init__(VectorSemanticModel.ModelType.cooccurrence_probability,
                          corpus_meta, window_radius, token_indices)
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        # Get the ngram model
-        ngram_model = NgramCountModel(self.corpus_meta, self.window_radius, self.token_indices)
+        # Get the cooccurrence model
+        ngram_model = CoOccurrenceCountModel(self.corpus_meta, self.window_radius, self.token_indices)
         ngram_model.train()
 
-        # The probability is just the ngram count, divided by the width of the window and the size of the corpus
+        # The probability is just the cooccurrence count, divided by the width of the window and the size of the corpus
         self._model = ngram_model.matrix
         del ngram_model
         # The width of the window is twice the radius
@@ -487,8 +439,8 @@ class TokenProbabilityModel(CountScalarModel):
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        # Get the ngram model
-        ngram_model = NgramCountModel(self.corpus_meta, self.window_radius, self.token_indices)
+        # Get the cooccurrence model
+        ngram_model = CoOccurrenceCountModel(self.corpus_meta, self.window_radius, self.token_indices)
         ngram_model.train()
 
         # The probability is just the token count, divided by the width of the window and the size of the corpus
@@ -522,8 +474,8 @@ class ConditionalProbabilityModel(CountVectorModel):
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        ngram_probability_model = NgramProbabilityModel(self.corpus_meta, self.window_radius, self.token_indices,
-                                                        self._freq_dist)
+        ngram_probability_model = CoOccurrenceProbabilityModel(self.corpus_meta, self.window_radius, self.token_indices,
+                                                               self._freq_dist)
         ngram_probability_model.train()
 
         # Convert to csr for linear algebra
@@ -573,8 +525,8 @@ class ContextProbabilityModel(CountScalarModel):
         self._freq_dist = freq_dist
 
     def _retrain(self):
-        # Get the ngram model
-        ngram_model = NgramCountModel(self.corpus_meta, self.window_radius, self.token_indices)
+        # Get the cooccurrence model
+        ngram_model = CoOccurrenceCountModel(self.corpus_meta, self.window_radius, self.token_indices)
         ngram_model.train()
 
         # The probability is just the token count, divided by the width of the window and the size of the corpus

@@ -19,7 +19,7 @@ import argparse
 
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.model.base import DistributionalSemanticModel
-from ..core.model.count import LogNgramModel, NgramCountModel, NgramProbabilityModel, TokenProbabilityModel, \
+from ..core.model.count import LogCoOccurrenceCountModel, CoOccurrenceCountModel, CoOccurrenceProbabilityModel, TokenProbabilityModel, \
     ContextProbabilityModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
 from ..core.model.predict import CbowModel, SkipGramModel
 from ..core.utils.maths import DistanceType
@@ -69,15 +69,15 @@ def main(args):
         model = CbowModel(corpus_metadata, radius, size)
     elif model_type is DistributionalSemanticModel.ModelType.skip_gram:
         model = SkipGramModel(corpus_metadata, radius, size)
-    elif model_type is DistributionalSemanticModel.ModelType.ngram_unsummed:
+    elif model_type is DistributionalSemanticModel.ModelType.unsummed_cooccurrence:
         # This is too complicated for now, as it involves chirality.
         raise NotImplementedError()
-    elif model_type is DistributionalSemanticModel.ModelType.ngram:
-        model = NgramCountModel(corpus_metadata, radius, token_indices)
-    elif model_type is DistributionalSemanticModel.ModelType.log_ngram:
-        model = LogNgramModel(corpus_metadata, radius, token_indices)
-    elif model_type is DistributionalSemanticModel.ModelType.ngram_probability:
-        model = NgramProbabilityModel(corpus_metadata, radius, token_indices, freq_dist)
+    elif model_type is DistributionalSemanticModel.ModelType.cooccurrence:
+        model = CoOccurrenceCountModel(corpus_metadata, radius, token_indices)
+    elif model_type is DistributionalSemanticModel.ModelType.log_cooccurrence:
+        model = LogCoOccurrenceCountModel(corpus_metadata, radius, token_indices)
+    elif model_type is DistributionalSemanticModel.ModelType.cooccurrence_probability:
+        model = CoOccurrenceProbabilityModel(corpus_metadata, radius, token_indices, freq_dist)
     elif model_type is DistributionalSemanticModel.ModelType.token_probability:
         model = TokenProbabilityModel(corpus_metadata, radius, token_indices, freq_dist)
     elif model_type is DistributionalSemanticModel.ModelType.context_probability:
