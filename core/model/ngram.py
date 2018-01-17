@@ -19,9 +19,9 @@ import logging
 from abc import ABCMeta
 
 from ..corpus.corpus import CorpusMetadata
-from ..corpus.indexing import TokenIndexDictionary
+from ..corpus.indexing import TokenIndexDictionary, FreqDist
 from ..model.base import VectorSemanticModel, DistributionalSemanticModel
-from ..model.count import CountVectorModel, LogCoOccurrenceCountModel
+from ..model.count import CountVectorModel, LogCoOccurrenceCountModel, PPMIModel, ProbabilityRatioModel
 from ..utils.exceptions import WordNotFoundError
 
 logger = logging.getLogger(__name__)
@@ -116,3 +116,33 @@ class LogNgramModel(NgramModel):
                  token_indices: TokenIndexDictionary):
         super().__init__(VectorSemanticModel.ModelType.log_ngram,
                          LogCoOccurrenceCountModel(corpus_meta, window_radius, token_indices))
+
+
+class ProbabilityRatioNgramModel(NgramModel):
+    """
+    A model where the distance between word w and u is the probability ratio p(u,v)/p(u)p(v).
+    Should be symmetric.
+    """
+
+    def __init__(self,
+                 corpus_meta: CorpusMetadata,
+                 window_radius: int,
+                 token_indices: TokenIndexDictionary,
+                 freq_dist: FreqDist):
+        super().__init__(VectorSemanticModel.ModelType.probability_ratio_ngram,
+                         ProbabilityRatioModel(corpus_meta, window_radius, token_indices, freq_dist))
+
+
+class PPMINgramModel(NgramModel):
+    """
+    A model where the distance between word w and u is the PPMI between words w and u.
+    Should be symmetric.
+    """
+
+    def __init__(self,
+                 corpus_meta: CorpusMetadata,
+                 window_radius: int,
+                 token_indices: TokenIndexDictionary,
+                 freq_dist: FreqDist):
+        super().__init__(VectorSemanticModel.ModelType.ppmi_ngram,
+                         PPMIModel(corpus_meta, window_radius, token_indices, freq_dist))

@@ -22,7 +22,7 @@ from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
 from ..core.evaluation.synonym import ToeflTest, EslTest, LbmMcqTest, SynonymTester, SynonymResults
 from ..core.model.count import PPMIModel, LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..core.model.predict import SkipGramModel, CbowModel
-from ..core.model.ngram import LogNgramModel
+from ..core.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
 from ..core.utils.maths import DistanceType
 from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
@@ -45,12 +45,15 @@ def main():
 
         token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
         freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
+
         for window_radius in Preferences.window_radii:
 
             # NGRAM MODELS
 
             ngram_models = [
                 LogNgramModel(corpus_metadata, window_radius, token_index),
+                PPMINgramModel(corpus_metadata, window_radius, token_index, freq_dist),
+                ProbabilityRatioNgramModel(corpus_metadata, window_radius, token_index, freq_dist)
             ]
 
             for model in ngram_models:

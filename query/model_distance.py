@@ -84,7 +84,7 @@ def main(args):
         model = ContextProbabilityModel(corpus_metadata, radius, token_indices, freq_dist)
     elif model_type is DistributionalSemanticModel.ModelType.conditional_probability:
         model = ConditionalProbabilityModel(corpus_metadata, radius, token_indices, freq_dist)
-    elif model_type is DistributionalSemanticModel.ModelType.probability_ratios:
+    elif model_type is DistributionalSemanticModel.ModelType.probability_ratio:
         model = ProbabilityRatioModel(corpus_metadata, radius, token_indices, freq_dist)
     elif model_type is DistributionalSemanticModel.ModelType.ppmi:
         model = PPMIModel(corpus_metadata, radius, token_indices, freq_dist)

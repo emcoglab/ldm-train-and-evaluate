@@ -553,7 +553,7 @@ class ProbabilityRatioModel(CountVectorModel):
                  window_radius: int,
                  token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
-        super().__init__(DistributionalSemanticModel.ModelType.probability_ratios, corpus_meta, window_radius,
+        super().__init__(DistributionalSemanticModel.ModelType.probability_ratio, corpus_meta, window_radius,
                          token_indices)
         self._freq_dist = freq_dist
 

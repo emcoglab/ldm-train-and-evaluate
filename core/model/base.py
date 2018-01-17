@@ -59,11 +59,13 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
         token_probability        = auto()
         context_probability      = auto()
         conditional_probability  = auto()
-        probability_ratios       = auto()
+        probability_ratio        = auto()
         ppmi                     = auto()
 
         # Ngram model
-        log_ngram = auto()
+        log_ngram               = auto()
+        probability_ratio_ngram = auto()
+        ppmi_ngram              = auto()
 
         @property
         def metatype(self):
@@ -72,44 +74,50 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             :return:
             """
 
-            if self is VectorSemanticModel.ModelType.cbow:
+            if self is DistributionalSemanticModel.ModelType.cbow:
                 return VectorSemanticModel.MetaType.predict
 
-            elif self is VectorSemanticModel.ModelType.skip_gram:
-                return VectorSemanticModel.MetaType.predict
+            elif self is DistributionalSemanticModel.ModelType.skip_gram:
+                return DistributionalSemanticModel.MetaType.predict
 
-            elif self is VectorSemanticModel.ModelType.unsummed_cooccurrence:
-                return VectorSemanticModel.MetaType.count
+            elif self is DistributionalSemanticModel.ModelType.unsummed_cooccurrence:
+                return DistributionalSemanticModel.MetaType.count
 
-            elif self is VectorSemanticModel.ModelType.cooccurrence:
-                return VectorSemanticModel.MetaType.count
+            elif self is DistributionalSemanticModel.ModelType.cooccurrence:
+                return DistributionalSemanticModel.MetaType.count
 
-            elif self is VectorSemanticModel.ModelType.log_cooccurrence:
-                return VectorSemanticModel.MetaType.count
+            elif self is DistributionalSemanticModel.ModelType.log_cooccurrence:
+                return DistributionalSemanticModel.MetaType.count
 
-            elif self is VectorSemanticModel.ModelType.cooccurrence_probability:
-                return VectorSemanticModel.MetaType.count
+            elif self is DistributionalSemanticModel.ModelType.cooccurrence_probability:
+                return DistributionalSemanticModel.MetaType.count
 
-            elif self is VectorSemanticModel.ModelType.token_probability:
-                return VectorSemanticModel.MetaType.count
+            elif self is DistributionalSemanticModel.ModelType.token_probability:
+                return DistributionalSemanticModel.MetaType.count
 
-            elif self is VectorSemanticModel.ModelType.context_probability:
-                return VectorSemanticModel.MetaType.count
+            elif self is DistributionalSemanticModel.ModelType.context_probability:
+                return DistributionalSemanticModel.MetaType.count
 
-            elif self is VectorSemanticModel.ModelType.conditional_probability:
-                return VectorSemanticModel.MetaType.count
+            elif self is DistributionalSemanticModel.ModelType.conditional_probability:
+                return DistributionalSemanticModel.MetaType.count
 
-            elif self is VectorSemanticModel.ModelType.probability_ratios:
-                return VectorSemanticModel.MetaType.count
+            elif self is DistributionalSemanticModel.ModelType.probability_ratio:
+                return DistributionalSemanticModel.MetaType.count
 
-            elif self is VectorSemanticModel.ModelType.pmi:
-                return VectorSemanticModel.MetaType.count
+            elif self is DistributionalSemanticModel.ModelType.pmi:
+                return DistributionalSemanticModel.MetaType.count
 
-            elif self is VectorSemanticModel.ModelType.ppmi:
-                return VectorSemanticModel.MetaType.count
+            elif self is DistributionalSemanticModel.ModelType.ppmi:
+                return DistributionalSemanticModel.MetaType.count
 
-            elif self is VectorSemanticModel.ModelType.log_ngram:
-                return VectorSemanticModel.MetaType.ngram
+            elif self is DistributionalSemanticModel.ModelType.log_ngram:
+                return DistributionalSemanticModel.MetaType.ngram
+
+            elif self is DistributionalSemanticModel.ModelType.probability_ratio_ngram:
+                return DistributionalSemanticModel.MetaType.ngram
+
+            elif self is DistributionalSemanticModel.ModelType.ppmi_ngram:
+                return DistributionalSemanticModel.MetaType.ngram
 
             else:
                 raise ValueError()
@@ -148,7 +156,7 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             elif self is DistributionalSemanticModel.ModelType.conditional_probability:
                 return "conditional_probability"
 
-            elif self is DistributionalSemanticModel.ModelType.probability_ratios:
+            elif self is DistributionalSemanticModel.ModelType.probability_ratio:
                 return "probability_ratios"
 
             elif self is DistributionalSemanticModel.ModelType.ppmi:
@@ -156,6 +164,12 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
 
             elif self is DistributionalSemanticModel.ModelType.log_ngram:
                 return "log_ngram"
+
+            elif self is DistributionalSemanticModel.ModelType.probability_ratio_ngram:
+                return "probability_ratios_ngram"
+
+            elif self is DistributionalSemanticModel.ModelType.ppmi_ngram:
+                return "ppmi_ngram"
 
             else:
                 raise ValueError()
@@ -166,30 +180,49 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             The name of the model type
             :return:
             """
-            if self is VectorSemanticModel.ModelType.cbow:
+            if self is DistributionalSemanticModel.ModelType.cbow:
                 return "CBOW"
-            elif self is VectorSemanticModel.ModelType.skip_gram:
+
+            elif self is DistributionalSemanticModel.ModelType.skip_gram:
                 return "Skip-gram"
-            elif self is VectorSemanticModel.ModelType.unsummed_cooccurrence:
+
+            elif self is DistributionalSemanticModel.ModelType.unsummed_cooccurrence:
+                # TODO: these should be capitalised for consistency, but this will require editing and renaming results files
                 return "co-occurrence (unsummed)"
-            elif self is VectorSemanticModel.ModelType.cooccurrence:
+
+            elif self is DistributionalSemanticModel.ModelType.cooccurrence:
                 return "co-occurrence"
-            elif self is VectorSemanticModel.ModelType.log_cooccurrence:
+
+            elif self is DistributionalSemanticModel.ModelType.log_cooccurrence:
                 return "log co-occurrence"
-            elif self is VectorSemanticModel.ModelType.cooccurrence_probability:
+
+            elif self is DistributionalSemanticModel.ModelType.cooccurrence_probability:
                 return "co-occurrence probability"
-            elif self is VectorSemanticModel.ModelType.token_probability:
+
+            elif self is DistributionalSemanticModel.ModelType.token_probability:
                 return "Token probability"
-            elif self is VectorSemanticModel.ModelType.context_probability:
+
+            elif self is DistributionalSemanticModel.ModelType.context_probability:
                 return "Context probability"
-            elif self is VectorSemanticModel.ModelType.conditional_probability:
+
+            elif self is DistributionalSemanticModel.ModelType.conditional_probability:
                 return "Conditional probability"
-            elif self is VectorSemanticModel.ModelType.probability_ratios:
+
+            elif self is DistributionalSemanticModel.ModelType.probability_ratio:
                 return "Probability ratio"
-            elif self is VectorSemanticModel.ModelType.ppmi:
+
+            elif self is DistributionalSemanticModel.ModelType.ppmi:
                 return "PPMI"
-            elif self is VectorSemanticModel.ModelType.log_ngram:
+
+            elif self is DistributionalSemanticModel.ModelType.log_ngram:
                 return "log n-gram"
+
+            elif self is DistributionalSemanticModel.ModelType.probability_ratio_ngram:
+                return "Probability ratio n-gram"
+
+            elif self is DistributionalSemanticModel.ModelType.ppmi_ngram:
+                return "PPMI n-gram"
+
             else:
                 raise ValueError()
 
@@ -199,30 +232,49 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             Get the model type from the slug.
             """
             slug = slug.lower()
+
             if slug == "cbow":
                 return cls.cbow
+
             elif slug == "skipgram":
                 return cls.skip_gram
+
             elif slug == "unsummed_cooccurrence":
                 return cls.unsummed_cooccurrence
+
             elif slug == "cooccurrence":
                 return cls.cooccurrence
+
             elif slug == "log_cooccurrence":
                 return cls.log_cooccurrence
-            elif slug == "log_ngram":
-                return cls.log_ngram
+
             elif slug == "cooccurrence_probability":
                 return cls.cooccurrence_probability
+
             elif slug == "token_probability":
                 return cls.token_probability
+
             elif slug == "context_probability":
                 return cls.context_probability
+
             elif slug == "conditional_probability":
                 return cls.conditional_probability
+
             elif slug == "probability_ratio":
-                return cls.probability_ratios
+                return cls.probability_ratio
+
             elif slug == "ppmi":
                 return cls.ppmi
+
+            elif slug == "log_ngram":
+                return cls.log_ngram
+
+            elif slug == "probability_ratios_ngram":
+                return cls.probability_ratio_ngram
+
+            elif slug == "ppmi_ngram":
+                return cls.ppmi_ngram
+
             else:
                 raise ValueError()
 
