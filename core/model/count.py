@@ -420,7 +420,12 @@ class LogSummedNgramModel(CountVectorModel):
 
         # The matrix is symmetric so we could equally use the word_1-entry in the word_2-vector
         try:
-            return self.vector_for_word(word_1)[0, self.token_indices.token2id[word_2]]
+            # These value-based models measure similarity rather than distance.
+            # We fake the sign by just returning negative distance
+            # TODO: Figure out what to do about this.
+            similarity = self.vector_for_word(word_1)[0, self.token_indices.token2id[word_2]]
+            dist = -similarity
+            return dist
         except KeyError:
             raise WordNotFoundError(f"One of the words '{word_1}' or '{word_2}' was not found.")
 
