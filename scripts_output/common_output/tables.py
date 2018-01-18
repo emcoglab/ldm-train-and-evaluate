@@ -18,7 +18,7 @@ caiwingfield.net
 import os
 from typing import List
 
-from pandas import DataFrame
+from pandas import DataFrame, isnull
 
 from ...core.utils.maths import DistanceType
 from ...preferences.preferences import Preferences
@@ -42,7 +42,9 @@ def table_top_n_models(results: DataFrame,
         filtered_df = filtered_df[filtered_df[key_column_name] == key_column_value]
 
         if distance_type is not None:
-            filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
+            filtered_df = filtered_df[(filtered_df["Distance type"] == distance_type.name)
+                                      # Include non-distance-type models for comparison
+                                      | (isnull(filtered_df["Distance type"]))]
 
         # Assume that "higher is better", so we want to sort values descending
         top_models = filtered_df.sort_values(sort_by_column, ascending=False).reset_index(drop=True).head(top_n)

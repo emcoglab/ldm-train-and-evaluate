@@ -21,10 +21,9 @@ import sys
 import math
 
 import numpy
-import pandas
 import seaborn
 from matplotlib import pyplot
-from pandas import DataFrame
+from pandas import DataFrame, isnull, read_csv
 
 from .common_output.figures import model_performance_bar_graphs, score_vs_radius_line_graph, compare_param_values_bf
 from .common_output.dataframe import add_model_category_column, model_name_without_radius, \
@@ -37,14 +36,14 @@ from ..preferences.preferences import Preferences
 logger = logging.getLogger(__name__)
 
 DV_NAMES = [
-    "zRTclean_mean_min_distance",
+    # "zRTclean_mean_min_distance",
     "zRTclean_mean_concrete_distance",
-    "zRTclean_mean_abstract_distance",
+    # "zRTclean_mean_abstract_distance",
     "zRTclean_mean_diff_distance",
     "zRTclean_mean_dual_distance",
-    "Concrete_response_proportion_min_distance",
+    # "Concrete_response_proportion_min_distance",
     "Concrete_response_proportion_concrete_distance",
-    "Concrete_response_proportion_abstract_distance",
+    # "Concrete_response_proportion_abstract_distance",
     "Concrete_response_proportion_diff_distance",
     "Concrete_response_proportion_dual_distance",
 ]
@@ -197,10 +196,14 @@ def b_corr_cos_distributions(regression_df: DataFrame):
         for model_name in set(filtered_df["Model name"]):
             cos_df: DataFrame = filtered_df.copy()
             cos_df = cos_df[cos_df["Model name"] == model_name]
+            if any(isnull(cos_df["Distance type"])):
+                continue
             cos_df = cos_df[cos_df["Distance type"] == "cosine"]
 
             cor_df: DataFrame = filtered_df.copy()
             cor_df = cor_df[cor_df["Model name"] == model_name]
+            if any(isnull(cor_df["Distance type"])):
+                continue
             cor_df = cor_df[cor_df["Distance type"] == "correlation"]
 
             # barf
@@ -247,7 +250,7 @@ def model_comparison_matrix(spp_results_df: DataFrame, dv_name: str, radius: int
     filtered_df["Model name"] = filtered_df.apply(
         lambda r:
         f"{r['Distance type']} {r['Model type']} {r['Embedding size']:.0f}"
-        if not pandas.isnull(r['Embedding size'])
+        if not isnull(r['Embedding size'])
         else f"{r['Distance type']} {r['Model type']}",
         axis=1
     )
@@ -305,12 +308,12 @@ def load_data() -> DataFrame:
     separator = ","
 
     with open(os.path.join(results_dir, "regression.csv"), mode="r", encoding="utf-8") as regression_file:
-        regression_df = pandas.read_csv(regression_file, sep=separator, header=0,
-                                        converters={
-                                            # Check if embedding size is the empty string,
-                                            # as it would be for Count models
-                                            "Embedding size": lambda v: int(v) if len(v) > 0 else numpy.nan
-                                        })
+        regression_df = read_csv(regression_file, sep=separator, header=0,
+                                 converters={
+                                     # Check if embedding size is the empty string,
+                                     # as it would be for Count models
+                                     "Embedding size": lambda v: int(v) if len(v) > 0 else numpy.nan
+                                 })
 
     add_model_category_column(regression_df)
 

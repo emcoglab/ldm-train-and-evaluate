@@ -22,13 +22,14 @@ from typing import List
 
 import seaborn
 from matplotlib import pyplot
-from pandas import DataFrame
+from pandas import DataFrame, isnull
 import numpy
 
 from .constants import BF_THRESHOLD
 from .dataframe import model_name_without_distance, model_name_without_corpus_or_distance_or_radius, \
     predict_models_only
 from ...core.utils.maths import DistanceType, CorrelationType
+from ...core.model.base import DistributionalSemanticModel
 from ...preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -84,17 +85,22 @@ def cosine_vs_correlation_scores(results: DataFrame,
         filtered_df["Model name"] = filtered_df.apply(model_name_without_distance, axis=1)
 
         for model_name in set(filtered_df["Model name"]):
+
             cos_df: DataFrame = filtered_df.copy()
             cos_df = cos_df[cos_df["Model name"] == model_name]
+            if any(isnull(cos_df["Distance type"])):
+                continue
             cos_df = cos_df[cos_df["Distance type"] == "cosine"]
 
-            corr_df: DataFrame = filtered_df.copy()
-            corr_df = corr_df[corr_df["Model name"] == model_name]
-            corr_df = corr_df[corr_df["Distance type"] == "correlation"]
+            cor_df: DataFrame = filtered_df.copy()
+            cor_df = cor_df[cor_df["Model name"] == model_name]
+            if any(isnull(cor_df["Distance type"])):
+                continue
+            cor_df = cor_df[cor_df["Distance type"] == "correlation"]
 
             # barf
             score_cos = list(cos_df[test_statistic_column_name])[0]
-            score_corr = list(corr_df[test_statistic_column_name])[0]
+            score_corr = list(cor_df[test_statistic_column_name])[0]
 
             distribution.append([test_name, score_cos, score_corr])
 
@@ -203,12 +209,19 @@ def model_performance_bar_graphs(results: DataFrame,
 
     filtered_df: DataFrame = results.copy()
     filtered_df = filtered_df[filtered_df["Window radius"] == window_radius]
-    filtered_df = filtered_df[filtered_df["Distance type"] == distance_type.name]
+    filtered_df = filtered_df[(filtered_df["Distance type"] == distance_type.name)
+                              # Include non-distance-type models for comparison
+                              | (isnull(filtered_df["Distance type"]))]
     filtered_df = filtered_df[filtered_df[key_column_name].isin(key_column_values)]
 
     # Don't want to show PPMI (10000)
     # This only applies for synonym tests, but it doesn't cause a problem if it's not present
     filtered_df = filtered_df[filtered_df["Model type"] != "PPMI (10000)"]
+
+    # !!!!
+    # NOTE: For the purposes of display, we make all values positive! This should be acknowledged in any legend!
+    # !!!!
+    filtered_df[test_statistic_name] = filtered_df[test_statistic_name].apply(numpy.abs)
 
     # Model name doesn't need to include corpus or distance, since those are fixed
     filtered_df["Model name"] = filtered_df.apply(model_name_without_corpus_or_distance_or_radius, axis=1)
@@ -234,21 +247,26 @@ def model_performance_bar_graphs(results: DataFrame,
     grid.map(
         seaborn.barplot, "Model name", test_statistic_name,
         order=[
-            "log summed n-gram",
-            "log n-gram",
-        "Conditional probability",
-        "Probability ratio",
-        "PPMI",
-        "Skip-gram 50",
-        "Skip-gram 100",
-        "Skip-gram 200",
-        "Skip-gram 300",
-        "Skip-gram 500",
-        "CBOW 50",
-        "CBOW 100",
-        "CBOW 200",
-        "CBOW 300",
-        "CBOW 500",
+            # ngram
+            DistributionalSemanticModel.ModelType.log_ngram.name,
+            DistributionalSemanticModel.ModelType.probability_ratio_ngram.name,
+            DistributionalSemanticModel.ModelType.ppmi_ngram.name,
+            # count
+            DistributionalSemanticModel.ModelType.log_cooccurrence.name,
+            DistributionalSemanticModel.ModelType.conditional_probability.name,
+            DistributionalSemanticModel.ModelType.probability_ratio.name,
+            DistributionalSemanticModel.ModelType.ppmi.name,
+            # predict
+            "Skip-gram 50",
+            "Skip-gram 100",
+            "Skip-gram 200",
+            "Skip-gram 300",
+            "Skip-gram 500",
+            "CBOW 50",
+            "CBOW 100",
+            "CBOW 200",
+            "CBOW 300",
+            "CBOW 500",
         ]
     )
 
@@ -313,10 +331,16 @@ def score_vs_radius_line_graph(results: DataFrame,
         data=filtered_df,
         row=key_column_name, col="Corpus", hue="Model name",
         hue_order=[
-            "log n-gram",
-            "Conditional probability",
-            "Probability ratio",
-            "PPMI",
+            # ngram
+            DistributionalSemanticModel.ModelType.log_ngram.name,
+            DistributionalSemanticModel.ModelType.probability_ratio_ngram.name,
+            DistributionalSemanticModel.ModelType.ppmi_ngram.name,
+            # count
+            DistributionalSemanticModel.ModelType.log_cooccurrence.name,
+            DistributionalSemanticModel.ModelType.conditional_probability.name,
+            DistributionalSemanticModel.ModelType.probability_ratio.name,
+            DistributionalSemanticModel.ModelType.ppmi.name,
+            # predict
             "Skip-gram 50",
             "Skip-gram 100",
             "Skip-gram 200",
@@ -326,18 +350,24 @@ def score_vs_radius_line_graph(results: DataFrame,
             "CBOW 100",
             "CBOW 200",
             "CBOW 300",
-            "CBOW 500"
+            "CBOW 500",
         ],
         palette=[
+            "xkcd:ocre",
+            "xkcd:peach",
+            "xkcd:bordeaux",
+
             "orange",
             "turquoise",
             "pink",
             "red",
+
             "#0000ff",
             "#2a2aff",
             "#5454ff",
             "#7e7eff",
             "#a8a8ff",
+
             "#00ff00",
             "#2aff2a",
             "#54ff54",
@@ -346,6 +376,9 @@ def score_vs_radius_line_graph(results: DataFrame,
         ],
         hue_kws=dict(
             marker=[
+                "x",
+                "x",
+                "x",
                 "o",
                 "o",
                 "o",
@@ -496,6 +529,7 @@ def compare_param_values_bf(test_results: DataFrame,
 
         # Filter the regression results for this comparison
         regression_results_this_dv = test_results[test_results[key_column_name] == key_column_value].copy()
+        regression_results_this_dv = regression_results_this_dv[~isnull(regression_results_this_dv["Distance type"])]
         # Apply further filters if necessary
         if row_filter is not None:
             regression_results_this_dv = row_filter(regression_results_this_dv)
