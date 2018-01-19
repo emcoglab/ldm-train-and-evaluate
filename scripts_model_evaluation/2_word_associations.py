@@ -37,7 +37,7 @@ def main():
         WordsimSimilarity(),
         WordsimRelatedness(),
         MenSimilarity(),
-        # ColourEmotionAssociation(),
+        ColourEmotionAssociation(),
         ThematicRelatedness()
         # ThematicRelatedness(only_use_response=1)
     ]
