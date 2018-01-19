@@ -407,7 +407,9 @@ class SynonymTester(object):
         best_guess_i = -1
         best_guess_d = math.inf
 
-        for option_i, option in enumerate(question.options):
+        # List in reverse order, just to negate any possibility that we preference the first option, which is usually
+        # the correct one.
+        for option_i, option in reversed(list(enumerate(question.options))):
             try:
                 guess_d = model.distance_between(question.prompt, option, distance_type,
                                                  truncate_vectors_at_length)
@@ -434,7 +436,9 @@ class SynonymTester(object):
         best_guess_i = -1
         best_guess_a = -math.inf
 
-        for option_i, option in enumerate(question.options):
+        # List in reverse order: in case we have all items identical we won't automatically pick the first one (which is
+        # usually the correct one).
+        for option_i, option in reversed(list(enumerate(question.options))):
             try:
                 guess_a = model.association_between(question.prompt, option)
             except WordNotFoundError as er:
