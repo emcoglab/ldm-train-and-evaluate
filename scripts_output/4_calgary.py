@@ -37,12 +37,12 @@ logger = logging.getLogger(__name__)
 
 DV_NAMES = [
     # "zRTclean_mean_min_distance",
-    "zRTclean_mean_concrete_distance",
+    # "zRTclean_mean_concrete_distance",
     # "zRTclean_mean_abstract_distance",
     "zRTclean_mean_diff_distance",
-    "zRTclean_mean_dual_distance",
+    # "zRTclean_mean_dual_distance",
     # "Concrete_response_proportion_min_distance",
-    "Concrete_response_proportion_concrete_distance",
+    # "Concrete_response_proportion_concrete_distance",
     # "Concrete_response_proportion_abstract_distance",
     "Concrete_response_proportion_diff_distance",
     "Concrete_response_proportion_dual_distance",

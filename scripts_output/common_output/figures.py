@@ -663,7 +663,7 @@ def compare_param_values_bf(test_results: DataFrame,
     pyplot.xticks(rotation=90)
     pyplot.yticks(rotation=0)
 
-    plot.figure.set_size_inches(3, 2)
+    plot.figure.set_size_inches(5, 2)
     pyplot.tight_layout()
 
     # Colorbar has % labels

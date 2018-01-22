@@ -340,6 +340,31 @@ def run_all_model_regressions(all_data: DataFrame,
 
         for window_radius in Preferences.window_radii:
 
+            # N-GRAM MODELS
+
+            ngram_models = [
+                LogNgramModel(corpus_metadata, window_radius, token_index),
+                PPMINgramModel(corpus_metadata, window_radius, token_index, freq_dist),
+                ProbabilityRatioNgramModel(corpus_metadata, window_radius, token_index, freq_dist)
+            ]
+
+            for model in ngram_models:
+                for dv_name in dependent_variable_names:
+                    result = run_single_model_regression_fixed_reference(all_data, None, dv_name, model, "concrete", baseline_variable_names)
+                    results.append(result)
+                    result = run_single_model_regression_fixed_reference(all_data, None, dv_name, model, "abstract", baseline_variable_names)
+                    results.append(result)
+                    # result = run_single_model_regression_min_distance(all_data, None, dv_name, model, baseline_variable_names)
+                    # results.append(result)
+                    result = run_single_model_regression_reference_difference(all_data, None, dv_name, model, baseline_variable_names)
+                    results.append(result)
+                    # TODO: this shouldn't need to be hard-coded
+                    result = run_dual_model_regression_both_references(all_data, None, dv_name, model, ["concrete", "abstract"], baseline_variable_names)
+                    results.append(result)
+
+                model.untrain()
+            del ngram_models
+
             # Count models
 
             count_models = [
@@ -360,11 +385,9 @@ def run_all_model_regressions(all_data: DataFrame,
                         results.append(result)
                         result = run_single_model_regression_reference_difference(all_data, distance_type, dv_name, model, baseline_variable_names)
                         results.append(result)
-                        # TODO: this shouldn't need to be hard-coded
                         result = run_dual_model_regression_both_references(all_data, distance_type, dv_name, model, ["concrete", "abstract"], baseline_variable_names)
                         results.append(result)
 
-                # release memory
                 model.untrain()
             del count_models
 
@@ -388,11 +411,9 @@ def run_all_model_regressions(all_data: DataFrame,
                             results.append(result)
                             result = run_single_model_regression_reference_difference(all_data, distance_type, dv_name, model, baseline_variable_names)
                             results.append(result)
-                            # TODO: this shouldn't need to be hard-coded
                             result = run_dual_model_regression_both_references(all_data, distance_type, dv_name, model, ["concrete", "abstract"], baseline_variable_names)
                             results.append(result)
 
-                    # release memory
                     model.untrain()
                 del predict_models
     return results
