@@ -25,7 +25,8 @@ import seaborn
 from matplotlib import pyplot
 from pandas import DataFrame, isnull, read_csv
 
-from .common_output.figures import model_performance_bar_graphs, score_vs_radius_line_graph, compare_param_values_bf
+from .common_output.figures import model_performance_bar_graphs, score_vs_radius_line_graph, compare_param_values_bf, \
+    model_performance_violin_plots
 from .common_output.dataframe import add_model_category_column, model_name_without_radius, \
     model_name_without_embedding_size, predict_models_only, model_name_without_distance
 from .common_output.tables import table_top_n_models
@@ -85,6 +86,15 @@ def main():
 
                 filtered_df: DataFrame = graphs_df.copy()
                 filtered_df = filtered_df[filtered_df["Dependent variable"].isin(dv_names_this_set)]
+
+                model_performance_violin_plots(
+                    results=filtered_df,
+                    key_column_name="Dependent variable",
+                    key_column_values=dv_names_this_set,
+                    test_statistic_name="R-squared increase",
+                    name_prefix=f"Priming ({test_type} {soa}ms)",
+                    figures_base_dir=figures_base_dir
+                )
 
                 # Model performance bar graphs
                 for radius in Preferences.window_radii:

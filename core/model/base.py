@@ -43,6 +43,17 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
         # models based on ngram-based lookups
         ngram   = auto()
 
+        @property
+        def name(self) -> str:
+            if self is DistributionalSemanticModel.MetaType.count:
+                return "Count"
+            elif self is DistributionalSemanticModel.MetaType.predict:
+                return "Predict"
+            elif self is DistributionalSemanticModel.MetaType.ngram:
+                return "N-gram"
+            else:
+                raise ValueError()
+
     class ModelType(Enum):
         """
         Representative of the type of a vector space model.
@@ -75,7 +86,7 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             """
 
             if self is DistributionalSemanticModel.ModelType.cbow:
-                return VectorSemanticModel.MetaType.predict
+                return DistributionalSemanticModel.MetaType.predict
 
             elif self is DistributionalSemanticModel.ModelType.skip_gram:
                 return DistributionalSemanticModel.MetaType.predict
@@ -102,9 +113,6 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
                 return DistributionalSemanticModel.MetaType.count
 
             elif self is DistributionalSemanticModel.ModelType.probability_ratio:
-                return DistributionalSemanticModel.MetaType.count
-
-            elif self is DistributionalSemanticModel.ModelType.pmi:
                 return DistributionalSemanticModel.MetaType.count
 
             elif self is DistributionalSemanticModel.ModelType.ppmi:

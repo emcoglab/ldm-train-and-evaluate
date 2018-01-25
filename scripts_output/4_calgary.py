@@ -25,7 +25,8 @@ import seaborn
 from matplotlib import pyplot
 from pandas import DataFrame, isnull, read_csv
 
-from .common_output.figures import model_performance_bar_graphs, score_vs_radius_line_graph, compare_param_values_bf
+from .common_output.figures import model_performance_bar_graphs, score_vs_radius_line_graph, compare_param_values_bf, \
+    model_performance_violin_plots
 from .common_output.dataframe import add_model_category_column, model_name_without_radius, \
     model_name_without_embedding_size, predict_models_only, model_name_without_distance
 from .common_output.tables import table_top_n_models
@@ -61,6 +62,16 @@ def main():
 
     # Get info about the dv, used for filtering
     graphs_df: DataFrame = regression_results.copy()
+
+    model_performance_violin_plots(
+        results=graphs_df,
+        key_column_name="Dependent variable",
+        key_column_values=DV_NAMES,
+        test_statistic_name="R-squared increase",
+        name_prefix="Concreteness",
+        figures_base_dir=figures_base_dir
+    )
+
     for distance_type in DistanceType:
 
         # Model performance bar graphs

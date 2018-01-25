@@ -15,7 +15,9 @@ caiwingfield.net
 ---------------------------
 """
 
-from pandas import DataFrame, isnull
+from pandas import DataFrame
+
+from ...core.model.base import DistributionalSemanticModel
 
 
 # Model name transformations
@@ -58,8 +60,15 @@ def add_model_category_column(df: DataFrame):
     """
     Adds a "Model category" column to a results dataframe, containing either "Count" or "Predict".
     """
-    df["Model category"] = df.apply(
-        lambda r: "Count" if isnull(r["Embedding size"]) else "Predict", axis=1)
+    def model_category_name(r) -> str:
+        if r["Model type"] in [t.name for t in DistributionalSemanticModel.ModelType.count_types()]:
+            return DistributionalSemanticModel.MetaType.count.name
+        elif r["Model type"] in [t.name for t in DistributionalSemanticModel.ModelType.predict_types()]:
+            return DistributionalSemanticModel.MetaType.predict.name
+        elif r["Model type"] in [t.name for t in DistributionalSemanticModel.ModelType.ngram_types()]:
+            return DistributionalSemanticModel.MetaType.ngram.name
+
+    df["Model category"] = df.apply(model_category_name, axis=1)
 
 
 def add_model_name_column(df: DataFrame, name_alteration=model_name):

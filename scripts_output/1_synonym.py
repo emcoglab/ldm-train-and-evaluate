@@ -22,7 +22,8 @@ import sys
 from .common_output.dataframe import add_model_category_column, add_model_name_column, model_name_without_radius, \
     model_name_without_embedding_size, predict_models_only, model_name_without_distance
 from .common_output.figures import cosine_vs_correlation_scores, model_performance_bar_graphs, \
-    score_vs_radius_line_graph, score_vs_embedding_size_line_graph, compare_param_values_bf
+    score_vs_radius_line_graph, score_vs_embedding_size_line_graph, compare_param_values_bf, \
+    model_performance_violin_plots
 from .common_output.tables import table_top_n_models
 from ..core.evaluation.synonym import ToeflTest, LbmMcqTest, EslTest, SynonymResults
 from ..core.utils.logging import log_message, date_format
@@ -44,15 +45,13 @@ def main():
 
     model_performance_violin_plots(
         results=results_df,
-        window_radius=radius,
         key_column_name="Test name",
         key_column_values=TEST_NAMES,
-        test_statistic_name="B10",
+        test_statistic_name="Score",
         name_prefix="Synonym",
         figures_base_dir=figures_base_dir,
-        distance_type=distance_type,
-        bayes_factor_graph=True,
-        ticks_as_percentages=False
+        extra_h_line_at=0.25,
+        ticks_as_percentages=True
     )
 
     for distance_type in DistanceType:

@@ -21,7 +21,8 @@ import sys
 
 from .common_output.dataframe import add_model_category_column, add_model_name_column, predict_models_only
 from .common_output.figures import cosine_vs_correlation_scores, model_performance_bar_graphs, \
-    score_vs_radius_line_graph, score_vs_embedding_size_line_graph, pearson_vs_spearman_scores, compare_param_values_bf
+    score_vs_radius_line_graph, score_vs_embedding_size_line_graph, pearson_vs_spearman_scores, compare_param_values_bf, \
+    model_performance_violin_plots
 from .common_output.tables import table_top_n_models
 from ..core.evaluation.association import AssociationResults, SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, \
     MenSimilarity, ThematicRelatedness
@@ -89,6 +90,16 @@ def main():
         results_df["Correlation"] = results_df["Correlation"].apply(lambda r: (-1) * r)
 
         for correlation_type in CorrelationType:
+
+            model_performance_violin_plots(
+                results=results_df,
+                key_column_name="Test name",
+                key_column_values=test_names,
+                test_statistic_name="Correlation",
+                name_prefix=f"{artificial_distinction} ({correlation_type.name})",
+                figures_base_dir=figures_base_dir
+            )
+
             for distance_type in DistanceType:
 
                 for radius in Preferences.window_radii:
