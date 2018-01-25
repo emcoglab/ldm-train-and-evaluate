@@ -42,6 +42,19 @@ def main():
     add_model_category_column(results_df)
     add_model_name_column(results_df)
 
+    model_performance_violin_plots(
+        results=results_df,
+        window_radius=radius,
+        key_column_name="Test name",
+        key_column_values=TEST_NAMES,
+        test_statistic_name="B10",
+        name_prefix="Synonym",
+        figures_base_dir=figures_base_dir,
+        distance_type=distance_type,
+        bayes_factor_graph=True,
+        ticks_as_percentages=False
+    )
+
     for distance_type in DistanceType:
 
         for radius in Preferences.window_radii:

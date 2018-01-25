@@ -297,6 +297,115 @@ def model_performance_bar_graphs(results: DataFrame,
     pyplot.close(grid.fig)
 
 
+def model_performance_violin_plots(results: DataFrame,
+                                   window_radius: int,
+                                   key_column_name: str,
+                                   key_column_values: List,
+                                   test_statistic_name: str,
+                                   name_prefix: str,
+                                   figures_base_dir: str,
+                                   distance_type: DistanceType,
+                                   bayes_factor_graph: bool=False,
+                                   extra_h_line_at: float=None,
+                                   ylim=None,
+                                   ticks_as_percentages: bool=False):
+
+    figures_dir = os.path.join(figures_base_dir, "model performance bar graphs")
+
+    value_cap = 1e50
+
+    seaborn.set_style("ticks")
+
+    filtered_df: DataFrame = results.copy()
+    filtered_df = filtered_df[filtered_df["Window radius"] == window_radius]
+    filtered_df = filtered_df[(filtered_df["Distance type"] == distance_type.name)
+                              # Include non-distance-type models for comparison
+                              | (isnull(filtered_df["Distance type"]))]
+    filtered_df = filtered_df[filtered_df[key_column_name].isin(key_column_values)]
+
+    # Don't want to show PPMI (10000)
+    # This only applies for synonym tests, but it doesn't cause a problem if it's not present
+    filtered_df = filtered_df[filtered_df["Model type"] != "PPMI (10000)"]
+
+    # !!!!
+    # NOTE: For the purposes of display, we make all values positive! This should be acknowledged in any legend!
+    # !!!!
+    filtered_df[test_statistic_name] = filtered_df[test_statistic_name].apply(numpy.abs)
+
+    # Model name doesn't need to include corpus or distance, since those are fixed
+    filtered_df["Model name"] = filtered_df.apply(model_name_without_corpus_or_distance_or_radius, axis=1)
+
+    # Apply value cap to Bayes factor graphs
+    if bayes_factor_graph and (value_cap is not None):
+        filtered_df[test_statistic_name] = filtered_df[test_statistic_name].apply(lambda x: min(x, value_cap))
+
+    seaborn.set_context(context="paper", font_scale=0.5)
+
+    grid = seaborn.FacetGrid(
+        filtered_df,
+        row=key_column_name, col="Corpus",
+        margin_titles=True,
+        size=2)
+
+    grid.set_xticklabels(rotation=-90)
+
+    if ticks_as_percentages:
+        yticks_as_percentages(grid)
+
+    # Plot the bars
+    grid.map(
+        seaborn.barplot, "Model name", test_statistic_name,
+        order=[
+            # ngram
+            DistributionalSemanticModel.ModelType.log_ngram.name,
+            DistributionalSemanticModel.ModelType.probability_ratio_ngram.name,
+            DistributionalSemanticModel.ModelType.ppmi_ngram.name,
+            # count
+            DistributionalSemanticModel.ModelType.log_cooccurrence.name,
+            DistributionalSemanticModel.ModelType.conditional_probability.name,
+            DistributionalSemanticModel.ModelType.probability_ratio.name,
+            DistributionalSemanticModel.ModelType.ppmi.name,
+            # predict
+            "Skip-gram 50",
+            "Skip-gram 100",
+            "Skip-gram 200",
+            "Skip-gram 300",
+            "Skip-gram 500",
+            "CBOW 50",
+            "CBOW 100",
+            "CBOW 200",
+            "CBOW 300",
+            "CBOW 500",
+        ]
+    )
+
+    if extra_h_line_at is not None:
+        # Plot the chance line
+        grid.map(pyplot.axhline, y=extra_h_line_at, linestyle="solid", color="xkcd:bright red")
+
+    grid.set_ylabels(test_statistic_name)
+
+    if ylim is not None:
+        grid.set(ylim=ylim)
+
+    if bayes_factor_graph:
+        grid.map(pyplot.axhline, y=1,              linestyle="solid",  color="xkcd:bright red")
+        grid.map(pyplot.axhline, y=BF_THRESHOLD,   linestyle="dotted", color="xkcd:bright red")
+        grid.map(pyplot.axhline, y=1/BF_THRESHOLD, linestyle="dotted", color="xkcd:bright red")
+        grid.set(yscale="log")
+
+    grid.fig.tight_layout()
+
+    pyplot.subplots_adjust(top=0.92)
+    grid.fig.suptitle(f"Model scores for radius {window_radius} using {distance_type.name} distance")
+
+    figure_name = f"{name_prefix} r={window_radius} {distance_type.name} ({test_statistic_name}).png"
+
+    grid.savefig(os.path.join(figures_dir, figure_name), dpi=300)
+
+    pyplot.close(grid.fig)
+
+
 def score_vs_radius_line_graph(results: DataFrame,
                                key_column_name: str,
                                key_column_values: List,
