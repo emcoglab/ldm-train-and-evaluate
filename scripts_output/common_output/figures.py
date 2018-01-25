@@ -323,14 +323,15 @@ def model_performance_violin_plots(results: DataFrame,
     # !!!!
     filtered_df[test_statistic_name] = filtered_df[test_statistic_name].apply(numpy.abs)
 
-    seaborn.set_context(context="paper", font_scale=0.5)
+    seaborn.set_context(context="paper", font_scale=1)
 
     grid = seaborn.FacetGrid(
         filtered_df,
         row=key_column_name,
         hue="Model category",
+        hue_order=["N-gram", "Count", "Predict"],
         margin_titles=True,
-        size=3
+        size=4
     )
 
     if extra_h_line_at is not None:
@@ -345,7 +346,8 @@ def model_performance_violin_plots(results: DataFrame,
     # Plot the bars
     grid.map(
         seaborn.violinplot, "Model type", test_statistic_name,
-        cut=0,
+        # width=10,
+        cut=0, inner=None, linewidth=0,
         order=[
             # ngram
             DistributionalSemanticModel.ModelType.log_ngram.name,
@@ -359,7 +361,45 @@ def model_performance_violin_plots(results: DataFrame,
             # predict
             DistributionalSemanticModel.ModelType.skip_gram.name,
             DistributionalSemanticModel.ModelType.cbow.name,
-        ],
+        ]
+    )
+
+    # grid.map(
+    #     seaborn.stripplot, "Model type", test_statistic_name,
+    #     jitter=0.2, marker="o", color="0", size=2,
+    #     order=[
+    #         # ngram
+    #         DistributionalSemanticModel.ModelType.log_ngram.name,
+    #         DistributionalSemanticModel.ModelType.probability_ratio_ngram.name,
+    #         DistributionalSemanticModel.ModelType.ppmi_ngram.name,
+    #         # count
+    #         DistributionalSemanticModel.ModelType.log_cooccurrence.name,
+    #         DistributionalSemanticModel.ModelType.conditional_probability.name,
+    #         DistributionalSemanticModel.ModelType.probability_ratio.name,
+    #         DistributionalSemanticModel.ModelType.ppmi.name,
+    #         # predict
+    #         DistributionalSemanticModel.ModelType.skip_gram.name,
+    #         DistributionalSemanticModel.ModelType.cbow.name,
+    #     ]
+    # )
+
+    grid.map(
+        seaborn.swarmplot, "Model type", test_statistic_name,
+        marker="o", color="0", size=2,
+        order=[
+            # ngram
+            DistributionalSemanticModel.ModelType.log_ngram.name,
+            DistributionalSemanticModel.ModelType.probability_ratio_ngram.name,
+            DistributionalSemanticModel.ModelType.ppmi_ngram.name,
+            # count
+            DistributionalSemanticModel.ModelType.log_cooccurrence.name,
+            DistributionalSemanticModel.ModelType.conditional_probability.name,
+            DistributionalSemanticModel.ModelType.probability_ratio.name,
+            DistributionalSemanticModel.ModelType.ppmi.name,
+            # predict
+            DistributionalSemanticModel.ModelType.skip_gram.name,
+            DistributionalSemanticModel.ModelType.cbow.name,
+        ]
     )
 
     grid.set_ylabels(test_statistic_name)
