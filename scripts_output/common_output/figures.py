@@ -364,25 +364,6 @@ def model_performance_violin_plots(results: DataFrame,
         ]
     )
 
-    # grid.map(
-    #     seaborn.stripplot, "Model type", test_statistic_name,
-    #     jitter=0.2, marker="o", color="0", size=2,
-    #     order=[
-    #         # ngram
-    #         DistributionalSemanticModel.ModelType.log_ngram.name,
-    #         DistributionalSemanticModel.ModelType.probability_ratio_ngram.name,
-    #         DistributionalSemanticModel.ModelType.ppmi_ngram.name,
-    #         # count
-    #         DistributionalSemanticModel.ModelType.log_cooccurrence.name,
-    #         DistributionalSemanticModel.ModelType.conditional_probability.name,
-    #         DistributionalSemanticModel.ModelType.probability_ratio.name,
-    #         DistributionalSemanticModel.ModelType.ppmi.name,
-    #         # predict
-    #         DistributionalSemanticModel.ModelType.skip_gram.name,
-    #         DistributionalSemanticModel.ModelType.cbow.name,
-    #     ]
-    # )
-
     grid.map(
         seaborn.swarmplot, "Model type", test_statistic_name,
         marker="o", color="0", size=2,

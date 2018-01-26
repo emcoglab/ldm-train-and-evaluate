@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 class AssociationResults(EvaluationResults):
     def __init__(self):
         super().__init__(
-            results_column_names=["Correlation type", "Correlation", "Model BIC", "Baseline BIC", "B10 approx", "Log B10 approx"],
+            results_column_names=["Correlation type", "Correlation", "Model BIC", "Baseline BIC", "B10 approx", "Log10 B10 approx"],
             save_dir=Preferences.association_results_dir
         )
 
@@ -180,7 +180,7 @@ class AssociationTester(object):
                 baseline_bic = sm.ols(formula="human ~ 1",     data=data).fit().bic
                 b10_approx   = numpy.exp((baseline_bic - model_bic) / 2)
                 # In case b10 goes to inf
-                log_b10_approx = ((baseline_bic - model_bic) / 2) * numpy.log10(numpy.exp(1))
+                log10_b10_approx = ((baseline_bic - model_bic) / 2) * numpy.log10(numpy.exp(1))
             elif correlation_type is CorrelationType.Spearman:
                 # PyCharm erroneously detects input types for scipy.stats.spearmanr as int rather than ndarray
                 # noinspection PyTypeChecker,PyUnresolvedReferences
@@ -200,17 +200,17 @@ class AssociationTester(object):
                 baseline_bic = sm.ols(formula="human ~ 1",     data=data).fit().bic
                 b10_approx = numpy.exp((baseline_bic - model_bic) / 2)
                 # In case b10 goes to inf
-                log_b10_approx = ((baseline_bic - model_bic) / 2) * numpy.log10(numpy.exp(1))
+                log10_b10_approx = ((baseline_bic - model_bic) / 2) * numpy.log10(numpy.exp(1))
             else:
                 raise ValueError(correlation_type)
 
             results.add_result(test.name, model, distance_type, {
-                "Correlation type": correlation_type.name,
-                "Correlation"     : correlation,
-                "Model BIC"       : model_bic,
-                "Baseline BIC"    : baseline_bic,
-                "B10 approx"      : b10_approx,
-                "Log B10 approx"  : log_b10_approx
+                "Correlation type"  : correlation_type.name,
+                "Correlation"       : correlation,
+                "Model BIC"         : model_bic,
+                "Baseline BIC"      : baseline_bic,
+                "B10 approx"        : b10_approx,
+                "Log10 B10 approx"  : log10_b10_approx
             })
 
         return results
