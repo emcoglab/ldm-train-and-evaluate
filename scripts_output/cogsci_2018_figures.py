@@ -21,14 +21,17 @@ from os import path
 
 import seaborn
 import numpy
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 from matplotlib import pyplot
 
+from core.utils.maths import CorrelationType
 from .common_output.figures import yticks_as_percentages
 from .common_output.dataframe import add_model_category_column
 from ..core.utils.logging import log_message, date_format
 from ..core.model.base import DistributionalSemanticModel
 from ..core.evaluation.synonym import ToeflTest, EslTest, LbmMcqTest, SynonymResults
+from ..core.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
+    ThematicRelatedness, AssociationResults
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -37,31 +40,73 @@ FIGURES_BASE_DIR = path.join(Preferences.evaluation_dir, "for publication", "cog
 
 
 def main():
+    synonym_results = SynonymResults().load().data
+    association_results = AssociationResults().load().data
+    priming_results = load_priming_data()
+    concreteness_results = load_calgary_data()
+
+    add_model_category_column(synonym_results)
+    add_model_category_column(association_results)
+    add_model_category_column(priming_results)
+    add_model_category_column(concreteness_results)
 
     # Synonym tests
 
-    synonym_results: DataFrame = SynonymResults().load().data
-    add_model_category_column(synonym_results)
-
     for test_name in [ToeflTest().name, EslTest().name, LbmMcqTest().name]:
-        test_results: DataFrame = synonym_results[synonym_results["Test name"] == test_name]
+        test_results = synonym_results[synonym_results["Test name"] == test_name]
         single_violin_plot(results=test_results,
                            key_column_name="Test name",
                            test_statistic_name="Score",
-                           name_prefix=test_name,
+                           test_name=test_name,
                            extra_h_line_at=0.25,
                            ticks_as_percentages=True,
-                           ylim=(0, 1))
+                           ylim=(0, 1)
+                           )
+
+    # Association tests
+
+    for test_name in [SimlexSimilarity().name, WordsimSimilarity().name, WordsimRelatedness().name,
+                      MenSimilarity().name, ThematicRelatedness().name]:
+        test_results = association_results[association_results["Test name"] == test_name]
+        test_results = test_results[test_results["Correlation type"] == CorrelationType.Pearson.name]
+        single_violin_plot(
+            results=test_results,
+            key_column_name="Test name",
+            test_statistic_name="Correlation",
+            test_name=test_name,
+        )
+
+    # Priming tests
+
+    for dv_name in ["LDT_200ms_Z", "LDT_200ms_Z_Priming", "NT_200ms_Z", "NT_200ms_Z_Priming"]:
+        test_results = priming_results[priming_results["Dependent variable"] == dv_name]
+        single_violin_plot(
+            results=test_results,
+            key_column_name="Dependent variable",
+            test_statistic_name="R-squared increase",
+            test_name=dv_name
+        )
+
+    # Calgary tests
+
+    for dv_name in ["zRTclean_mean_diff_distance", "Concrete_response_proportion_diff_distance",
+                    "Concrete_response_proportion_dual_distance", ]:
+        test_results = concreteness_results[concreteness_results["Dependent variable"] == dv_name]
+        single_violin_plot(
+            results=test_results,
+            key_column_name="Dependent variable",
+            test_statistic_name="R-squared increase",
+            test_name=dv_name
+        )
 
 
 def single_violin_plot(results: DataFrame,
                        key_column_name: str,
                        test_statistic_name: str,
-                       name_prefix: str,
-                       extra_h_line_at: float=None,
-                       ticks_as_percentages: bool=False,
+                       test_name: str,
+                       extra_h_line_at: float = None,
+                       ticks_as_percentages: bool = False,
                        ylim=None):
-
     seaborn.set_style("ticks")
 
     local_results: DataFrame = results.copy()
@@ -143,13 +188,47 @@ def single_violin_plot(results: DataFrame,
     grid.fig.tight_layout()
 
     pyplot.subplots_adjust(top=0.92)
-    grid.fig.suptitle(f"{name_prefix}: Overall model performance")
+    grid.fig.suptitle(f"{test_name}")
 
-    figure_name = f"{name_prefix} ({test_statistic_name}).png"
+    figure_name = f"Violin plot {test_name} ({test_statistic_name}).png"
 
     grid.savefig(path.join(FIGURES_BASE_DIR, figure_name), dpi=300)
 
     pyplot.close(grid.fig)
+
+
+def load_priming_data() -> DataFrame:
+    """
+    Load a DataFrame from a collection of CSV fragments.
+    """
+    results_dir = Preferences.spp_results_dir
+    separator = ","
+
+    with open(path.join(results_dir, "regression.csv"), mode="r", encoding="utf-8") as regression_file:
+        regression_df = read_csv(regression_file, sep=separator, header=0,
+                                 converters={
+                                     # Check if embedding size is the empty string,
+                                     # as it would be for Count models
+                                     "Embedding size": lambda v: int(v) if len(v) > 0 else numpy.nan
+                                 })
+    return regression_df
+
+
+def load_calgary_data() -> DataFrame:
+    """
+    Load a DataFrame from a collection of CSV fragments.
+    """
+    results_dir = Preferences.calgary_results_dir
+    separator = ","
+
+    with open(path.join(results_dir, "regression.csv"), mode="r", encoding="utf-8") as regression_file:
+        regression_df = read_csv(regression_file, sep=separator, header=0,
+                                 converters={
+                                     # Check if embedding size is the empty string,
+                                     # as it would be for Count models
+                                     "Embedding size": lambda v: int(v) if len(v) > 0 else numpy.nan
+                                 })
+    return regression_df
 
 
 if __name__ == '__main__':

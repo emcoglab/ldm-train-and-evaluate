@@ -32,6 +32,18 @@ class CorrelationType(Enum):
     Pearson  = auto()
     Spearman = auto()
 
+    @property
+    def name(self) -> str:
+        """
+        A string representation of the correlation type.
+        """
+        if self is CorrelationType.Pearson:
+            return "Pearson"
+        elif self is CorrelationType.Spearman:
+            return "Spearman"
+        else:
+            raise ValueError()
+
 
 class DistanceType(Enum):
     """
