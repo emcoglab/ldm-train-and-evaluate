@@ -64,7 +64,7 @@ def main():
                            test_name=test_name,
                            extra_h_line_at=0.25,
                            ticks_as_percentages=True,
-                           ylim=(0, 1)
+                           y_lim=(0, 1)
                            )
         single_param_heatmap(
             test_results=test_results,
@@ -99,15 +99,28 @@ def main():
 
     # Association tests
 
-    for test_name in [SimlexSimilarity().name, WordsimSimilarity().name, WordsimRelatedness().name,
-                      MenSimilarity().name, ThematicRelatedness().name]:
+    for test_name in [SimlexSimilarity().name, WordsimSimilarity().name,
+                      WordsimRelatedness().name, MenSimilarity().name,
+                      ThematicRelatedness().name]:
         test_results = association_results[association_results["Test name"] == test_name]
         test_results = test_results[test_results["Correlation type"] == CorrelationType.Pearson.name]
+
+        # Different y-axis coregistrations
+        if test_name in [SimlexSimilarity().name, WordsimSimilarity().name]:
+            y_lim = (0, 0.75)
+        elif test_name in [WordsimRelatedness().name, MenSimilarity().name]:
+            y_lim = (0, 0.85)
+        elif test_name in [ThematicRelatedness().name]:
+            y_lim = (0, 0.30)
+        else:
+            raise ValueError()
+
         single_violin_plot(
             results=test_results,
             key_column_name="Test name",
             test_statistic_name="Correlation",
             test_name=test_name,
+            y_lim=y_lim
         )
         single_param_heatmap(
             test_results=test_results,
@@ -142,20 +155,31 @@ def main():
 
     # Priming tests
 
-    for dv_name in ["LDT_200ms_Z", "LDT_200ms_Z_Priming", "NT_200ms_Z", "NT_200ms_Z_Priming"]:
-        test_results = priming_results[priming_results["Dependent variable"] == dv_name]
+    for test_name in ["LDT_200ms_Z", "NT_200ms_Z",
+                    "LDT_200ms_Z_Priming", "NT_200ms_Z_Priming"]:
+        test_results = priming_results[priming_results["Dependent variable"] == test_name]
+
+        # Different y-axis coregistrations
+        if test_name in ["LDT_200ms_Z", "NT_200ms_Z"]:
+            y_lim = (0, 0.025)
+        elif test_name in ["LDT_200ms_Z_Priming", "NT_200ms_Z_Priming"]:
+            y_lim = (0, 0.055)
+        else:
+            raise ValueError()
+
         single_violin_plot(
             results=test_results,
             key_column_name="Dependent variable",
             test_statistic_name="R-squared increase",
-            ticks_as_percentages=True,
-            test_name=dv_name
+            ticks_as_percentages=False,
+            test_name=test_name,
+            y_lim=y_lim
         )
         single_param_heatmap(
             test_results=test_results,
             parameter_name="Window radius",
             key_column_name="Dependent variable",
-            key_column_value=dv_name,
+            key_column_value=test_name,
             bf_statistic_name="B10 approx",
             using_log10_bf=False,
             parameter_values=Preferences.window_radii,
@@ -165,7 +189,7 @@ def main():
             test_results=test_results[test_results["Model category"] == DistributionalSemanticModel.MetaType.predict.name],
             parameter_name="Embedding size",
             key_column_name="Dependent variable",
-            key_column_value=dv_name,
+            key_column_value=test_name,
             bf_statistic_name="B10 approx",
             using_log10_bf=False,
             parameter_values=Preferences.predict_embedding_sizes,
@@ -175,7 +199,7 @@ def main():
             test_results=test_results[test_results["Model category"] != DistributionalSemanticModel.MetaType.ngram.name],
             parameter_name="Distance type",
             key_column_name="Dependent variable",
-            key_column_value=dv_name,
+            key_column_value=test_name,
             bf_statistic_name="B10 approx",
             using_log10_bf=False,
             parameter_values=[d.name for d in DistanceType],
@@ -184,21 +208,24 @@ def main():
 
     # Calgary tests
 
-    for dv_name in ["zRTclean_mean_diff_distance", "Concrete_response_proportion_diff_distance",
-                    "Concrete_response_proportion_dual_distance", ]:
-        test_results = concreteness_results[concreteness_results["Dependent variable"] == dv_name]
+    for test_name in ["zRTclean_mean_diff_distance",
+                    "Concrete_response_proportion_diff_distance",
+                    # "Concrete_response_proportion_dual_distance",
+                    ]:
+        test_results = concreteness_results[concreteness_results["Dependent variable"] == test_name]
+
         single_violin_plot(
             results=test_results,
             key_column_name="Dependent variable",
             test_statistic_name="R-squared increase",
-            ticks_as_percentages=True,
-            test_name=dv_name
+            ticks_as_percentages=False,
+            test_name=test_name
         )
         single_param_heatmap(
             test_results=test_results,
             parameter_name="Window radius",
             key_column_name="Dependent variable",
-            key_column_value=dv_name,
+            key_column_value=test_name,
             bf_statistic_name="log10 B10 approx",
             using_log10_bf=True,
             parameter_values=Preferences.window_radii,
@@ -208,7 +235,7 @@ def main():
             test_results=test_results[test_results["Model category"] == DistributionalSemanticModel.MetaType.predict.name],
             parameter_name="Embedding size",
             key_column_name="Dependent variable",
-            key_column_value=dv_name,
+            key_column_value=test_name,
             bf_statistic_name="log10 B10 approx",
             using_log10_bf=True,
             parameter_values=Preferences.predict_embedding_sizes,
@@ -218,7 +245,7 @@ def main():
             test_results=test_results[test_results["Model category"] != DistributionalSemanticModel.MetaType.ngram.name],
             parameter_name="Distance type",
             key_column_name="Dependent variable",
-            key_column_value=dv_name,
+            key_column_value=test_name,
             bf_statistic_name="log10 B10 approx",
             using_log10_bf=True,
             parameter_values=[d.name for d in DistanceType],
@@ -232,7 +259,7 @@ def single_violin_plot(results: DataFrame,
                        test_name: str,
                        extra_h_line_at: float = None,
                        ticks_as_percentages: bool = False,
-                       ylim=None):
+                       y_lim=None):
     seaborn.set_style("ticks")
 
     local_results: DataFrame = results.copy()
@@ -257,20 +284,20 @@ def single_violin_plot(results: DataFrame,
         size=4
     )
 
+    if y_lim is not None:
+        grid.set(ylim=y_lim)
+
     if extra_h_line_at is not None:
         # Plot the chance line
         grid.map(pyplot.axhline, y=extra_h_line_at, linestyle="solid", color="xkcd:bright red")
 
     grid.set_xticklabels(rotation=-90)
 
-    if ticks_as_percentages:
-        yticks_as_percentages(grid)
-
-    # Plot the bars
+    # Plot the violins
     grid.map(
         seaborn.violinplot, "Model type", test_statistic_name,
-        # width=10,
         cut=0, inner=None, linewidth=0,
+        scale="width",
         order=[
             # ngram
             DistributionalSemanticModel.ModelType.log_ngram.name,
@@ -289,7 +316,7 @@ def single_violin_plot(results: DataFrame,
 
     grid.map(
         seaborn.swarmplot, "Model type", test_statistic_name,
-        marker="o", color="0", size=2,
+        marker="o", color="0", size=1,
         order=[
             # ngram
             DistributionalSemanticModel.ModelType.log_ngram.name,
@@ -306,10 +333,10 @@ def single_violin_plot(results: DataFrame,
         ]
     )
 
-    grid.set_ylabels(test_statistic_name)
+    # grid.set_ylabels(test_statistic_name)
 
-    if ylim is not None:
-        grid.set(ylim=ylim)
+    if ticks_as_percentages:
+        yticks_as_percentages(grid)
 
     grid.fig.tight_layout()
 
