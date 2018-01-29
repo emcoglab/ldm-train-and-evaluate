@@ -43,6 +43,8 @@ FIGURES_BASE_DIR = path.join(Preferences.evaluation_dir, "for publication", "cog
 
 
 def main():
+
+    # Load results
     synonym_results = SynonymResults().load().data
     association_results = AssociationResults().load().data
     priming_results = load_priming_data()
@@ -53,107 +55,50 @@ def main():
     add_model_category_column(priming_results)
     add_model_category_column(concreteness_results)
 
+    association_results = association_results[association_results["Correlation type"] == CorrelationType.Pearson.name]
+
     # Synonym tests
 
-    for test_name in [ToeflTest().name, EslTest().name, LbmMcqTest().name]:
-        test_results = synonym_results[synonym_results["Test name"] == test_name]
-        single_violin_plot(results=test_results,
+    synonym_test_names = [ToeflTest().name, EslTest().name, LbmMcqTest().name]
+    for test_name in synonym_test_names:
+        single_violin_plot(results=synonym_results[synonym_results["Test name"] == test_name],
                            test_statistic_name="Score",
                            test_name=test_name,
                            extra_h_line_at=0.25,
                            y_lim=(0, 1)
                            )
-        single_param_heatmap(
-            test_results=test_results,
-            parameter_name="Window radius",
-            key_column_name="Test name",
-            key_column_value=test_name,
-            bf_statistic_name="B10",
-            using_log10_bf=False,
-            parameter_values=Preferences.window_radii,
-            model_name_func=model_name_without_radius,
-        )
-        single_param_heatmap(
-            test_results=test_results[test_results["Model category"] == DistributionalSemanticModel.MetaType.predict.name],
-            parameter_name="Embedding size",
-            key_column_name="Test name",
-            key_column_value=test_name,
-            bf_statistic_name="B10",
-            using_log10_bf=False,
-            parameter_values=Preferences.predict_embedding_sizes,
-            model_name_func=model_name_without_embedding_size,
-        )
-        single_param_heatmap(
-            test_results=test_results[test_results["Model category"] != DistributionalSemanticModel.MetaType.ngram.name],
-            parameter_name="Distance type",
-            key_column_name="Test name",
-            key_column_value=test_name,
-            bf_statistic_name="B10",
-            using_log10_bf=False,
-            parameter_values=[d.name for d in DistanceType],
-            model_name_func=model_name_without_distance,
-        )
+    synonym_heatmaps(synonym_results, synonym_test_names)
 
     # Association tests
 
-    for test_name in [SimlexSimilarity().name, WordsimSimilarity().name,
-                      WordsimRelatedness().name, MenSimilarity().name,
-                      ThematicRelatedness().name]:
-        test_results = association_results[association_results["Test name"] == test_name]
-        test_results = test_results[test_results["Correlation type"] == CorrelationType.Pearson.name]
+    similarity_test_names = [SimlexSimilarity().name, WordsimSimilarity().name]
+    relatedness_test_names = [WordsimRelatedness().name, MenSimilarity().name]
+    norm_test_names = [ThematicRelatedness().name]
 
+    for test_name in (similarity_test_names + relatedness_test_names + norm_test_names):
         # Different y-axis coregistrations
-        if test_name in [SimlexSimilarity().name, WordsimSimilarity().name,
-                         WordsimRelatedness().name, MenSimilarity().name]:
+        if test_name in (similarity_test_names + relatedness_test_names):
             y_lim = (0, 0.85)
-        elif test_name in [ThematicRelatedness().name]:
+        elif test_name in norm_test_names:
             y_lim = (0, 0.30)
         else:
             raise ValueError()
 
         single_violin_plot(
-            results=test_results,
+            results=association_results[association_results["Test name"] == test_name],
             test_statistic_name="Correlation",
             test_name=test_name,
             y_lim=y_lim
         )
-        single_param_heatmap(
-            test_results=test_results,
-            parameter_name="Window radius",
-            key_column_name="Test name",
-            key_column_value=test_name,
-            bf_statistic_name="Log10 B10 approx",
-            using_log10_bf=True,
-            parameter_values=Preferences.window_radii,
-            model_name_func=model_name_without_radius,
-        )
-        single_param_heatmap(
-            test_results=test_results[test_results["Model category"] == DistributionalSemanticModel.MetaType.predict.name],
-            parameter_name="Embedding size",
-            key_column_name="Test name",
-            key_column_value=test_name,
-            bf_statistic_name="Log10 B10 approx",
-            using_log10_bf=True,
-            parameter_values=Preferences.predict_embedding_sizes,
-            model_name_func=model_name_without_embedding_size,
-        )
-        single_param_heatmap(
-            test_results=test_results[test_results["Model category"] != DistributionalSemanticModel.MetaType.ngram.name],
-            parameter_name="Distance type",
-            key_column_name="Test name",
-            key_column_value=test_name,
-            bf_statistic_name="Log10 B10 approx",
-            using_log10_bf=True,
-            parameter_values=[d.name for d in DistanceType],
-            model_name_func=model_name_without_distance,
-        )
+    association_heatmaps("Similarity", similarity_test_names, association_results)
+    association_heatmaps("Relatedness", relatedness_test_names, association_results)
+    association_heatmaps("Norms", norm_test_names, association_results)
 
     # Priming tests
 
-    for test_name in ["LDT_200ms_Z", "NT_200ms_Z",
-                      "LDT_200ms_Z_Priming", "NT_200ms_Z_Priming"]:
-        test_results = priming_results[priming_results["Dependent variable"] == test_name]
-
+    priming_ldt_dvs = ["LDT_200ms_Z", "LDT_200ms_Z_Priming"]
+    priming_nt_dvs = ["NT_200ms_Z", "NT_200ms_Z_Priming"]
+    for test_name in (priming_ldt_dvs + priming_nt_dvs):
         # Different y-axis coregistrations
         if test_name in ["LDT_200ms_Z", "NT_200ms_Z"]:
             y_lim = (0, 0.025)
@@ -161,87 +106,175 @@ def main():
             y_lim = (0, 0.055)
         else:
             raise ValueError()
-
         single_violin_plot(
-            results=test_results,
+            results=priming_results[priming_results["Dependent variable"] == test_name],
             test_statistic_name="R-squared increase",
             test_name=test_name,
             y_lim=y_lim
         )
-        single_param_heatmap(
-            test_results=test_results,
-            parameter_name="Window radius",
-            key_column_name="Dependent variable",
-            key_column_value=test_name,
-            bf_statistic_name="B10 approx",
-            using_log10_bf=False,
-            parameter_values=Preferences.window_radii,
-            model_name_func=model_name_without_radius,
-        )
-        single_param_heatmap(
-            test_results=test_results[test_results["Model category"] == DistributionalSemanticModel.MetaType.predict.name],
-            parameter_name="Embedding size",
-            key_column_name="Dependent variable",
-            key_column_value=test_name,
-            bf_statistic_name="B10 approx",
-            using_log10_bf=False,
-            parameter_values=Preferences.predict_embedding_sizes,
-            model_name_func=model_name_without_embedding_size,
-        )
-        single_param_heatmap(
-            test_results=test_results[test_results["Model category"] != DistributionalSemanticModel.MetaType.ngram.name],
-            parameter_name="Distance type",
-            key_column_name="Dependent variable",
-            key_column_value=test_name,
-            bf_statistic_name="B10 approx",
-            using_log10_bf=False,
-            parameter_values=[d.name for d in DistanceType],
-            model_name_func=model_name_without_distance,
-        )
+    priming_heatmaps("LDT", priming_ldt_dvs, priming_results)
+    priming_heatmaps("NT", priming_nt_dvs, priming_results)
 
     # Calgary tests
 
-    for test_name in ["zRTclean_mean_diff_distance",
-                      "Concrete_response_proportion_diff_distance",
-                      # "Concrete_response_proportion_dual_distance",
-                      ]:
-        test_results = concreteness_results[concreteness_results["Dependent variable"] == test_name]
-
+    calgary_test_names = [
+        "zRTclean_mean_diff_distance",
+        "Concrete_response_proportion_diff_distance",
+        # "Concrete_response_proportion_dual_distance",
+    ]
+    for test_name in calgary_test_names:
         single_violin_plot(
-            results=test_results,
+            results=concreteness_results[concreteness_results["Dependent variable"] == test_name],
             test_statistic_name="R-squared increase",
             test_name=test_name
         )
-        single_param_heatmap(
-            test_results=test_results,
-            parameter_name="Window radius",
-            key_column_name="Dependent variable",
-            key_column_value=test_name,
-            bf_statistic_name="log10 B10 approx",
-            using_log10_bf=True,
-            parameter_values=Preferences.window_radii,
-            model_name_func=model_name_without_radius,
-        )
-        single_param_heatmap(
-            test_results=test_results[test_results["Model category"] == DistributionalSemanticModel.MetaType.predict.name],
-            parameter_name="Embedding size",
-            key_column_name="Dependent variable",
-            key_column_value=test_name,
-            bf_statistic_name="log10 B10 approx",
-            using_log10_bf=True,
-            parameter_values=Preferences.predict_embedding_sizes,
-            model_name_func=model_name_without_embedding_size,
-        )
-        single_param_heatmap(
-            test_results=test_results[test_results["Model category"] != DistributionalSemanticModel.MetaType.ngram.name],
-            parameter_name="Distance type",
-            key_column_name="Dependent variable",
-            key_column_value=test_name,
-            bf_statistic_name="log10 B10 approx",
-            using_log10_bf=True,
-            parameter_values=[d.name for d in DistanceType],
-            model_name_func=model_name_without_distance,
-        )
+    calgary_heatmaps(calgary_test_names, concreteness_results)
+
+
+def calgary_heatmaps(calgary_test_names, concreteness_results):
+    single_param_heatmap(
+        test_results=concreteness_results,
+        parameter_name="Window radius",
+        test_kind="Concreteness",
+        test_column_name="Dependent variable",
+        test_names=calgary_test_names,
+        bf_statistic_name="log10 B10 approx",
+        using_log10_bf=True,
+        parameter_values=Preferences.window_radii,
+        model_name_func=model_name_without_radius,
+    )
+    single_param_heatmap(
+        test_results=concreteness_results[
+            concreteness_results["Model category"] == DistributionalSemanticModel.MetaType.predict.name],
+        parameter_name="Embedding size",
+        test_kind="Concreteness",
+        test_column_name="Dependent variable",
+        test_names=calgary_test_names,
+        bf_statistic_name="log10 B10 approx",
+        using_log10_bf=True,
+        parameter_values=Preferences.predict_embedding_sizes,
+        model_name_func=model_name_without_embedding_size,
+    )
+    single_param_heatmap(
+        test_results=concreteness_results[
+            concreteness_results["Model category"] != DistributionalSemanticModel.MetaType.ngram.name],
+        parameter_name="Distance type",
+        test_kind="Concreteness",
+        test_column_name="Dependent variable",
+        test_names=calgary_test_names,
+        bf_statistic_name="log10 B10 approx",
+        using_log10_bf=True,
+        parameter_values=[d.name for d in DistanceType],
+        model_name_func=model_name_without_distance,
+    )
+
+
+def priming_heatmaps(test_kind, priming_dvs, priming_results):
+    single_param_heatmap(
+        test_results=priming_results,
+        parameter_name="Window radius",
+        test_kind=test_kind,
+        test_column_name="Dependent variable",
+        test_names=priming_dvs,
+        bf_statistic_name="B10 approx", using_log10_bf=False,
+        parameter_values=Preferences.window_radii,
+        model_name_func=model_name_without_radius,
+    )
+    single_param_heatmap(
+        test_results=priming_results[
+            priming_results["Model category"] == DistributionalSemanticModel.MetaType.predict.name],
+        parameter_name="Embedding size",
+        test_kind=test_kind,
+        test_column_name="Dependent variable",
+        test_names=priming_dvs,
+        bf_statistic_name="B10 approx", using_log10_bf=False,
+        parameter_values=Preferences.predict_embedding_sizes,
+        model_name_func=model_name_without_embedding_size,
+    )
+    single_param_heatmap(
+        test_results=priming_results[
+            priming_results["Model category"] != DistributionalSemanticModel.MetaType.ngram.name],
+        parameter_name="Distance type",
+        test_kind=test_kind,
+        test_column_name="Dependent variable",
+        test_names=priming_dvs,
+        bf_statistic_name="B10 approx", using_log10_bf=False,
+        parameter_values=[d.name for d in DistanceType],
+        model_name_func=model_name_without_distance,
+    )
+
+
+def association_heatmaps(test_kind, association_test_names, association_results):
+    single_param_heatmap(
+        test_results=association_results,
+        parameter_name="Window radius",
+        test_kind=test_kind,
+        test_column_name="Test name",
+        test_names=association_test_names,
+        bf_statistic_name="Log10 B10 approx", using_log10_bf=True,
+        parameter_values=Preferences.window_radii,
+        model_name_func=model_name_without_radius,
+    )
+    single_param_heatmap(
+        test_results=association_results[
+            association_results["Model category"] == DistributionalSemanticModel.MetaType.predict.name],
+        parameter_name="Embedding size",
+        test_kind=test_kind,
+        test_column_name="Test name",
+        test_names=association_test_names,
+        bf_statistic_name="Log10 B10 approx", using_log10_bf=True,
+        parameter_values=Preferences.predict_embedding_sizes,
+        model_name_func=model_name_without_embedding_size,
+    )
+    single_param_heatmap(
+        test_results=association_results[
+            association_results["Model category"] != DistributionalSemanticModel.MetaType.ngram.name],
+        parameter_name="Distance type",
+        test_kind=test_kind,
+        test_column_name="Test name",
+        test_names=association_test_names,
+        bf_statistic_name="Log10 B10 approx", using_log10_bf=True,
+        parameter_values=[d.name for d in DistanceType],
+        model_name_func=model_name_without_distance,
+    )
+
+
+def synonym_heatmaps(synonym_results, synonym_test_names):
+    single_param_heatmap(
+        test_results=synonym_results,
+        parameter_name="Window radius",
+        test_kind="Synonym",
+        test_column_name="Test name",
+        test_names=synonym_test_names,
+        bf_statistic_name="B10",
+        using_log10_bf=False,
+        parameter_values=Preferences.window_radii,
+        model_name_func=model_name_without_radius,
+    )
+    single_param_heatmap(
+        test_results=synonym_results[
+            synonym_results["Model category"] == DistributionalSemanticModel.MetaType.predict.name],
+        parameter_name="Embedding size",
+        test_kind="Synonym",
+        test_column_name="Test name",
+        test_names=synonym_test_names,
+        bf_statistic_name="B10",
+        using_log10_bf=False,
+        parameter_values=Preferences.predict_embedding_sizes,
+        model_name_func=model_name_without_embedding_size,
+    )
+    single_param_heatmap(
+        test_results=synonym_results[
+            synonym_results["Model category"] != DistributionalSemanticModel.MetaType.ngram.name],
+        parameter_name="Distance type",
+        test_kind="Synonym",
+        test_column_name="Test name",
+        test_names=synonym_test_names,
+        bf_statistic_name="B10",
+        using_log10_bf=False,
+        parameter_values=[d.name for d in DistanceType],
+        model_name_func=model_name_without_distance,
+    )
 
 
 def single_violin_plot(results: DataFrame,
@@ -340,106 +373,108 @@ def single_violin_plot(results: DataFrame,
 def single_param_heatmap(test_results: DataFrame,
                          parameter_name: str,
                          parameter_values: List,
-                         key_column_name: str,
-                         key_column_value: str,
+                         test_kind: str,
+                         test_column_name: str,
+                         test_names: List[str],
                          bf_statistic_name: str,
                          using_log10_bf: bool,
                          model_name_func,
                          ):
 
-    local_test_results: DataFrame = test_results.copy()
-
     win_counts_all_tests = []
     win_fraction_all_tests = []
 
-    # Column containing the name of the models, not including information relating to the parameter being compared
-    # (as this will be listed on another axis in any table or figure).
-    local_test_results["Model name"] = local_test_results.apply(model_name_func, axis=1)
+    # Consider each test separately
+    for test_name in test_names:
 
-    number_of_wins_for_param_value = defaultdict(int)
+        local_test_results: DataFrame = test_results[test_results[test_column_name] == test_name].copy()
 
-    # The maximum number of total wins is the number of total models
-    n_models_overall = local_test_results.shape[0] / len(parameter_values)
-    assert n_models_overall == int(n_models_overall)
-    n_models_overall = int(n_models_overall)
-    assert n_models_overall == local_test_results["Model name"].unique().shape[0]
+        # Column containing the name of the models, not including information relating to the parameter being compared
+        # (as this will be listed on another axis in any table or figure).
+        local_test_results["Model name"] = local_test_results.apply(model_name_func, axis=1)
 
-    # Loop through models
-    for model_name in local_test_results["Model name"].unique():
-        # Collection of models differing only by the value of the parameter
-        model_variations: DataFrame = local_test_results[
-            local_test_results["Model name"] == model_name].copy()
+        number_of_wins_for_param_value = defaultdict(int)
 
-        # Sort by BF(model, baseline)
-        model_variations = model_variations.sort_values(bf_statistic_name, ascending=False).reset_index(drop=True)
+        # The maximum number of total wins is the number of total models
+        n_models_overall = local_test_results.shape[0] / len(parameter_values)
+        assert n_models_overall == int(n_models_overall)
+        n_models_overall = int(n_models_overall)
+        assert n_models_overall == local_test_results["Model name"].unique().shape[0]
 
-        # Ignore any models which are indistinguishable from the baseline model
-        n_remaining_models = model_variations[model_variations[bf_statistic_name] > BF_THRESHOLD].shape[0]
+        # Loop through models
+        for model_name in local_test_results["Model name"].unique():
+            # Collection of models differing only by the value of the parameter
+            model_variations: DataFrame = local_test_results[
+                local_test_results["Model name"] == model_name].copy()
 
-        # Some cases to consider
+            # Sort by BF(model, baseline)
+            model_variations = model_variations.sort_values(bf_statistic_name, ascending=False).reset_index(drop=True)
 
-        # If no param values are distinguishable from baseline, there's nothing to remember
-        if n_remaining_models == 0:
-            continue
+            # Ignore any models which are indistinguishable from the baseline model
+            n_remaining_models = model_variations[model_variations[bf_statistic_name] > BF_THRESHOLD].shape[0]
 
-        # If there's just one best model: easy
-        elif n_remaining_models == 1:
-            # Record its details
-            winning_parameter_value = model_variations[parameter_name][0]
-            number_of_wins_for_param_value[winning_parameter_value] += 1
+            # Some cases to consider
 
-        # If there are multiple best models, we look at those which are indistinguishable from the best model
-        elif n_remaining_models > 1:
+            # If no param values are distinguishable from baseline, there's nothing to remember
+            if n_remaining_models == 0:
+                continue
 
-            # BF for best model
-            best_bf_statistic = model_variations[bf_statistic_name][0]
-            best_param_value = model_variations[parameter_name][0]
+            # If there's just one best model: easy
+            elif n_remaining_models == 1:
+                # Record its details
+                winning_parameter_value = model_variations[parameter_name][0]
+                number_of_wins_for_param_value[winning_parameter_value] += 1
 
-            # If the bayes factor is sufficiently large, it may snap to numpy.inf.
-            # If it's not, we can sensibly make a comparison.
-            if not numpy.isinf(best_bf_statistic):
-                if not using_log10_bf:
-                    joint_best_models = model_variations[
-                        # The actual best model
-                        (model_variations[parameter_name] == best_param_value)
-                        |
-                        # Indistinguishable from best
-                        (best_bf_statistic / model_variations[bf_statistic_name] < BF_THRESHOLD)
+            # If there are multiple best models, we look at those which are indistinguishable from the best model
+            elif n_remaining_models > 1:
+
+                # BF for best model
+                best_bf_statistic = model_variations[bf_statistic_name][0]
+                best_param_value = model_variations[parameter_name][0]
+
+                # If the bayes factor is sufficiently large, it may snap to numpy.inf.
+                # If it's not, we can sensibly make a comparison.
+                if not numpy.isinf(best_bf_statistic):
+                    if not using_log10_bf:
+                        joint_best_models = model_variations[
+                            # The actual best model
+                            (model_variations[parameter_name] == best_param_value)
+                            |
+                            # Indistinguishable from best
+                            (best_bf_statistic / model_variations[bf_statistic_name] < BF_THRESHOLD)
+                            ]
+                    else:
+                        joint_best_models = model_variations[
+                            # The actual best model
+                            (model_variations[parameter_name] == best_param_value)
+                            |
+                            # Indistinguishable from best
+                            # Using logs so subtract instead of divide
+                            (best_bf_statistic - model_variations[bf_statistic_name] < numpy.log10(BF_THRESHOLD))
                         ]
                 else:
+                    logger.warning("Encountered an apparently infinite Bayes factor")
+                    # We can only pick the ones which literally share a BF value with the best model
                     joint_best_models = model_variations[
-                        # The actual best model
-                        (model_variations[parameter_name] == best_param_value)
-                        |
-                        # Indistinguishable from best
-                        # Using logs so subtract instead of divide
-                        (best_bf_statistic - model_variations[bf_statistic_name] < numpy.log10(BF_THRESHOLD))
+                        model_variations[parameter_name] == best_param_value
                     ]
-            else:
-                logger.warning("Encountered an apparently infinite Bayes factor")
-                # We can only pick the ones which literally share a BF value with the best model
-                joint_best_models = model_variations[
-                    model_variations[parameter_name] == best_param_value
-                ]
 
-            # Record details of joint-best models
-            for parameter_value in joint_best_models[parameter_name]:
-                number_of_wins_for_param_value[parameter_value] += 1
+                # Record details of joint-best models
+                for parameter_value in joint_best_models[parameter_name]:
+                    number_of_wins_for_param_value[parameter_value] += 1
 
-    # Add to all-DV win-counts
-    for parameter_value in parameter_values:
-        win_counts_all_tests.append(
-            [parameter_value, number_of_wins_for_param_value[parameter_value]])
-        win_fraction_all_tests.append(
-            [parameter_value, number_of_wins_for_param_value[parameter_value] / n_models_overall])
-
-    all_win_fractions = DataFrame(win_fraction_all_tests,
-                                  columns=[parameter_name, "Fraction of times (joint-)best"])
-    all_win_fractions[key_column_name] = key_column_value
+        # Add to all-DV win-counts
+        for parameter_value in parameter_values:
+            win_counts_all_tests.append(
+                [test_name, parameter_value, number_of_wins_for_param_value[parameter_value]])
+            win_fraction_all_tests.append(
+                [test_name, parameter_value, number_of_wins_for_param_value[parameter_value] / n_models_overall])
 
     # Heatmap for all DVs
 
-    heatmap_df = all_win_fractions.pivot(index=key_column_name, columns=parameter_name, values="Fraction of times (joint-)best")
+    all_win_fractions = DataFrame(win_fraction_all_tests, columns=[test_column_name, parameter_name, "Fraction of times (joint-)best"])
+    heatmap_df = all_win_fractions.pivot(index=test_column_name, columns=parameter_name, values="Fraction of times (joint-)best")
+    heatmap_df = heatmap_df.reindex(index=test_names)
 
     plot = seaborn.heatmap(heatmap_df,
                            square=True,
@@ -449,7 +484,7 @@ def single_param_heatmap(test_results: DataFrame,
     pyplot.xticks(rotation=90)
     pyplot.yticks(rotation=0)
 
-    plot.figure.set_size_inches(5, 2)
+    # plot.figure.set_size_inches(5, 2)
     pyplot.tight_layout()
 
     # Colorbar has % labels
@@ -458,7 +493,7 @@ def single_param_heatmap(test_results: DataFrame,
     plot.collections[0].colorbar.set_ticklabels(
         ['{:3.0f}%'.format(float(label.get_text()) * 100) for label in old_labels])
 
-    plot.figure.savefig(path.join(FIGURES_BASE_DIR, f"heatmap {parameter_name.lower()} {key_column_value}.png"), dpi=300)
+    plot.figure.savefig(path.join(FIGURES_BASE_DIR, f"heatmap {parameter_name.lower()} {test_kind}.png"), dpi=300)
     pyplot.close(plot.figure)
 
 
