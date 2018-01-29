@@ -27,7 +27,6 @@ from pandas import DataFrame, read_csv
 from matplotlib import pyplot
 
 from .common_output.constants import BF_THRESHOLD
-from .common_output.figures import yticks_as_percentages
 from .common_output.dataframe import add_model_category_column, model_name_without_radius, \
     model_name_without_embedding_size, model_name_without_distance
 from ..core.utils.logging import log_message, date_format
@@ -59,11 +58,9 @@ def main():
     for test_name in [ToeflTest().name, EslTest().name, LbmMcqTest().name]:
         test_results = synonym_results[synonym_results["Test name"] == test_name]
         single_violin_plot(results=test_results,
-                           key_column_name="Test name",
                            test_statistic_name="Score",
                            test_name=test_name,
                            extra_h_line_at=0.25,
-                           ticks_as_percentages=True,
                            y_lim=(0, 1)
                            )
         single_param_heatmap(
@@ -117,7 +114,6 @@ def main():
 
         single_violin_plot(
             results=test_results,
-            key_column_name="Test name",
             test_statistic_name="Correlation",
             test_name=test_name,
             y_lim=y_lim
@@ -156,7 +152,7 @@ def main():
     # Priming tests
 
     for test_name in ["LDT_200ms_Z", "NT_200ms_Z",
-                    "LDT_200ms_Z_Priming", "NT_200ms_Z_Priming"]:
+                      "LDT_200ms_Z_Priming", "NT_200ms_Z_Priming"]:
         test_results = priming_results[priming_results["Dependent variable"] == test_name]
 
         # Different y-axis coregistrations
@@ -169,9 +165,7 @@ def main():
 
         single_violin_plot(
             results=test_results,
-            key_column_name="Dependent variable",
             test_statistic_name="R-squared increase",
-            ticks_as_percentages=False,
             test_name=test_name,
             y_lim=y_lim
         )
@@ -209,16 +203,14 @@ def main():
     # Calgary tests
 
     for test_name in ["zRTclean_mean_diff_distance",
-                    "Concrete_response_proportion_diff_distance",
-                    # "Concrete_response_proportion_dual_distance",
-                    ]:
+                      "Concrete_response_proportion_diff_distance",
+                      # "Concrete_response_proportion_dual_distance",
+                      ]:
         test_results = concreteness_results[concreteness_results["Dependent variable"] == test_name]
 
         single_violin_plot(
             results=test_results,
-            key_column_name="Dependent variable",
             test_statistic_name="R-squared increase",
-            ticks_as_percentages=False,
             test_name=test_name
         )
         single_param_heatmap(
@@ -254,13 +246,11 @@ def main():
 
 
 def single_violin_plot(results: DataFrame,
-                       key_column_name: str,
                        test_statistic_name: str,
                        test_name: str,
                        extra_h_line_at: float = None,
-                       ticks_as_percentages: bool = False,
                        y_lim=None):
-    seaborn.set_style("ticks")
+    seaborn.set_style("whitegrid")
 
     local_results: DataFrame = results.copy()
 
@@ -275,27 +265,22 @@ def single_violin_plot(results: DataFrame,
 
     seaborn.set_context(context="paper", font_scale=1)
 
-    grid = seaborn.FacetGrid(
-        local_results,
-        row=key_column_name,
-        hue="Model category",
-        hue_order=["N-gram", "Count", "Predict"],
-        margin_titles=True,
-        size=4
-    )
+    # Initialize the figure
+    f, ax = pyplot.subplots(figsize=(7, 6))
 
     if y_lim is not None:
-        grid.set(ylim=y_lim)
+        ax.set(ylim=y_lim)
 
     if extra_h_line_at is not None:
-        # Plot the chance line
-        grid.map(pyplot.axhline, y=extra_h_line_at, linestyle="solid", color="xkcd:bright red")
+        pyplot.axhline(y=extra_h_line_at, linestyle="solid", color="xkcd:bright red")
 
-    grid.set_xticklabels(rotation=-90)
+    # ax.set_xticklabels(rotation=-90)
+    pyplot.setp(ax.xaxis.get_majorticklabels(), rotation=-90)
 
-    # Plot the violins
-    grid.map(
-        seaborn.violinplot, "Model type", test_statistic_name,
+    seaborn.violinplot(
+        data=local_results,
+        x="Model type", y=test_statistic_name,
+        hue="Model category", hue_order=["N-gram", "Count", "Predict"], dodge=False,
         cut=0, inner=None, linewidth=0,
         scale="width",
         order=[
@@ -314,9 +299,10 @@ def single_violin_plot(results: DataFrame,
         ]
     )
 
-    grid.map(
-        seaborn.swarmplot, "Model type", test_statistic_name,
-        marker="o", color="0", size=1,
+    seaborn.swarmplot(
+        data=local_results,
+        x="Model type", y=test_statistic_name,
+        marker="o", color="0", size=2,
         order=[
             # ngram
             DistributionalSemanticModel.ModelType.log_ngram.name,
@@ -333,21 +319,19 @@ def single_violin_plot(results: DataFrame,
         ]
     )
 
-    # grid.set_ylabels(test_statistic_name)
+    # Tweak the visual presentation
+    ax.yaxis.grid(True)
+    ax.set(xlabel="")
+    ax.set(ylabel="")
+    seaborn.despine(trim=True, top=True, bottom=True, left=True, right=True)
 
-    if ticks_as_percentages:
-        yticks_as_percentages(grid)
-
-    grid.fig.tight_layout()
-
-    pyplot.subplots_adjust(top=0.92)
-    grid.fig.suptitle(f"{test_name}")
+    f.suptitle(f"{test_name}")
 
     figure_name = f"violin plot {test_name} ({test_statistic_name}).png"
 
-    grid.savefig(path.join(FIGURES_BASE_DIR, figure_name), dpi=300)
+    pyplot.savefig(path.join(FIGURES_BASE_DIR, figure_name), dpi=300)
 
-    pyplot.close(grid.fig)
+    pyplot.close(f)
 
 
 def single_param_heatmap(test_results: DataFrame,
