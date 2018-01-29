@@ -103,9 +103,8 @@ def main():
         test_results = test_results[test_results["Correlation type"] == CorrelationType.Pearson.name]
 
         # Different y-axis coregistrations
-        if test_name in [SimlexSimilarity().name, WordsimSimilarity().name]:
-            y_lim = (0, 0.75)
-        elif test_name in [WordsimRelatedness().name, MenSimilarity().name]:
+        if test_name in [SimlexSimilarity().name, WordsimSimilarity().name,
+                         WordsimRelatedness().name, MenSimilarity().name]:
             y_lim = (0, 0.85)
         elif test_name in [ThematicRelatedness().name]:
             y_lim = (0, 0.30)
@@ -266,7 +265,7 @@ def single_violin_plot(results: DataFrame,
     seaborn.set_context(context="paper", font_scale=1)
 
     # Initialize the figure
-    f, ax = pyplot.subplots(figsize=(7, 6))
+    fig, ax = pyplot.subplots(figsize=(7, 6))
 
     if y_lim is not None:
         ax.set(ylim=y_lim)
@@ -274,8 +273,7 @@ def single_violin_plot(results: DataFrame,
     if extra_h_line_at is not None:
         pyplot.axhline(y=extra_h_line_at, linestyle="solid", color="xkcd:bright red")
 
-    # ax.set_xticklabels(rotation=-90)
-    pyplot.setp(ax.xaxis.get_majorticklabels(), rotation=-90)
+    # pyplot.setp(ax.xaxis.get_majorticklabels(), rotation=-90)
 
     seaborn.violinplot(
         data=local_results,
@@ -323,15 +321,20 @@ def single_violin_plot(results: DataFrame,
     ax.yaxis.grid(True)
     ax.set(xlabel="")
     ax.set(ylabel="")
-    seaborn.despine(trim=True, top=True, bottom=True, left=True, right=True)
-
-    f.suptitle(f"{test_name}")
+    seaborn.despine(trim=True,
+                    # top=True,
+                    bottom=True,
+                    left=True,
+                    # right=True,
+                    )
+    ax.legend().set_visible(False)
+    # fig.suptitle(f"{test_name}")
+    fig.tight_layout()
 
     figure_name = f"violin plot {test_name} ({test_statistic_name}).png"
-
     pyplot.savefig(path.join(FIGURES_BASE_DIR, figure_name), dpi=300)
 
-    pyplot.close(f)
+    pyplot.close(fig)
 
 
 def single_param_heatmap(test_results: DataFrame,
