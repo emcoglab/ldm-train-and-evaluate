@@ -39,7 +39,7 @@ from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
-FIGURES_BASE_DIR = path.join(Preferences.evaluation_dir, "for publication", "cogsci2018")
+OUTPUT_BASE_DIR = path.join(Preferences.evaluation_dir, "for publication", "cogsci2018")
 
 
 def main():
@@ -50,12 +50,28 @@ def main():
     priming_results = load_priming_data()
     concreteness_results = load_calgary_data()
 
+    # Add "Model category" column
     add_model_category_column(synonym_results)
     add_model_category_column(association_results)
     add_model_category_column(priming_results)
     add_model_category_column(concreteness_results)
 
+    # Remove irrelevant results
+    synonym_results = remove_irrelevant_results(synonym_results)
+    association_results = remove_irrelevant_results(association_results)
+    priming_results = remove_irrelevant_results(priming_results)
+    concreteness_results = remove_irrelevant_results(concreteness_results)
+
+    # Remove Spearman results
     association_results = association_results[association_results["Correlation type"] == CorrelationType.Pearson.name]
+
+    # Export CSVs
+    save_synonym_results_csv(synonym_results)
+    save_similarity_results_csv(association_results)
+    save_relatedness_results_csv(association_results)
+    save_norms_results_csv(association_results)
+    save_priming_results_csv(priming_results)
+    save_concreteness_results_csv(concreteness_results)
 
     # Synonym tests
 
@@ -286,10 +302,6 @@ def single_violin_plot(results: DataFrame,
 
     local_results: DataFrame = results.copy()
 
-    # Don't want to show PPMI (10000)
-    # This only applies for synonym tests, but it doesn't cause a problem if it's not present
-    local_results = local_results[local_results["Model type"] != "PPMI (10000)"]
-
     # !!!!
     # NOTE: For the purposes of display, we make all values positive! This should be acknowledged in any legend!
     # !!!!
@@ -365,7 +377,7 @@ def single_violin_plot(results: DataFrame,
     fig.tight_layout()
 
     figure_name = f"violin plot {test_name} ({test_statistic_name}).png"
-    pyplot.savefig(path.join(FIGURES_BASE_DIR, figure_name), dpi=300)
+    pyplot.savefig(path.join(OUTPUT_BASE_DIR, figure_name), dpi=300)
 
     pyplot.close(fig)
 
@@ -493,7 +505,7 @@ def single_param_heatmap(test_results: DataFrame,
     plot.collections[0].colorbar.set_ticklabels(
         ['{:3.0f}%'.format(float(label.get_text()) * 100) for label in old_labels])
 
-    plot.figure.savefig(path.join(FIGURES_BASE_DIR, f"heatmap {parameter_name.lower()} {test_kind}.png"), dpi=300)
+    plot.figure.savefig(path.join(OUTPUT_BASE_DIR, f"heatmap {parameter_name.lower()} {test_kind}.png"), dpi=300)
     pyplot.close(plot.figure)
 
 
@@ -529,6 +541,77 @@ def load_calgary_data() -> DataFrame:
                                      "Embedding size": lambda v: int(v) if len(v) > 0 else numpy.nan
                                  })
     return regression_df
+
+
+def remove_irrelevant_results(results):
+    results = results[results["Model type"] != "PPMI (10000)"]
+    return results
+
+
+def save_synonym_results_csv(synonym_results: DataFrame):
+    columns = ["Test name", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Score", "B10"]
+    export_results_csv(
+        synonym_results[columns].sort_values(by=columns),
+        "results_synonym.csv"
+    )
+
+
+def save_similarity_results_csv(association_results: DataFrame):
+    columns = ["Test name", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Correlation", "B10 approx", "Log10 B10 approx"]
+    export_results_csv(
+        (
+            association_results[
+                association_results["Test name"].isin([SimlexSimilarity().name, WordsimSimilarity().name])]
+        )[columns].sort_values(by=columns),
+        "results_similarity.csv"
+    )
+
+
+def save_relatedness_results_csv(association_results: DataFrame):
+    columns = ["Test name", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Correlation", "B10 approx", "Log10 B10 approx"]
+    export_results_csv(
+        (
+            association_results[
+                association_results["Test name"].isin([WordsimRelatedness().name, MenSimilarity().name])]
+        )[columns].sort_values(by=columns),
+        "results_relatedness.csv"
+    )
+
+
+def save_norms_results_csv(association_results: DataFrame):
+    columns = ["Test name", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Correlation", "B10 approx", "Log10 B10 approx"]
+    export_results_csv(
+        (
+            association_results[
+                association_results["Test name"].isin([ThematicRelatedness().name])]
+        )[columns].sort_values(by=columns),
+        "results_norms.csv"
+    )
+
+
+def save_priming_results_csv(priming_results: DataFrame):
+    columns = ["Dependent variable", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Model R-squared", "R-squared increase", "B10 approx", "log10 B10 approx"]
+    export_results_csv(
+        (
+            priming_results[priming_results["Dependent variable"].str.contains("Z")
+                            & ~priming_results["Dependent variable"].str.contains("1200")]
+        )[columns].sort_values(by=columns),
+        "results_priming.csv"
+    )
+
+
+def save_concreteness_results_csv(concreteness_results: DataFrame):
+    columns = ["Dependent variable", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Model R-squared", "R-squared increase", "B10 approx", "log10 B10 approx"]
+    export_results_csv(
+        (
+            concreteness_results[concreteness_results["Dependent variable"].str.contains("diff_distance")]
+        )[columns].sort_values(by=columns),
+        "results_concreteness.csv"
+    )
+
+
+def export_results_csv(results: DataFrame, file_name: str):
+    results.to_csv(path.join(OUTPUT_BASE_DIR, file_name), header=True, index=False)
 
 
 if __name__ == '__main__':
