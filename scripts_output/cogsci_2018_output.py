@@ -57,10 +57,10 @@ def main():
     add_model_category_column(concreteness_results)
 
     # Remove irrelevant results
-    synonym_results = remove_irrelevant_results(synonym_results)
-    association_results = remove_irrelevant_results(association_results)
-    priming_results = remove_irrelevant_results(priming_results)
-    concreteness_results = remove_irrelevant_results(concreteness_results)
+    synonym_results = remove_truncated_results(synonym_results)
+    association_results = remove_truncated_results(association_results)
+    priming_results = remove_truncated_results(priming_results)
+    concreteness_results = remove_truncated_results(concreteness_results)
 
     # Remove Spearman results
     association_results = association_results[association_results["Correlation type"] == CorrelationType.Pearson.name]
@@ -135,8 +135,8 @@ def main():
 
     calgary_test_names = [
         "zRTclean_mean_diff_distance",
-        "Concrete_response_proportion_diff_distance",
-        # "Concrete_response_proportion_dual_distance",
+        # "Concrete_response_proportion_diff_distance",
+        "Concrete_response_proportion_dual_distance",
     ]
     for test_name in calgary_test_names:
         single_violin_plot(
@@ -543,7 +543,7 @@ def load_calgary_data() -> DataFrame:
     return regression_df
 
 
-def remove_irrelevant_results(results):
+def remove_truncated_results(results):
     results = results[results["Model type"] != "PPMI (10000)"]
     return results
 
@@ -604,7 +604,8 @@ def save_concreteness_results_csv(concreteness_results: DataFrame):
     columns = ["Dependent variable", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Model R-squared", "R-squared increase", "B10 approx", "log10 B10 approx"]
     export_results_csv(
         (
-            concreteness_results[concreteness_results["Dependent variable"].str.contains("diff_distance")]
+            concreteness_results[(concreteness_results["Dependent variable"] == "zRTclean_mean_diff_distance")
+                                 | (concreteness_results["Dependent variable"] == "Concrete_response_proportion_dual_distance")]
         )[columns].sort_values(by=columns),
         "results_concreteness.csv"
     )
