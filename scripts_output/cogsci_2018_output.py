@@ -134,7 +134,8 @@ def main():
     # Calgary tests
 
     calgary_test_names = [
-        "zRTclean_mean_diff_distance",
+        # "zRTclean_mean_diff_distance",
+        "zRTclean_mean_dual_distance",
         # "Concrete_response_proportion_diff_distance",
         "Concrete_response_proportion_dual_distance",
     ]
@@ -604,7 +605,7 @@ def save_concreteness_results_csv(concreteness_results: DataFrame):
     columns = ["Dependent variable", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Model R-squared", "R-squared increase", "B10 approx", "log10 B10 approx"]
     export_results_csv(
         (
-            concreteness_results[(concreteness_results["Dependent variable"] == "zRTclean_mean_diff_distance")
+            concreteness_results[(concreteness_results["Dependent variable"] == "zRTclean_mean_dual_distance")
                                  | (concreteness_results["Dependent variable"] == "Concrete_response_proportion_dual_distance")]
         )[columns].sort_values(by=columns),
         "results_concreteness.csv"
