@@ -28,7 +28,7 @@ from pandas import DataFrame, isnull, read_csv
 from .common_output.figures import model_performance_bar_graphs, score_vs_radius_line_graph, compare_param_values_bf, \
     model_performance_violin_plots
 from .common_output.dataframe import add_model_category_column, model_name_without_radius, \
-    model_name_without_embedding_size, predict_models_only, model_name_without_distance
+    model_name_without_embedding_size, predict_models_only, model_name_without_distance, model_name_without_corpus
 from .common_output.tables import table_top_n_models
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType
@@ -188,6 +188,17 @@ def main():
         name_prefix="Concreteness",
         parameter_values=[d.name for d in DistanceType],
         model_name_func=model_name_without_distance
+    )
+    compare_param_values_bf(
+        parameter_name="Corpus",
+        test_results=regression_results,
+        name_prefix="Concreteness",
+        parameter_values=[cm.name for cm in Preferences.source_corpus_metas],
+        model_name_func=model_name_without_corpus,
+        figures_base_dir=figures_base_dir,
+        key_column_name="Dependent variable",
+        key_column_values=DV_NAMES,
+        bf_statistic_name="B10 approx"
     )
 
 

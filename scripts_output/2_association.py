@@ -19,7 +19,8 @@ import logging
 import os
 import sys
 
-from .common_output.dataframe import add_model_category_column, add_model_name_column, predict_models_only
+from .common_output.dataframe import add_model_category_column, add_model_name_column, predict_models_only, \
+    model_name_without_corpus
 from .common_output.figures import cosine_vs_correlation_scores, model_performance_bar_graphs, \
     score_vs_radius_line_graph, score_vs_embedding_size_line_graph, pearson_vs_spearman_scores, compare_param_values_bf, \
     model_performance_violin_plots
@@ -216,6 +217,17 @@ def main():
                 key_column_values=test_names,
                 parameter_values=[d.name for d in DistanceType],
                 model_name_func=model_name_without_distance
+            )
+            compare_param_values_bf(
+                parameter_name="Corpus",
+                test_results=results_df[results_df["Correlation type"] == correlation_type.name],
+                name_prefix=f"{artificial_distinction} ({correlation_type.name})",
+                parameter_values=[cm.name for cm in Preferences.source_corpus_metas],
+                model_name_func=model_name_without_corpus,
+                figures_base_dir=figures_base_dir,
+                key_column_name="Test name",
+                key_column_values=test_names,
+                bf_statistic_name="B10 approx"
             )
 
         pearson_vs_spearman_scores(

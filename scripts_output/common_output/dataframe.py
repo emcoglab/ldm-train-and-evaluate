@@ -50,6 +50,13 @@ def model_name_without_radius(r):
         return f"{r['Model type']} {r['Distance type']} {r['Corpus']}"
 
 
+def model_name_without_corpus(r):
+    if r["Model category"] == "Predict":
+        return f"{r['Distance type']} {r['Model type']} r={r['Window radius']} {r['Embedding size']:.0f}"
+    else:
+        return f"{r['Distance type']} {r['Model type']} r={r['Window radius']}"
+
+
 def model_name_without_embedding_size(r):
     return f"{r['Model type']} r={r['Window radius']} {r['Distance type']} {r['Corpus']}"
 

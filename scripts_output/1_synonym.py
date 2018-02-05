@@ -20,7 +20,7 @@ import os
 import sys
 
 from .common_output.dataframe import add_model_category_column, add_model_name_column, model_name_without_radius, \
-    model_name_without_embedding_size, predict_models_only, model_name_without_distance
+    model_name_without_embedding_size, predict_models_only, model_name_without_distance, model_name_without_corpus
 from .common_output.figures import cosine_vs_correlation_scores, model_performance_bar_graphs, \
     score_vs_radius_line_graph, score_vs_embedding_size_line_graph, compare_param_values_bf, \
     model_performance_violin_plots
@@ -168,6 +168,17 @@ def main():
         name_prefix="Synonym",
         parameter_values=[d.name for d in DistanceType],
         model_name_func=model_name_without_distance,
+        figures_base_dir=figures_base_dir,
+        key_column_name="Test name",
+        key_column_values=TEST_NAMES,
+        bf_statistic_name="B10"
+    )
+    compare_param_values_bf(
+        parameter_name="Corpus",
+        test_results=results_df,
+        name_prefix="Synonym",
+        parameter_values=[cm.name for cm in Preferences.source_corpus_metas],
+        model_name_func=model_name_without_corpus,
         figures_base_dir=figures_base_dir,
         key_column_name="Test name",
         key_column_values=TEST_NAMES,
