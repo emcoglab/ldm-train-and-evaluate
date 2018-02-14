@@ -245,3 +245,10 @@ def binomial_bayes_factor(n, k, p0, alternative_hypothesis="≠", a=1, b=1):
         return binomial_bayes_factor_one_sided(n, k, p0, "<", a, b)
     else:
         raise ValueError()
+
+
+def clamp01(x):
+    """
+    Bounds a value between 0 and 1.
+    """
+    return max(0, min(1, x))
