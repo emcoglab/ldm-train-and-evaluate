@@ -135,9 +135,14 @@ class CountVectorModel(VectorSemanticModel):
         except KeyError:
             raise WordNotFoundError(f"The word '{word}' was not found.")
 
-    def nearest_neighbours(self, word: str, distance_type: DistanceType, n: int):
+    def nearest_neighbours(self, word: str, distance_type: DistanceType, n: int, only_consider_most_frequent: int = None):
 
-        vocab_size = len(self.token_indices)
+        if only_consider_most_frequent is not None:
+            if only_consider_most_frequent < 1:
+                raise ValueError("only_consider_most_frequent must be at least 1")
+            vocab_size = only_consider_most_frequent
+        else:
+            vocab_size = len(self.token_indices.id2token)
 
         if not self.contains_word(word):
             raise WordNotFoundError(f"The word '{word}' was not found.")
@@ -164,15 +169,15 @@ class CountVectorModel(VectorSemanticModel):
                 nearest_neighbours.sort(
                     # Sort by distance, which is the second item in the tuple.
                     key=itemgetter(1),
-                    # Sort descending so the first element is the most similar
-                    reverse=True)
+                    # Sort ascending so the first element is the most similar
+                    reverse=False)
                 del nearest_neighbours[-1]
 
             if candidate_id % 10_000 == 0 and candidate_id > 0:
                 logger.info(f'\t{candidate_id:,} out of {vocab_size:,} candidates considered. '
                             f'"{self.token_indices.id2token[nearest_neighbours[0][0]]}" currently the fave')
 
-        return [self.token_indices.id2token(i) for i, dist in nearest_neighbours]
+        return [self.token_indices.id2token[i] for i, dist in nearest_neighbours]
 
     def contains_word(self, word: str) -> bool:
         if word.lower() in [token.lower() for token in self.token_indices.token2id]:

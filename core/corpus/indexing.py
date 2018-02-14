@@ -126,7 +126,8 @@ class TokenIndexDictionary(object):
     @classmethod
     def from_freqdist(cls, freq_dist: FreqDist) -> 'TokenIndexDictionary':
         """
-        Constructs an TokenIndexDictionary from a FreqDist
+        Constructs an TokenIndexDictionary from a FreqDist.
+        Tokes are 0-indexed.
         :param freq_dist:
         :return:
         """

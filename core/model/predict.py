@@ -86,14 +86,22 @@ class PredictVectorModel(VectorSemanticModel):
     def _retrain(self):
         raise NotImplementedError()
 
-    def nearest_neighbours(self, word: str, distance_type: DistanceType, n: int):
+    def nearest_neighbours(self, word: str, distance_type: DistanceType, n: int, only_consider_most_frequent: int = None):
 
         if not self.contains_word(word):
             raise WordNotFoundError(f"The word '{word}' was not found.")
 
+        if only_consider_most_frequent is not None and only_consider_most_frequent < 1:
+            raise ValueError("only_consider_most_frequent must be at least 1")
+
+        # TODO: This param only works if the vocab is in frequency-sorted order.
+        # TODO: Verify that this is true and then remove this warning!
+        if only_consider_most_frequent is not None:
+            logger.warning("only_consider_most_frequent feature is completely untested and may not work at all!")
+
         if distance_type is DistanceType.cosine:
             # gensim implements cosine anyway, so this is an easy shortcut
-            return self._model.wv.most_similar(positive=word, topn=n)
+            return self._model.wv.most_similar(positive=word, topn=n, restrict_vocab=only_consider_most_frequent)
         else:
             # Other distances aren't implemented natively
             target_word = word

@@ -469,9 +469,13 @@ class VectorSemanticModel(DistributionalSemanticModel, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def nearest_neighbours(self, word: str, distance_type: DistanceType, n: int):
+    def nearest_neighbours(self, word: str, distance_type: DistanceType, n: int, only_consider_most_frequent: int = None):
         """
         Finds the nearest neighbours to a word.
+        :param word:
+        :param distance_type:
+        :param n:
+        :param only_consider_most_frequent: Set to None to consider all, otherwise only consider n most frequent words
         """
         raise NotImplementedError()
 
