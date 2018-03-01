@@ -21,8 +21,6 @@ import nltk
 
 _treebank_word_tokenizer = nltk.tokenize.TreebankWordTokenizer()
 
-nltk.tokenize.word_tokenize()
-
 # -----------------------------------
 # Copied from word_tokenize
 # -----------------------------------
