@@ -54,6 +54,23 @@ class FreqDist(nltk.probability.FreqDist):
         with open(filename, mode="rb") as file:
             return pickle.load(file)
 
+    def rank(self, token):
+        """
+        The rank of a token in an ordered list of all sampled tokens, ordered most- to least-frequent.
+
+        NOTE: The rank of the most frequent token is 0, so that the rank can be used as an index in a list of ordered
+              terms.
+
+        A rank of -1 indicates that the token is not found.
+        """
+        freq = self[token]
+        if freq == 0:
+            # If the token is not found, return -1
+            return -1
+        else:
+            rank = self.most_common().index((token, freq))
+            return rank
+
     @classmethod
     def from_batched_corpus(cls, batched_corpus: BatchedCorpus) -> 'FreqDist':
         # Initially create an empty FreqDist
