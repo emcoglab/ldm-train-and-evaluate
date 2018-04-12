@@ -38,7 +38,7 @@ def main():
     spp_data = SppData()
 
     for corpus in Preferences.source_corpus_metas:
-        info_dir = path.dirname("/Users/caiwingfield/Desktop/dists/d")
+        figures_dir = path.join(Preferences.figures_dir, "(un)related distances")
 
         freq_dist = FreqDist.load(corpus.freq_dist_path)
         token_index = TokenIndexDictionary.from_freqdist(freq_dist)
@@ -72,7 +72,7 @@ def main():
                     distribution_filename = f"(un)rel distance distributions {model.name} {distance_type.name}.png"
 
                     logger.info(f"Saving figure to {distribution_filename}...")
-                    pyplot.savefig(path.join(info_dir, distribution_filename))
+                    pyplot.savefig(path.join(figures_dir, distribution_filename))
                     pyplot.close(fig)
 
 
