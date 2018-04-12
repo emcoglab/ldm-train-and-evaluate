@@ -228,7 +228,6 @@ def main():
         )
 
 
-
 def b_corr_cos_distributions(regression_df: DataFrame):
 
     figures_dir = os.path.join(figures_base_dir, "bf histograms")
