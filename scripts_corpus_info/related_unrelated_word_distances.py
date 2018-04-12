@@ -38,7 +38,7 @@ def main():
     spp_data = SppData()
 
     for corpus in Preferences.source_corpus_metas:
-        figures_dir = path.join(Preferences.figures_dir, "(un)related distances")
+        figures_dir = path.join(Preferences.figures_dir, "priming", "(un)related distances")
 
         freq_dist = FreqDist.load(corpus.freq_dist_path)
         token_index = TokenIndexDictionary.from_freqdist(freq_dist)
