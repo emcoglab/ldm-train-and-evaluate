@@ -155,7 +155,7 @@ def calgary_heatmaps(calgary_test_names, concreteness_results):
         test_kind="Concreteness",
         test_column_name="Dependent variable",
         test_names=calgary_test_names,
-        bf_statistic_name="log10 B10 approx",
+        bf_statistic_name="Log10 B10 approx",
         using_log10_bf=True,
         parameter_values=Preferences.window_radii,
         model_name_func=model_name_without_radius,
@@ -167,7 +167,7 @@ def calgary_heatmaps(calgary_test_names, concreteness_results):
         test_kind="Concreteness",
         test_column_name="Dependent variable",
         test_names=calgary_test_names,
-        bf_statistic_name="log10 B10 approx",
+        bf_statistic_name="Log10 B10 approx",
         using_log10_bf=True,
         parameter_values=Preferences.predict_embedding_sizes,
         model_name_func=model_name_without_embedding_size,
@@ -179,7 +179,7 @@ def calgary_heatmaps(calgary_test_names, concreteness_results):
         test_kind="Concreteness",
         test_column_name="Dependent variable",
         test_names=calgary_test_names,
-        bf_statistic_name="log10 B10 approx",
+        bf_statistic_name="Log10 B10 approx",
         using_log10_bf=True,
         parameter_values=[d.name for d in DistanceType],
         model_name_func=model_name_without_distance,
@@ -591,7 +591,7 @@ def save_norms_results_csv(association_results: DataFrame):
 
 
 def save_priming_results_csv(priming_results: DataFrame):
-    columns = ["Dependent variable", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Model R-squared", "R-squared increase", "B10 approx", "log10 B10 approx"]
+    columns = ["Dependent variable", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Model R-squared", "R-squared increase", "B10 approx", "Log10 B10 approx"]
     export_results_csv(
         (
             priming_results[priming_results["Dependent variable"].str.contains("Z")
@@ -602,7 +602,7 @@ def save_priming_results_csv(priming_results: DataFrame):
 
 
 def save_concreteness_results_csv(concreteness_results: DataFrame):
-    columns = ["Dependent variable", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Model R-squared", "R-squared increase", "B10 approx", "log10 B10 approx"]
+    columns = ["Dependent variable", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Model R-squared", "R-squared increase", "B10 approx", "Log10 B10 approx"]
     export_results_csv(
         (
             concreteness_results[(concreteness_results["Dependent variable"] == "zRTclean_mean_dual_distance")

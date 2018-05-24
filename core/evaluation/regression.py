@@ -644,7 +644,7 @@ class RegressionResult(object):
             'Baseline BIC',
             'Model BIC',
             'B10 approx',
-            'log10 B10 approx',
+            'Log10 B10 approx',
             't',
             'p',
             'beta',
