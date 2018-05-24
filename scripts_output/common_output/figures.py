@@ -25,6 +25,7 @@ from matplotlib import pyplot
 from pandas import DataFrame, isnull
 import numpy
 
+from scripts_output.common_output.colours import FigureColours
 from .constants import BF_THRESHOLD
 from .dataframe import model_name_without_distance, model_name_without_corpus_or_distance_or_radius, \
     predict_models_only
@@ -267,7 +268,26 @@ def model_performance_bar_graphs(results: DataFrame,
             "CBOW 200",
             "CBOW 300",
             "CBOW 500",
-        ]
+        ],
+        palette=seaborn.color_palette([
+            FigureColours.FlatBlue,
+            FigureColours.FlatBlue,
+            FigureColours.FlatBlue,
+            FigureColours.FlatOrange,
+            FigureColours.FlatOrange,
+            FigureColours.FlatOrange,
+            FigureColours.FlatOrange,
+            FigureColours.FlatGreen,
+            FigureColours.FlatGreen,
+            FigureColours.FlatGreen,
+            FigureColours.FlatGreen,
+            FigureColours.FlatGreen,
+            FigureColours.FlatGreen,
+            FigureColours.FlatGreen,
+            FigureColours.FlatGreen,
+            FigureColours.FlatGreen,
+            FigureColours.FlatGreen,
+        ])
     )
 
     if extra_h_line_at is not None:
