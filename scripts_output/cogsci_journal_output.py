@@ -82,7 +82,10 @@ def main():
                            test_statistic_name="Score",
                            test_name=test_name,
                            extra_h_line_at=0.25,
-                           y_lim=(0, 1))
+                           y_lim=(0, 1),
+                           baseline_colourswap_col="B10",
+                           baseline_colourswap_threshold=10**0.5
+                           )
     synonym_heatmaps(synonym_results, synonym_test_names)
     synonym_bar_graphs(synonym_results, synonym_test_names,
                        figures_base_dir=OUTPUT_BASE_DIR)
@@ -108,7 +111,9 @@ def main():
             results=association_results[association_results["Test name"] == test_name],
             test_statistic_name="Correlation",
             test_name=test_name,
-            y_lim=y_lim
+            y_lim=y_lim,
+            baseline_colourswap_col="Log10 B10 approx",
+            baseline_colourswap_threshold=0.5
         )
     association_heatmaps("Similarity", similarity_test_names, association_results)
     association_heatmaps("Relatedness", relatedness_test_names, association_results)
@@ -133,7 +138,9 @@ def main():
             results=priming_results[priming_results["Dependent variable"] == test_name],
             test_statistic_name="R-squared increase",
             test_name=test_name,
-            y_lim=y_lim
+            y_lim=y_lim,
+            baseline_colourswap_col="Log10 B10 approx",
+            baseline_colourswap_threshold=0.5
         )
     priming_heatmaps("LDT", priming_ldt_dvs, priming_results)
     priming_heatmaps("NT", priming_nt_dvs, priming_results)
@@ -153,7 +160,9 @@ def main():
         single_violin_plot(
             results=concreteness_results[concreteness_results["Dependent variable"] == test_name],
             test_statistic_name="R-squared increase",
-            test_name=test_name
+            test_name=test_name,
+            baseline_colourswap_col="Log10 B10 approx",
+            baseline_colourswap_threshold=0.5
         )
     calgary_heatmaps(calgary_test_names, concreteness_results)
     calgary_bar_graphs(concreteness_results, figures_base_dir=OUTPUT_BASE_DIR)
@@ -580,7 +589,27 @@ def single_violin_plot(results: DataFrame,
                        test_statistic_name: str,
                        test_name: str,
                        extra_h_line_at: float = None,
-                       y_lim=None):
+                       y_lim=None,
+                       baseline_colourswap_col=None,
+                       baseline_colourswap_threshold=None
+                       ):
+    """
+    :param results:
+    :param test_statistic_name:
+    :param test_name:
+    :param extra_h_line_at:
+    :param y_lim:
+    :param baseline_colourswap_col: The column to use for colorswap thresholding. Use None to skip this check.
+    :param baseline_colourswap_threshold: The cutoff value
+    :return:
+    """
+
+    # These two params go together
+    if baseline_colourswap_threshold is not None:
+        assert baseline_colourswap_col is not None
+    if baseline_colourswap_col is not None:
+        assert baseline_colourswap_threshold is not None
+
     seaborn.set_style("whitegrid")
 
     local_results: DataFrame = results.copy()
@@ -603,6 +632,7 @@ def single_violin_plot(results: DataFrame,
 
     # pyplot.setp(ax.xaxis.get_majorticklabels(), rotation=-90)
 
+    # Plot violins
     seaborn.violinplot(
         data=local_results,
         x="Model type", y=test_statistic_name,
@@ -625,25 +655,72 @@ def single_violin_plot(results: DataFrame,
         ]
     )
 
-    seaborn.swarmplot(
-        data=local_results,
-        x="Model type", y=test_statistic_name,
-        marker="o", color="0", size=2,
-        order=[
-            # ngram
-            DistributionalSemanticModel.ModelType.log_ngram.name,
-            DistributionalSemanticModel.ModelType.probability_ratio_ngram.name,
-            DistributionalSemanticModel.ModelType.ppmi_ngram.name,
-            # count
-            DistributionalSemanticModel.ModelType.log_cooccurrence.name,
-            DistributionalSemanticModel.ModelType.conditional_probability.name,
-            DistributionalSemanticModel.ModelType.probability_ratio.name,
-            DistributionalSemanticModel.ModelType.ppmi.name,
-            # predict
-            DistributionalSemanticModel.ModelType.skip_gram.name,
-            DistributionalSemanticModel.ModelType.cbow.name,
-        ]
-    )
+    if baseline_colourswap_col is not None:
+
+        # Plot black dots (distinguishable from baseline)
+        seaborn.swarmplot(
+            data=local_results[local_results[baseline_colourswap_col] > baseline_colourswap_threshold],
+            x="Model type", y=test_statistic_name,
+            marker="o", color="0", size=2,
+            order=[
+                # ngram
+                DistributionalSemanticModel.ModelType.log_ngram.name,
+                DistributionalSemanticModel.ModelType.probability_ratio_ngram.name,
+                DistributionalSemanticModel.ModelType.ppmi_ngram.name,
+                # count
+                DistributionalSemanticModel.ModelType.log_cooccurrence.name,
+                DistributionalSemanticModel.ModelType.conditional_probability.name,
+                DistributionalSemanticModel.ModelType.probability_ratio.name,
+                DistributionalSemanticModel.ModelType.ppmi.name,
+                # predict
+                DistributionalSemanticModel.ModelType.skip_gram.name,
+                DistributionalSemanticModel.ModelType.cbow.name,
+            ]
+        )
+
+        # Plot white dots (indistinguishable from baseline)
+        seaborn.swarmplot(
+            data=local_results[local_results[baseline_colourswap_col] <= baseline_colourswap_threshold],
+            x="Model type", y=test_statistic_name,
+            marker="o", color="0.85", size=2,
+            order=[
+                # ngram
+                DistributionalSemanticModel.ModelType.log_ngram.name,
+                DistributionalSemanticModel.ModelType.probability_ratio_ngram.name,
+                DistributionalSemanticModel.ModelType.ppmi_ngram.name,
+                # count
+                DistributionalSemanticModel.ModelType.log_cooccurrence.name,
+                DistributionalSemanticModel.ModelType.conditional_probability.name,
+                DistributionalSemanticModel.ModelType.probability_ratio.name,
+                DistributionalSemanticModel.ModelType.ppmi.name,
+                # predict
+                DistributionalSemanticModel.ModelType.skip_gram.name,
+                DistributionalSemanticModel.ModelType.cbow.name,
+            ]
+        )
+
+    else:
+
+        # Plot black dots (distinguishable from baseline)
+        seaborn.swarmplot(
+            data=local_results,
+            x="Model type", y=test_statistic_name,
+            marker="o", color="0", size=2,
+            order=[
+                # ngram
+                DistributionalSemanticModel.ModelType.log_ngram.name,
+                DistributionalSemanticModel.ModelType.probability_ratio_ngram.name,
+                DistributionalSemanticModel.ModelType.ppmi_ngram.name,
+                # count
+                DistributionalSemanticModel.ModelType.log_cooccurrence.name,
+                DistributionalSemanticModel.ModelType.conditional_probability.name,
+                DistributionalSemanticModel.ModelType.probability_ratio.name,
+                DistributionalSemanticModel.ModelType.ppmi.name,
+                # predict
+                DistributionalSemanticModel.ModelType.skip_gram.name,
+                DistributionalSemanticModel.ModelType.cbow.name,
+            ]
+        )
 
     # Tweak the visual presentation
     ax.yaxis.grid(True)
