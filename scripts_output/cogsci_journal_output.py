@@ -29,6 +29,7 @@ from matplotlib import pyplot
 from .common_output.constants import BF_THRESHOLD
 from .common_output.dataframe import add_model_category_column, model_name_without_radius, \
     model_name_without_embedding_size, model_name_without_distance
+from .common_output.figures import model_performance_bar_graphs
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import CorrelationType, DistanceType
 from ..core.model.base import DistributionalSemanticModel
@@ -81,9 +82,10 @@ def main():
                            test_statistic_name="Score",
                            test_name=test_name,
                            extra_h_line_at=0.25,
-                           y_lim=(0, 1)
-                           )
+                           y_lim=(0, 1))
     synonym_heatmaps(synonym_results, synonym_test_names)
+    synonym_bar_graphs(synonym_results, synonym_test_names,
+                       figures_base_dir=OUTPUT_BASE_DIR)
 
     # Association tests
 
@@ -109,6 +111,7 @@ def main():
     association_heatmaps("Similarity", similarity_test_names, association_results)
     association_heatmaps("Relatedness", relatedness_test_names, association_results)
     association_heatmaps("Norms", norm_test_names, association_results)
+    association_bar_graphs(association_results, figures_base_dir=OUTPUT_BASE_DIR)
 
     # Priming tests
 
@@ -130,6 +133,7 @@ def main():
         )
     priming_heatmaps("LDT", priming_ldt_dvs, priming_results)
     priming_heatmaps("NT", priming_nt_dvs, priming_results)
+    priming_bar_graphs(priming_results, figures_base_dir=OUTPUT_BASE_DIR)
 
     # Calgary tests
 
@@ -146,6 +150,7 @@ def main():
             test_name=test_name
         )
     calgary_heatmaps(calgary_test_names, concreteness_results)
+    calgary_bar_graphs(concreteness_results, figures_base_dir=OUTPUT_BASE_DIR)
 
 
 def calgary_heatmaps(calgary_test_names, concreteness_results):
@@ -294,6 +299,132 @@ def synonym_heatmaps(synonym_results, synonym_test_names):
     )
 
 
+def calgary_bar_graphs(concreteness_results, figures_base_dir: str):
+    model_performance_bar_graphs(
+        results=concreteness_results,
+        window_radius=10,
+        key_column_name="Dependent variable",
+        key_column_values=[
+            "zRTclean_mean_dual_distance",
+            "Concrete_response_proportion_dual_distance",
+        ],
+        test_statistic_name="B10 approx",
+        name_prefix="Concreteness",
+        figures_base_dir=figures_base_dir,
+        distance_type=DistanceType.correlation,
+        bayes_factor_graph=True
+    )
+    model_performance_bar_graphs(
+        results=concreteness_results,
+        window_radius=10,
+        key_column_name="Dependent variable",
+        key_column_values=[
+            "zRTclean_mean_dual_distance",
+            "Concrete_response_proportion_dual_distance",
+        ],
+        test_statistic_name="R-squared increase",
+        name_prefix="Concreteness",
+        figures_base_dir=figures_base_dir,
+        distance_type=DistanceType.correlation,
+    )
+
+
+def priming_bar_graphs(priming_results, figures_base_dir: str):
+    ldt_dvs = [
+        "LDT_200ms_Z",
+        "LDT_200ms_Z_Priming"
+    ]
+    nt_dvs = [
+        "NT_200ms_Z",
+        "NT_200ms_Z_Priming"
+    ]
+    model_performance_bar_graphs(
+        results=priming_results[priming_results["Dependent variable"].isin(ldt_dvs)],
+        window_radius=10,
+        key_column_name="Dependent variable",
+        key_column_values=ldt_dvs,
+        test_statistic_name="B10 approx",
+        name_prefix="Priming (LDT 200ms)",
+        figures_base_dir=figures_base_dir,
+        distance_type=DistanceType.correlation,
+        bayes_factor_graph=True
+    )
+    model_performance_bar_graphs(
+        results=priming_results[priming_results["Dependent variable"].isin(nt_dvs)],
+        window_radius=10,
+        key_column_name="Dependent variable",
+        key_column_values=nt_dvs,
+        test_statistic_name="B10 approx",
+        name_prefix="Priming (NT 200ms)",
+        figures_base_dir=figures_base_dir,
+        distance_type=DistanceType.correlation,
+        bayes_factor_graph=True
+    )
+
+
+def association_bar_graphs(association_results, figures_base_dir: str):
+    # Similarity
+    model_performance_bar_graphs(
+        results=association_results,
+        window_radius=1,
+        key_column_name="Test name",
+        key_column_values=[
+            SimlexSimilarity().name,
+            WordsimSimilarity().name
+        ],
+        test_statistic_name="Correlation",
+        name_prefix="Similarity",
+        figures_base_dir=figures_base_dir,
+        distance_type=DistanceType.correlation,
+        ylim=(0, 1)
+    )
+    # Relatedness
+    model_performance_bar_graphs(
+        results=association_results,
+        window_radius=10,
+        key_column_name="Test name",
+        key_column_values=[
+            WordsimRelatedness().name,
+            MenSimilarity().name
+        ],
+        test_statistic_name="Correlation",
+        name_prefix="Relatedness",
+        figures_base_dir=figures_base_dir,
+        distance_type=DistanceType.correlation,
+        ylim=(0, 1)
+    )
+    # Norms
+    model_performance_bar_graphs(
+        results=association_results,
+        window_radius=10,
+        key_column_name="Test name",
+        key_column_values=[
+            ThematicRelatedness().name,
+        ],
+        test_statistic_name="B10 approx",
+        name_prefix="Norms",
+        figures_base_dir=figures_base_dir,
+        distance_type=DistanceType.cosine,
+        bayes_factor_graph=True
+    )
+
+
+def synonym_bar_graphs(synonym_results, synonym_test_names, figures_base_dir: str):
+    model_performance_bar_graphs(
+        results=synonym_results,
+        window_radius=1,
+        key_column_name="Test name",
+        key_column_values=synonym_test_names,
+        test_statistic_name="Score",
+        name_prefix="Synonym",
+        figures_base_dir=figures_base_dir,
+        distance_type=DistanceType.cosine,
+        extra_h_line_at=0.25,
+        ticks_as_percentages=True,
+        ylim=(0, 1)
+    )
+
+
 def single_violin_plot(results: DataFrame,
                        test_statistic_name: str,
                        test_name: str,
@@ -378,7 +509,7 @@ def single_violin_plot(results: DataFrame,
     fig.tight_layout()
 
     figure_name = f"violin plot {test_name} ({test_statistic_name}).png"
-    pyplot.savefig(path.join(OUTPUT_BASE_DIR, figure_name), dpi=300)
+    pyplot.savefig(path.join(OUTPUT_BASE_DIR, "violin plots", figure_name), dpi=300)
 
     pyplot.close(fig)
 
@@ -506,7 +637,7 @@ def single_param_heatmap(test_results: DataFrame,
     plot.collections[0].colorbar.set_ticklabels(
         ['{:3.0f}%'.format(float(label.get_text()) * 100) for label in old_labels])
 
-    plot.figure.savefig(path.join(OUTPUT_BASE_DIR, f"heatmap {parameter_name.lower()} {test_kind}.png"), dpi=300)
+    plot.figure.savefig(path.join(OUTPUT_BASE_DIR, "parameter heatmaps", f"heatmap {parameter_name.lower()} {test_kind}.png"), dpi=300)
     pyplot.close(plot.figure)
 
 
@@ -591,7 +722,7 @@ def save_norms_results_csv(association_results: DataFrame):
 
 
 def save_priming_results_csv(priming_results: DataFrame):
-    columns = ["Dependent variable", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Model R-squared", "R-squared increase", "B10 approx", "log10 B10 approx"]
+    columns = ["Dependent variable", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Baseline R-squared", "Model R-squared", "R-squared increase", "B10 approx", "log10 B10 approx"]
     export_results_csv(
         (
             priming_results[priming_results["Dependent variable"].str.contains("Z")
@@ -602,7 +733,7 @@ def save_priming_results_csv(priming_results: DataFrame):
 
 
 def save_concreteness_results_csv(concreteness_results: DataFrame):
-    columns = ["Dependent variable", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Model R-squared", "R-squared increase", "B10 approx", "log10 B10 approx"]
+    columns = ["Dependent variable", "Corpus", "Model type", "Model category", "Embedding size", "Window radius", "Distance type", "Baseline R-squared", "Model R-squared", "R-squared increase", "B10 approx", "log10 B10 approx"]
     export_results_csv(
         (
             concreteness_results[(concreteness_results["Dependent variable"] == "zRTclean_mean_dual_distance")
@@ -613,7 +744,7 @@ def save_concreteness_results_csv(concreteness_results: DataFrame):
 
 
 def export_results_csv(results: DataFrame, file_name: str):
-    results.to_csv(path.join(OUTPUT_BASE_DIR, file_name), header=True, index=False)
+    results.to_csv(path.join(OUTPUT_BASE_DIR, "results tables", file_name), header=True, index=False)
 
 
 if __name__ == '__main__':
