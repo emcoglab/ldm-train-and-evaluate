@@ -74,7 +74,7 @@ def main():
     save_priming_results_csv(priming_results)
     save_concreteness_results_csv(concreteness_results)
 
-    # Synonym tests
+    # region Synonym tests
 
     synonym_test_names = [ToeflTest().name, EslTest().name, LbmMcqTest().name]
     for test_name in synonym_test_names:
@@ -87,7 +87,9 @@ def main():
     synonym_bar_graphs(synonym_results, synonym_test_names,
                        figures_base_dir=OUTPUT_BASE_DIR)
 
-    # Association tests
+    # endregion
+
+    # region Association tests
 
     similarity_test_names = [SimlexSimilarity().name, WordsimSimilarity().name]
     relatedness_test_names = [WordsimRelatedness().name, MenSimilarity().name]
@@ -113,7 +115,9 @@ def main():
     association_heatmaps("Norms", norm_test_names, association_results)
     association_bar_graphs(association_results, figures_base_dir=OUTPUT_BASE_DIR)
 
-    # Priming tests
+    # endregion
+
+    # region Priming tests
 
     priming_ldt_dvs = ["LDT_200ms_Z", "LDT_200ms_Z_Priming"]
     priming_nt_dvs = ["NT_200ms_Z", "NT_200ms_Z_Priming"]
@@ -135,7 +139,9 @@ def main():
     priming_heatmaps("NT", priming_nt_dvs, priming_results)
     priming_bar_graphs(priming_results, figures_base_dir=OUTPUT_BASE_DIR)
 
-    # Calgary tests
+    # endregion
+
+    # region Calgary tests
 
     calgary_test_names = [
         # "zRTclean_mean_diff_distance",
@@ -152,6 +158,10 @@ def main():
     calgary_heatmaps(calgary_test_names, concreteness_results)
     calgary_bar_graphs(concreteness_results, figures_base_dir=OUTPUT_BASE_DIR)
 
+    # endregion
+
+
+# region heatmaps
 
 def calgary_heatmaps(calgary_test_names, concreteness_results):
     single_param_heatmap(
@@ -299,6 +309,142 @@ def synonym_heatmaps(synonym_results, synonym_test_names):
     )
 
 
+def single_param_heatmap(test_results: DataFrame,
+                         parameter_name: str,
+                         parameter_values: List,
+                         test_kind: str,
+                         test_column_name: str,
+                         test_names: List[str],
+                         bf_statistic_name: str,
+                         using_log10_bf: bool,
+                         model_name_func,
+                         ):
+
+    win_counts_all_tests = []
+    win_fraction_all_tests = []
+
+    # Consider each test separately
+    for test_name in test_names:
+
+        local_test_results: DataFrame = test_results[test_results[test_column_name] == test_name].copy()
+
+        # Column containing the name of the models, not including information relating to the parameter being compared
+        # (as this will be listed on another axis in any table or figure).
+        local_test_results["Model name"] = local_test_results.apply(model_name_func, axis=1)
+
+        number_of_wins_for_param_value = defaultdict(int)
+
+        # The maximum number of total wins is the number of total models
+        n_models_overall = local_test_results.shape[0] / len(parameter_values)
+        assert n_models_overall == int(n_models_overall)
+        n_models_overall = int(n_models_overall)
+        assert n_models_overall == local_test_results["Model name"].unique().shape[0]
+
+        # Loop through models
+        for model_name in local_test_results["Model name"].unique():
+            # Collection of models differing only by the value of the parameter
+            model_variations: DataFrame = local_test_results[
+                local_test_results["Model name"] == model_name].copy()
+
+            # Sort by BF(model, baseline)
+            model_variations = model_variations.sort_values(bf_statistic_name, ascending=False).reset_index(
+                drop=True)
+
+            # Ignore any models which are indistinguishable from the baseline model
+            n_remaining_models = model_variations[model_variations[bf_statistic_name] > BF_THRESHOLD].shape[0]
+
+            # Some cases to consider
+
+            # If no param values are distinguishable from baseline, there's nothing to remember
+            if n_remaining_models == 0:
+                continue
+
+            # If there's just one best model: easy
+            elif n_remaining_models == 1:
+                # Record its details
+                winning_parameter_value = model_variations[parameter_name][0]
+                number_of_wins_for_param_value[winning_parameter_value] += 1
+
+            # If there are multiple best models, we look at those which are indistinguishable from the best model
+            elif n_remaining_models > 1:
+
+                # BF for best model
+                best_bf_statistic = model_variations[bf_statistic_name][0]
+                best_param_value = model_variations[parameter_name][0]
+
+                # If the bayes factor is sufficiently large, it may snap to numpy.inf.
+                # If it's not, we can sensibly make a comparison.
+                if not numpy.isinf(best_bf_statistic):
+                    if not using_log10_bf:
+                        joint_best_models = model_variations[
+                            # The actual best model
+                            (model_variations[parameter_name] == best_param_value)
+                            |
+                            # Indistinguishable from best
+                            (best_bf_statistic / model_variations[bf_statistic_name] < BF_THRESHOLD)
+                            ]
+                    else:
+                        joint_best_models = model_variations[
+                            # The actual best model
+                            (model_variations[parameter_name] == best_param_value)
+                            |
+                            # Indistinguishable from best
+                            # Using logs so subtract instead of divide
+                            (best_bf_statistic - model_variations[bf_statistic_name] < numpy.log10(BF_THRESHOLD))
+                            ]
+                else:
+                    logger.warning("Encountered an apparently infinite Bayes factor")
+                    # We can only pick the ones which literally share a BF value with the best model
+                    joint_best_models = model_variations[
+                        model_variations[parameter_name] == best_param_value
+                        ]
+
+                # Record details of joint-best models
+                for parameter_value in joint_best_models[parameter_name]:
+                    number_of_wins_for_param_value[parameter_value] += 1
+
+        # Add to all-DV win-counts
+        for parameter_value in parameter_values:
+            win_counts_all_tests.append(
+                [test_name, parameter_value, number_of_wins_for_param_value[parameter_value]])
+            win_fraction_all_tests.append(
+                [test_name, parameter_value, number_of_wins_for_param_value[parameter_value] / n_models_overall])
+
+    # Heatmap for all DVs
+
+    all_win_fractions = DataFrame(win_fraction_all_tests,
+                                  columns=[test_column_name, parameter_name, "Fraction of times (joint-)best"])
+    heatmap_df = all_win_fractions.pivot(index=test_column_name, columns=parameter_name,
+                                         values="Fraction of times (joint-)best")
+    heatmap_df = heatmap_df.reindex(index=test_names)
+
+    plot = seaborn.heatmap(heatmap_df,
+                           square=True,
+                           linewidths=0.5,
+                           cmap=seaborn.light_palette("green", as_cmap=True),
+                           vmin=0, vmax=1)
+    pyplot.xticks(rotation=90)
+    pyplot.yticks(rotation=0)
+
+    # plot.figure.set_size_inches(5, 2)
+    pyplot.tight_layout()
+
+    # Colorbar has % labels
+    old_labels = plot.collections[0].colorbar.ax.get_yticklabels()
+    plot.collections[0].colorbar.set_ticks([float(label.get_text()) for label in old_labels])
+    plot.collections[0].colorbar.set_ticklabels(
+        ['{:3.0f}%'.format(float(label.get_text()) * 100) for label in old_labels])
+
+    plot.figure.savefig(
+        path.join(OUTPUT_BASE_DIR, "parameter heatmaps", f"heatmap {parameter_name.lower()} {test_kind}.png"),
+        dpi=300)
+    pyplot.close(plot.figure)
+
+# endregion
+
+# region bar graphs
+
+
 def calgary_bar_graphs(concreteness_results, figures_base_dir: str):
     model_performance_bar_graphs(
         results=concreteness_results,
@@ -326,6 +472,7 @@ def calgary_bar_graphs(concreteness_results, figures_base_dir: str):
         name_prefix="Concreteness",
         figures_base_dir=figures_base_dir,
         distance_type=DistanceType.correlation,
+        # ticks_as_percentages=True,
     )
 
 
@@ -424,6 +571,10 @@ def synonym_bar_graphs(synonym_results, synonym_test_names, figures_base_dir: st
         ylim=(0, 1)
     )
 
+# endregion
+
+# region violin plots
+
 
 def single_violin_plot(results: DataFrame,
                        test_statistic_name: str,
@@ -513,132 +664,9 @@ def single_violin_plot(results: DataFrame,
 
     pyplot.close(fig)
 
+# endregion
 
-def single_param_heatmap(test_results: DataFrame,
-                         parameter_name: str,
-                         parameter_values: List,
-                         test_kind: str,
-                         test_column_name: str,
-                         test_names: List[str],
-                         bf_statistic_name: str,
-                         using_log10_bf: bool,
-                         model_name_func,
-                         ):
-
-    win_counts_all_tests = []
-    win_fraction_all_tests = []
-
-    # Consider each test separately
-    for test_name in test_names:
-
-        local_test_results: DataFrame = test_results[test_results[test_column_name] == test_name].copy()
-
-        # Column containing the name of the models, not including information relating to the parameter being compared
-        # (as this will be listed on another axis in any table or figure).
-        local_test_results["Model name"] = local_test_results.apply(model_name_func, axis=1)
-
-        number_of_wins_for_param_value = defaultdict(int)
-
-        # The maximum number of total wins is the number of total models
-        n_models_overall = local_test_results.shape[0] / len(parameter_values)
-        assert n_models_overall == int(n_models_overall)
-        n_models_overall = int(n_models_overall)
-        assert n_models_overall == local_test_results["Model name"].unique().shape[0]
-
-        # Loop through models
-        for model_name in local_test_results["Model name"].unique():
-            # Collection of models differing only by the value of the parameter
-            model_variations: DataFrame = local_test_results[
-                local_test_results["Model name"] == model_name].copy()
-
-            # Sort by BF(model, baseline)
-            model_variations = model_variations.sort_values(bf_statistic_name, ascending=False).reset_index(drop=True)
-
-            # Ignore any models which are indistinguishable from the baseline model
-            n_remaining_models = model_variations[model_variations[bf_statistic_name] > BF_THRESHOLD].shape[0]
-
-            # Some cases to consider
-
-            # If no param values are distinguishable from baseline, there's nothing to remember
-            if n_remaining_models == 0:
-                continue
-
-            # If there's just one best model: easy
-            elif n_remaining_models == 1:
-                # Record its details
-                winning_parameter_value = model_variations[parameter_name][0]
-                number_of_wins_for_param_value[winning_parameter_value] += 1
-
-            # If there are multiple best models, we look at those which are indistinguishable from the best model
-            elif n_remaining_models > 1:
-
-                # BF for best model
-                best_bf_statistic = model_variations[bf_statistic_name][0]
-                best_param_value = model_variations[parameter_name][0]
-
-                # If the bayes factor is sufficiently large, it may snap to numpy.inf.
-                # If it's not, we can sensibly make a comparison.
-                if not numpy.isinf(best_bf_statistic):
-                    if not using_log10_bf:
-                        joint_best_models = model_variations[
-                            # The actual best model
-                            (model_variations[parameter_name] == best_param_value)
-                            |
-                            # Indistinguishable from best
-                            (best_bf_statistic / model_variations[bf_statistic_name] < BF_THRESHOLD)
-                            ]
-                    else:
-                        joint_best_models = model_variations[
-                            # The actual best model
-                            (model_variations[parameter_name] == best_param_value)
-                            |
-                            # Indistinguishable from best
-                            # Using logs so subtract instead of divide
-                            (best_bf_statistic - model_variations[bf_statistic_name] < numpy.log10(BF_THRESHOLD))
-                        ]
-                else:
-                    logger.warning("Encountered an apparently infinite Bayes factor")
-                    # We can only pick the ones which literally share a BF value with the best model
-                    joint_best_models = model_variations[
-                        model_variations[parameter_name] == best_param_value
-                    ]
-
-                # Record details of joint-best models
-                for parameter_value in joint_best_models[parameter_name]:
-                    number_of_wins_for_param_value[parameter_value] += 1
-
-        # Add to all-DV win-counts
-        for parameter_value in parameter_values:
-            win_counts_all_tests.append(
-                [test_name, parameter_value, number_of_wins_for_param_value[parameter_value]])
-            win_fraction_all_tests.append(
-                [test_name, parameter_value, number_of_wins_for_param_value[parameter_value] / n_models_overall])
-
-    # Heatmap for all DVs
-
-    all_win_fractions = DataFrame(win_fraction_all_tests, columns=[test_column_name, parameter_name, "Fraction of times (joint-)best"])
-    heatmap_df = all_win_fractions.pivot(index=test_column_name, columns=parameter_name, values="Fraction of times (joint-)best")
-    heatmap_df = heatmap_df.reindex(index=test_names)
-
-    plot = seaborn.heatmap(heatmap_df,
-                           square=True,
-                           linewidths=0.5,
-                           cmap=seaborn.light_palette("green", as_cmap=True),
-                           vmin=0, vmax=1)
-    pyplot.xticks(rotation=90)
-    pyplot.yticks(rotation=0)
-
-    # plot.figure.set_size_inches(5, 2)
-    pyplot.tight_layout()
-
-    # Colorbar has % labels
-    old_labels = plot.collections[0].colorbar.ax.get_yticklabels()
-    plot.collections[0].colorbar.set_ticks([float(label.get_text()) for label in old_labels])
-    plot.collections[0].colorbar.set_ticklabels(
-        ['{:3.0f}%'.format(float(label.get_text()) * 100) for label in old_labels])
-
-    plot.figure.savefig(path.join(OUTPUT_BASE_DIR, "parameter heatmaps", f"heatmap {parameter_name.lower()} {test_kind}.png"), dpi=300)
-    pyplot.close(plot.figure)
+# region data i/o
 
 
 def load_priming_data() -> DataFrame:
@@ -746,6 +774,7 @@ def save_concreteness_results_csv(concreteness_results: DataFrame):
 def export_results_csv(results: DataFrame, file_name: str):
     results.to_csv(path.join(OUTPUT_BASE_DIR, "results tables", file_name), header=True, index=False)
 
+# endregion
 
 if __name__ == '__main__':
     logging.basicConfig(format=log_message, datefmt=date_format, level=logging.INFO)
