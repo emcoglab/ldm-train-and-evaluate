@@ -399,6 +399,9 @@ class ThematicRelatedness(WordAssociationTest):
     """
 
     def __init__(self, only_use_response=None):
+        """
+        :param only_use_response: If None, use order-weighted response frequency.
+        """
         super().__init__()
         assert only_use_response is None or only_use_response in [1, 2, 3]
         self._only_use_response = only_use_response
