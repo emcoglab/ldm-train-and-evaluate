@@ -16,8 +16,8 @@ caiwingfield.net
 """
 
 import logging
-import os
 import sys
+from os import path
 from typing import Set, List, Optional
 
 import pandas
@@ -40,6 +40,7 @@ def main():
     spp_data = SppData()
 
     save_wordlist(spp_data.vocabulary)
+    save_wordpairs(spp_data.word_pairs)
 
     add_all_model_predictors(spp_data)
 
@@ -54,7 +55,7 @@ def save_wordlist(vocab: Set[str]):
     """
     Saves the vocab to a file
     """
-    wordlist_path = os.path.join(Preferences.spp_results_dir, 'wordlist.txt')
+    wordlist_path = path.join(Preferences.spp_results_dir, 'wordlist.txt')
     separator = " "
 
     logger.info(f"Saving SPP word list to {wordlist_path}.")
@@ -64,6 +65,23 @@ def save_wordlist(vocab: Set[str]):
             wordlist_file.write(word + separator)
         # Terminate with a newline XD
         wordlist_file.write("\n")
+
+
+def save_wordpairs(word_pairs):
+    """
+    Saves the used word pairs to a file.
+    """
+    wordpair_path = path.join(Preferences.spp_results_dir, "wordpairs.txt")
+    # Separates each item in a pair
+    item_separator = " : "
+    # Separates each pair
+    pair_separator = "\n"
+
+    with open(wordpair_path, mode="w", encoding="utf-8") as wordpair_file:
+        for word_pair in word_pairs:
+            wordpair_file.write(item_separator.join(word_pair) + pair_separator)
+        # Terminate file with a newline
+        wordpair_file.write("\n")
 
 
 def add_all_model_predictors(spp_data: SppData):
@@ -126,7 +144,7 @@ def add_all_model_predictors(spp_data: SppData):
 
 def regression_wrapper(spp_data: SppData):
 
-    results_path = os.path.join(Preferences.spp_results_dir, "regression.csv")
+    results_path = path.join(Preferences.spp_results_dir, "regression.csv")
 
     # Get only the first associate prime–target pairs
     first_assoc_prime_data = spp_data.dataframe.query('PrimeType == "first_associate"')

@@ -138,6 +138,9 @@ class RegressionData(metaclass=ABCMeta):
         """
         Save and overwrite data.
         """
+        if not self._save_progress:
+            logger.warning("Tried to save progress with save_progress set to False. Not saving.")
+            return
         self._save_pickle()
         self._export_csv()
 
@@ -145,7 +148,7 @@ class RegressionData(metaclass=ABCMeta):
     @abstractmethod
     def vocabulary(self) -> Set[str]:
         """
-        The set of words used in the SPP data.
+        The set of words used.
         """
         raise NotImplementedError()
 
@@ -217,12 +220,13 @@ class SppData(RegressionData):
                          save_progress=save_progress,
                          force_reload=force_reload)
 
-    def export_csv_first_associate_only(self):
+    def export_csv_first_associate_only(self, path=None):
         """
         Export the current dataframe as a csv, but only rows for the first associate primes.
+        :param path: Save to specified path, else use default in Preferences.
         """
         assert self._all_data is not None
-        results_csv_path = os.path.join(self._results_dir, "model_predictors_first_associate_only.csv")
+        results_csv_path = path if (path is not None) else os.path.join(self._results_dir, "model_predictors_first_associate_only.csv")
         first_assoc_data = self._all_data.query('PrimeType == "first_associate"')
         with open(results_csv_path, mode="w", encoding="utf-8") as results_file:
             first_assoc_data.to_csv(results_file)
@@ -254,6 +258,13 @@ class SppData(RegressionData):
         vocab = vocab.union(set(self.dataframe["TargetWord"]))
 
         return vocab
+
+    @property
+    def word_pairs(self) -> List[List[str]]:
+        """
+        Word pairs used in the SPP data.
+        """
+        return self.dataframe.reset_index()[["PrimeWord", "TargetWord"]].values.tolist()
 
     @classmethod
     def predictor_name_for_model(cls,
