@@ -666,32 +666,18 @@ def single_violin_plot(results: DataFrame,
 
     if baseline_colourswap_col is not None:
 
-        # Plot black dots (distinguishable from baseline)
-        seaborn.swarmplot(
-            data=local_results[local_results[baseline_colourswap_col] > baseline_colourswap_threshold],
-            y="Model type", x=test_statistic_name,
-            marker="o", color="0", size=dot_size,
-            order=[
-                # ngram
-                DistributionalSemanticModel.ModelType.log_ngram.name,
-                DistributionalSemanticModel.ModelType.probability_ratio_ngram.name,
-                DistributionalSemanticModel.ModelType.ppmi_ngram.name,
-                # count
-                DistributionalSemanticModel.ModelType.log_cooccurrence.name,
-                DistributionalSemanticModel.ModelType.conditional_probability.name,
-                DistributionalSemanticModel.ModelType.probability_ratio.name,
-                DistributionalSemanticModel.ModelType.ppmi.name,
-                # predict
-                DistributionalSemanticModel.ModelType.skip_gram.name,
-                DistributionalSemanticModel.ModelType.cbow.name,
-            ]
-        )
+        local_results["Preferable"] = local_results[baseline_colourswap_col] > baseline_colourswap_threshold
 
-        # Plot white dots (indistinguishable from baseline)
+        # Plot black and white dots
         seaborn.swarmplot(
-            data=local_results[local_results[baseline_colourswap_col] <= baseline_colourswap_threshold],
+            data=local_results,
+            hue="Preferable",
+            palette={
+                True: "0",
+                False: "0.85"
+            },
             y="Model type", x=test_statistic_name,
-            marker="o", color="0.85", size=dot_size,
+            marker="o", size=dot_size,
             order=[
                 # ngram
                 DistributionalSemanticModel.ModelType.log_ngram.name,
