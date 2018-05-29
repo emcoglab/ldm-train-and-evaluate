@@ -82,8 +82,8 @@ def main():
         single_violin_plot(results=synonym_results[synonym_results["Test name"] == test_name],
                            test_statistic_name="Score",
                            test_name=test_name,
-                           extra_h_line_at=0.25,
-                           y_lim=(0, 1),
+                           extra_v_line_at=0.25,
+                           x_lim=(0, 1),
                            baseline_colourswap_col="B10",
                            baseline_colourswap_threshold=10**0.5
                            )
@@ -112,7 +112,7 @@ def main():
             results=association_results[association_results["Test name"] == test_name],
             test_statistic_name="Correlation",
             test_name=test_name,
-            y_lim=y_lim,
+            x_lim=y_lim,
             baseline_colourswap_col="Log10 B10 approx",
             baseline_colourswap_threshold=0.5
         )
@@ -139,7 +139,7 @@ def main():
             results=priming_results[priming_results["Dependent variable"] == test_name],
             test_statistic_name="R-squared increase",
             test_name=test_name,
-            y_lim=y_lim,
+            x_lim=y_lim,
             baseline_colourswap_col="Log10 B10 approx",
             baseline_colourswap_threshold=0.5
         )
@@ -589,8 +589,8 @@ def synonym_bar_graphs(synonym_results, synonym_test_names, figures_base_dir: st
 def single_violin_plot(results: DataFrame,
                        test_statistic_name: str,
                        test_name: str,
-                       extra_h_line_at: float = None,
-                       y_lim=None,
+                       extra_v_line_at: float = None,
+                       x_lim=None,
                        baseline_colourswap_col=None,
                        baseline_colourswap_threshold=None
                        ):
@@ -598,12 +598,14 @@ def single_violin_plot(results: DataFrame,
     :param results:
     :param test_statistic_name:
     :param test_name:
-    :param extra_h_line_at:
-    :param y_lim:
+    :param extra_v_line_at:
+    :param x_lim:
     :param baseline_colourswap_col: The column to use for colorswap thresholding. Use None to skip this check.
     :param baseline_colourswap_threshold: The cutoff value
     :return:
     """
+
+    dot_size = 3
 
     # These two params go together
     if baseline_colourswap_threshold is not None:
@@ -623,20 +625,20 @@ def single_violin_plot(results: DataFrame,
     seaborn.set_context(context="paper", font_scale=1)
 
     # Initialize the figure
-    fig, ax = pyplot.subplots(figsize=(7, 6))
+    fig, ax = pyplot.subplots(figsize=(9, 6))
 
-    if y_lim is not None:
-        ax.set(ylim=y_lim)
+    if x_lim is not None:
+        ax.set(xlim=x_lim)
 
-    if extra_h_line_at is not None:
-        pyplot.axhline(y=extra_h_line_at, linestyle="solid", color="xkcd:bright red")
+    if extra_v_line_at is not None:
+        pyplot.axvline(x=extra_v_line_at, linestyle="solid", color="xkcd:bright red")
 
     # pyplot.setp(ax.xaxis.get_majorticklabels(), rotation=-90)
 
     # Plot violins
     seaborn.violinplot(
         data=local_results,
-        x="Model type", y=test_statistic_name,
+        y="Model type", x=test_statistic_name,
         hue="Model category", hue_order=["N-gram", "Count", "Predict"], dodge=False,
         cut=0, inner=None, linewidth=0,
         scale="width",
@@ -667,8 +669,8 @@ def single_violin_plot(results: DataFrame,
         # Plot black dots (distinguishable from baseline)
         seaborn.swarmplot(
             data=local_results[local_results[baseline_colourswap_col] > baseline_colourswap_threshold],
-            x="Model type", y=test_statistic_name,
-            marker="o", color="0", size=2,
+            y="Model type", x=test_statistic_name,
+            marker="o", color="0", size=dot_size,
             order=[
                 # ngram
                 DistributionalSemanticModel.ModelType.log_ngram.name,
@@ -688,8 +690,8 @@ def single_violin_plot(results: DataFrame,
         # Plot white dots (indistinguishable from baseline)
         seaborn.swarmplot(
             data=local_results[local_results[baseline_colourswap_col] <= baseline_colourswap_threshold],
-            x="Model type", y=test_statistic_name,
-            marker="o", color="0.85", size=2,
+            y="Model type", x=test_statistic_name,
+            marker="o", color="0.85", size=dot_size,
             order=[
                 # ngram
                 DistributionalSemanticModel.ModelType.log_ngram.name,
@@ -711,8 +713,8 @@ def single_violin_plot(results: DataFrame,
         # Plot black dots (distinguishable from baseline)
         seaborn.swarmplot(
             data=local_results,
-            x="Model type", y=test_statistic_name,
-            marker="o", color="0", size=2,
+            y="Model type", x=test_statistic_name,
+            marker="o", color="0", size=dot_size,
             order=[
                 # ngram
                 DistributionalSemanticModel.ModelType.log_ngram.name,
@@ -730,7 +732,8 @@ def single_violin_plot(results: DataFrame,
         )
 
     # Tweak the visual presentation
-    ax.yaxis.grid(True)
+    ax.xaxis.grid(True)
+    ax.yaxis.grid(False)
     ax.set(xlabel="")
     ax.set(ylabel="")
     seaborn.despine(trim=True,
