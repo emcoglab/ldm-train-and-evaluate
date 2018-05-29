@@ -26,6 +26,7 @@ import numpy
 from pandas import DataFrame, read_csv
 from matplotlib import pyplot
 
+from .common_output.colours import FigureColours
 from .common_output.constants import BF_THRESHOLD
 from .common_output.dataframe import add_model_category_column, model_name_without_radius, \
     model_name_without_embedding_size, model_name_without_distance
@@ -652,7 +653,13 @@ def single_violin_plot(results: DataFrame,
             # predict
             DistributionalSemanticModel.ModelType.skip_gram.name,
             DistributionalSemanticModel.ModelType.cbow.name,
-        ]
+        ],
+        palette={
+            "N-gram":  FigureColours.Ngram,
+            "Count":   FigureColours.Count,
+            "Predict": FigureColours.Predict
+        },
+        saturation=1.0
     )
 
     if baseline_colourswap_col is not None:

@@ -17,17 +17,19 @@ caiwingfield.net
 
 
 class FigureColours(object):
-    Red = "#ff0000"
-    Green = "#00ff00"
-    Blue = "#0000ff"
+    """Colours used in figures."""
 
-    Black = "#000000"
-    White = "#ffffff"
+    Red        = "#ff0000"
+    Green      = "#00ff00"
+    Blue       = "#0000ff"
 
-    FlatBlue = "#3274A1"
-    FlatOrange = "#E1812C"
-    FlatGreen = "#3A923A"
+    Black      = "#000000"
+    White      = "#ffffff"
 
-    Ngram = FlatBlue
-    Count = FlatOrange
-    Predict = FlatGreen
+    FlatBlue   = "#136d89"
+    FlatGreen  = "#24a522"
+    FlatOrange = "#d18238"
+
+    Ngram   = FlatOrange
+    Count   = FlatGreen
+    Predict = FlatBlue
