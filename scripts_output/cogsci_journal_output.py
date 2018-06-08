@@ -29,7 +29,7 @@ from matplotlib import pyplot
 from .common_output.colours import FigureColours
 from .common_output.constants import BF_THRESHOLD
 from .common_output.dataframe import add_model_category_column, model_name_without_radius, \
-    model_name_without_embedding_size, model_name_without_distance
+    model_name_without_embedding_size, model_name_without_distance, model_name_without_corpus
 from .common_output.figures import model_performance_bar_graphs
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import CorrelationType, DistanceType
@@ -209,6 +209,16 @@ def calgary_heatmaps(calgary_test_names, concreteness_results):
         parameter_values=[d.name for d in DistanceType],
         model_name_func=model_name_without_distance,
     )
+    single_param_heatmap(
+        test_results=concreteness_results,
+        parameter_name="Corpus",
+        parameter_values=[c.name for c in Preferences.source_corpus_metas],
+        test_kind="Concreteness",
+        test_column_name="Dependent variable",
+        test_names=calgary_test_names,
+        bf_statistic_name="B10 approx", using_log10_bf=True,
+        model_name_func=model_name_without_corpus,
+    )
 
 
 def priming_heatmaps(test_kind, priming_dvs, priming_results):
@@ -244,6 +254,16 @@ def priming_heatmaps(test_kind, priming_dvs, priming_results):
         parameter_values=[d.name for d in DistanceType],
         model_name_func=model_name_without_distance,
     )
+    single_param_heatmap(
+        test_results=priming_results,
+        parameter_name="Corpus",
+        parameter_values=[c.name for c in Preferences.source_corpus_metas],
+        test_kind=test_kind,
+        test_column_name="Dependent variable",
+        test_names=priming_dvs,
+        bf_statistic_name="B10 approx", using_log10_bf=True,
+        model_name_func=model_name_without_corpus,
+    )
 
 
 def association_heatmaps(test_kind, association_test_names, association_results):
@@ -278,6 +298,16 @@ def association_heatmaps(test_kind, association_test_names, association_results)
         bf_statistic_name="Log10 B10 approx", using_log10_bf=True,
         parameter_values=[d.name for d in DistanceType],
         model_name_func=model_name_without_distance,
+    )
+    single_param_heatmap(
+        test_results=association_results,
+        parameter_name="Corpus",
+        parameter_values=[c.name for c in Preferences.source_corpus_metas],
+        test_kind=test_kind,
+        test_column_name="Test name",
+        test_names=association_test_names,
+        bf_statistic_name="Log10 B10 approx", using_log10_bf=True,
+        model_name_func=model_name_without_corpus,
     )
 
 
@@ -316,6 +346,17 @@ def synonym_heatmaps(synonym_results, synonym_test_names):
         using_log10_bf=False,
         parameter_values=[d.name for d in DistanceType],
         model_name_func=model_name_without_distance,
+    )
+    single_param_heatmap(
+        test_results=synonym_results,
+        parameter_name="Corpus",
+        parameter_values=[c.name for c in Preferences.source_corpus_metas],
+        test_kind="Synonym",
+        test_column_name="Test name",
+        test_names=synonym_test_names,
+        bf_statistic_name="B10",
+        using_log10_bf=False,
+        model_name_func=model_name_without_corpus,
     )
 
 
