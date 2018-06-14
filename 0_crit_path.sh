@@ -9,4 +9,3 @@ sh corpus_analysis/scripts_common/0_crit_path.sh
 sh corpus_analysis/scripts_corpus_info/0_crit_path.sh
 sh corpus_analysis/scripts_models/0_crit_path.sh
 sh corpus_analysis/scripts_model_evaluation/0_crit_path.sh
-sh corpus_analysis/scrits_output/0_crit_path.sh
