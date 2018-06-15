@@ -86,15 +86,14 @@ class FreqDist(nltk.probability.FreqDist):
 
 
 class LetterIndexing(object):
-    _alphabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
-                 "u", "v", "w", "x", "y", "z"]
+    _the_alphabet = list("abcdefghijklmnopqrstuvwxyz")
 
     @staticmethod
     def letter2int(letter: str) -> int:
         """
         Converts roman letters a, b, c, ... into integers 0, 1, 2, ...
         """
-        i = LetterIndexing._alphabet.index(letter)
+        i = LetterIndexing._the_alphabet.index(letter)
         if i == -1:
             raise KeyError()
         return i
@@ -102,9 +101,9 @@ class LetterIndexing(object):
     @staticmethod
     def int2letter(i: int) -> str:
         """
-        Converts integers 0, 1, 2, ... into roman letters a, b, c, ...
+        Converts integers 0, 1, 2, ... into letters a, b, c, ...
         """
-        return LetterIndexing._alphabet[i]
+        return LetterIndexing._the_alphabet[i]
 
 
 class TokenIndexDictionary(object):
@@ -121,6 +120,10 @@ class TokenIndexDictionary(object):
     @property
     def tokens(self):
         return [k for k, v in self.token2id.items()]
+
+    @property
+    def indices(self):
+        return [k for k, v in self.id2token.items()]
 
     def __len__(self):
         """
