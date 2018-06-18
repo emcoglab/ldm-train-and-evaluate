@@ -81,7 +81,7 @@ def main():
                 f, a = pyplot.subplots()
                 a.bar(bar_centres, h, align="center", width=bar_width)
                 fig_name = f"distance distribution for {model.name} {distance_type.name}.png"
-                f.savefig(path.join(Preferences.figures_dir, fig_name))
+                f.savefig(path.join(Preferences.figures_dir, 'distances', fig_name))
 
                 # release memory
                 model.untrain()
