@@ -14,14 +14,17 @@ caiwingfield.net
 2018
 ---------------------------
 """
+
 import logging
+from os import path
 
 import numpy
 from matplotlib import pyplot
-from os import path
+from sklearn.metrics.pairwise import pairwise_distances
+from scipy.spatial.distance import squareform
 
 from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
-from ..core.model.count import PPMIModel
+from ..core.model.count import PPMIModel, ProbabilityRatioModel, ConditionalProbabilityModel, LogCoOccurrenceCountModel
 from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
 
@@ -29,12 +32,17 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    for corpus_metadata in Preferences.source_corpus_metas:
+    for corpus_metadata in [Preferences.source_corpus_metas[1]]:  # 1 = BBC
 
         token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
         freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 
         distance_type = DistanceType.cosine
+
+        memory_map = True
+
+        # Not enough room in memory to compute the whole distance matrix, so we'll use the most-frequent words only.
+        n_words = 10_000
 
         for window_radius in Preferences.window_radii:
 
@@ -43,43 +51,35 @@ def main():
             # COUNT MODELS
 
             count_models = [
-                # LogCoOccurrenceCountModel(corpus_metadata, window_radius, token_index),
-                # ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
-                # ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
+                LogCoOccurrenceCountModel(corpus_metadata, window_radius, token_index),
+                ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
+                ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
                 PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
             ]
 
             for model in count_models:
-                logger.info(f"Training model {model.name}")
-                model.train(memory_map=True)
+                model.train(memory_map=memory_map)
+
+                d = pairwise_distances(model.matrix[:n_words, :], metric="cosine", n_jobs=-1)
+                numpy.fill_diagonal(d, 0)
+                d = squareform(d)
 
                 # Aggregate distances in histogram
 
                 # Define histogram parameters
                 data_min = 0  # min possible distance
-                data_max = 2  # max possible distance
-                n_bins = 50  # number of bins
+                data_max = 1  # max possible distance
+                n_bins = 250  # number of bins
 
                 bins = numpy.linspace(data_min, data_max, n_bins)
 
-                overall_histogram = numpy.zeros(n_bins - 1, dtype='int32')
-
-                n_tokens = len(model.token_indices.tokens)
-
-                # Accumulate histogram
-                for i1, word_1 in enumerate(model.token_indices.tokens):
-                    logger.info(f"Working on word {i1+1} of {n_tokens}")
-                    distances_this_word = [model.distance_between(word_1, word_2, distance_type)
-                                           for word_2 in model.token_indices.tokens
-                                           if not word_1 == word_2]
-                    histogram_this_word, _ = numpy.histogram(distances_this_word, bins)
-                    overall_histogram += histogram_this_word
+                h, _ = numpy.histogram(d, bins)
 
                 # Save histogram
                 bar_width = 1 * (bins[1] - bins[0])
                 bar_centres = (bins[:-1] + bins[1:]) / 2
                 f, a = pyplot.subplots()
-                a.bar(bar_centres, overall_histogram, align="center", width=bar_width)
+                a.bar(bar_centres, h, align="center", width=bar_width)
                 fig_name = f"distance distribution for {model.name} {distance_type.name}.png"
                 f.savefig(path.join(Preferences.figures_dir, fig_name))
 
