@@ -21,6 +21,7 @@ import pickle
 import logging
 
 import nltk
+from typing import List
 
 from ..corpus.corpus import BatchedCorpus
 
@@ -70,6 +71,10 @@ class FreqDist(nltk.probability.FreqDist):
         else:
             rank = self.most_common().index((token, freq))
             return rank
+
+    def most_common_tokens(self, top_n) -> List:
+        """A list of the most common tokens, in order."""
+        return [word for word, _ in self.most_common(top_n)]
 
     @classmethod
     def from_batched_corpus(cls, batched_corpus: BatchedCorpus) -> 'FreqDist':
