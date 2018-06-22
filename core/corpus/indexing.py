@@ -27,7 +27,7 @@ from ..corpus.corpus import BatchedCorpus
 logger = logging.getLogger(__name__)
 
 
-class FreqDist(nltk.probability.FreqDist):
+class FreqDistIndex(nltk.probability.FreqDist):
     """
     Extension of nltk.probability.FreqDist.
     Provides a few extra helper methods, as well as token indexing dictionaries.
@@ -61,28 +61,28 @@ class FreqDist(nltk.probability.FreqDist):
 
     @classmethod
     def could_load(cls, filename: str) -> bool:
-        if not filename.endswith(FreqDist._file_extension):
-            filename += FreqDist._file_extension
+        if not filename.endswith(FreqDistIndex._file_extension):
+            filename += FreqDistIndex._file_extension
         return os.path.isfile(filename)
 
     def save(self, filename: str):
-        """Save the FreqDist to a file."""
-        if not filename.endswith(FreqDist._file_extension):
-            filename += FreqDist._file_extension
+        """Save the FreqDistIndex to a file."""
+        if not filename.endswith(FreqDistIndex._file_extension):
+            filename += FreqDistIndex._file_extension
         with open(filename, mode="w") as file:
-            # The fundamental data of a FreqDist is stored as a dict (which in fact it inherits from, I think?)
+            # The fundamental data of a FreqDistIndex is stored as a dict (which in fact it inherits from, I think?)
             # We can save it as a json text dump, to make it a little more portable (and also human readable!)
             json.dump(dict(self), file,
                       # Remove whitespace for smaller files
                       separators=(',', ':'))
 
     @classmethod
-    def load(cls, filename: str) -> 'FreqDist':
-        """Load the FreqDist from a file."""
-        if not filename.endswith(FreqDist._file_extension):
-            filename += FreqDist._file_extension
+    def load(cls, filename: str) -> 'FreqDistIndex':
+        """Load the FreqDistIndex from a file."""
+        if not filename.endswith(FreqDistIndex._file_extension):
+            filename += FreqDistIndex._file_extension
         with open(filename, mode="r") as file:
-            # instances are loaded as dicts, so we must cast it up to a FreqDist
+            # instances are loaded as dicts, so we must cast it up to a FreqDistIndex
             return cls(json.load(file))
 
     def export_token_indices(self, filename):
@@ -118,8 +118,8 @@ class FreqDist(nltk.probability.FreqDist):
         return [word for word, _ in self.most_common(top_n)]
 
     @classmethod
-    def from_batched_corpus(cls, batched_corpus: BatchedCorpus) -> 'FreqDist':
-        # Initially create an empty FreqDist
+    def from_batched_corpus(cls, batched_corpus: BatchedCorpus) -> 'FreqDistIndex':
+        # Initially create an empty FreqDistIndex
         freq_dist = cls()
         # Then add to it from each batch of the corpus.
         # Means we don't have to have the whole corpus in memory at once!

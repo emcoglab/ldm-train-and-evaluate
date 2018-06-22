@@ -23,7 +23,7 @@ from typing import Set, List, Callable, Optional
 import statsmodels.formula.api as sm
 from pandas import DataFrame, read_csv
 
-from ..core.corpus.indexing import FreqDist
+from ..core.corpus.indexing import FreqDistIndex
 from ..core.evaluation.regression import RegressionResult, CalgaryData
 from ..core.model.base import VectorSemanticModel, DistributionalSemanticModel
 from ..core.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
@@ -67,7 +67,7 @@ def save_wordlist(vocab: Set[str]):
 def add_all_model_predictors(calgary_data: CalgaryData):
     for corpus_metadata in Preferences.source_corpus_metas:
 
-        freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
+        freq_dist = FreqDistIndex.load(corpus_metadata.freq_dist_path)
 
         for window_radius in Preferences.window_radii:
 
@@ -335,7 +335,7 @@ def run_all_model_regressions(all_data: DataFrame,
 
     for corpus_metadata in Preferences.source_corpus_metas:
 
-        freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
+        freq_dist = FreqDistIndex.load(corpus_metadata.freq_dist_path)
 
         for window_radius in Preferences.window_radii:
 

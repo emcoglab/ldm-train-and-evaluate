@@ -23,7 +23,7 @@ from matplotlib import pyplot
 from scipy.spatial.distance import squareform
 from sklearn.metrics.pairwise import pairwise_distances
 
-from ..core.corpus.indexing import FreqDist
+from ..core.corpus.indexing import FreqDistIndex
 from ..core.model.count import PPMIModel, ProbabilityRatioModel, ConditionalProbabilityModel, LogCoOccurrenceCountModel
 from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 def main():
     for corpus_metadata in [Preferences.source_corpus_metas[1]]:  # 1 = BBC
 
-        freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
+        freq_dist = FreqDistIndex.load(corpus_metadata.freq_dist_path)
 
         distance_type = DistanceType.cosine
 

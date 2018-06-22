@@ -18,7 +18,7 @@ caiwingfield.net
 
 import argparse
 
-from ..core.corpus.indexing import FreqDist
+from ..core.corpus.indexing import FreqDistIndex
 from ..preferences.preferences import Preferences
 
 
@@ -40,7 +40,7 @@ def main(args):
     else:
         raise ValueError(f"Corpus {corpus_name} doesn't exist.")
 
-    freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
+    freq_dist = FreqDistIndex.load(corpus_metadata.freq_dist_path)
 
     try:
         occurrences = freq_dist[word]

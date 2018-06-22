@@ -18,17 +18,17 @@ caiwingfield.net
 import unittest
 
 from ..core.corpus.corpus import BatchedCorpus
-from ..core.corpus.indexing import FreqDist
+from ..core.corpus.indexing import FreqDistIndex
 
 
 from .testing_materials.metadata import test_corpus_metadata
 
 
 class TokenIndexingTests(unittest.TestCase):
-    """Tests for core.corpus.indexing.FreqDist involving token indexing."""
+    """Tests for core.corpus.indexing.FreqDistIndex involving token indexing."""
 
     def test_tid_is_invertible_token(self):
-        fd = FreqDist.from_batched_corpus(
+        fd = FreqDistIndex.from_batched_corpus(
             BatchedCorpus(test_corpus_metadata, 3))
         for token in fd.tokens:
             self.assertEqual(
@@ -37,7 +37,7 @@ class TokenIndexingTests(unittest.TestCase):
             )
 
     def test_tid_is_invertible_id(self):
-        fd = FreqDist.from_batched_corpus(
+        fd = FreqDistIndex.from_batched_corpus(
             BatchedCorpus(test_corpus_metadata, 3))
         for i in range(len(fd)):
             self.assertEqual(
@@ -47,10 +47,10 @@ class TokenIndexingTests(unittest.TestCase):
 
 
 class FreqDistTests(unittest.TestCase):
-    """Tests for core.corpus.indexing.FreqDist involving frequency distributions."""
+    """Tests for core.corpus.indexing.FreqDistIndex involving frequency distributions."""
 
     def test_corpus_contains_specific_items(self):
-        fd = FreqDist.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
+        fd = FreqDistIndex.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
 
         self.assertTrue("A" in fd.elements())
         self.assertTrue("B" in fd.elements())
@@ -58,7 +58,7 @@ class FreqDistTests(unittest.TestCase):
         self.assertTrue("D" in fd.elements())
 
     def test_corpus_has_specific_item_counts(self):
-        fd = FreqDist.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
+        fd = FreqDistIndex.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
 
         self.assertEqual(fd["A"], 4)
         self.assertEqual(fd["B"], 3)
@@ -66,7 +66,7 @@ class FreqDistTests(unittest.TestCase):
         self.assertEqual(fd["D"], 2)
 
     def test_corpus_has_10_items(self):
-        fd = FreqDist.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
+        fd = FreqDistIndex.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
 
         self.assertEqual(fd.N(), 10)
 

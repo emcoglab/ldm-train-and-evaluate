@@ -18,7 +18,7 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.corpus.indexing import FreqDist
+from ..core.corpus.indexing import FreqDistIndex
 from ..core.model.count import CoOccurrenceCountModel
 from ..preferences.preferences import Preferences
 
@@ -28,7 +28,7 @@ logger = logging.getLogger()
 def main():
 
     for meta in Preferences.source_corpus_metas:
-        freq_dist = FreqDist.load(meta.freq_dist_path)
+        freq_dist = FreqDistIndex.load(meta.freq_dist_path)
         for radius in Preferences.window_radii:
             model = CoOccurrenceCountModel(meta, radius, freq_dist)
             if not model.could_load:

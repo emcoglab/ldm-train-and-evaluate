@@ -1,4 +1,4 @@
-from core.corpus.indexing import FreqDist
+from core.corpus.indexing import FreqDistIndex
 from .preferences.preferences import Preferences
 
 
@@ -13,7 +13,7 @@ def convert_picked_freqdists_to_json():
     ]
 
     for freq_dist_path in freq_dists_to_convert:
-        fd = FreqDist.load_as_dict(freq_dist_path)
+        fd = FreqDistIndex.load_as_dict(freq_dist_path)
         fd.save_as_json(freq_dist_path + "2")
 
 

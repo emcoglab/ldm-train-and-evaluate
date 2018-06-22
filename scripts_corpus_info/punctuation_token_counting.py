@@ -24,7 +24,7 @@ import nltk
 
 from ..core.corpus.tokenising import modified_word_tokenize
 from ..core.corpus.filtering import filter_punctuation
-from ..core.corpus.indexing import FreqDist
+from ..core.corpus.indexing import FreqDistIndex
 
 logger = logging.getLogger()
 
@@ -48,7 +48,7 @@ def main(corpus_dir, output_filename):
               # ...aren't alphanumeric...
               if not re.fullmatch("[A-Za-z0-9]+", token)]
 
-    fd = FreqDist(tokens)
+    fd = FreqDistIndex(tokens)
 
     mf = fd.most_common()
 

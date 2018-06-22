@@ -19,7 +19,7 @@ import logging
 import sys
 
 from ..core.utils.logging import log_message, date_format
-from ..core.corpus.indexing import FreqDist
+from ..core.corpus.indexing import FreqDistIndex
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -30,12 +30,12 @@ def main():
     top_sample = 300_000
 
     for corpus_1 in Preferences.source_corpus_metas:
-        fd_1 = FreqDist.load(corpus_1.freq_dist_path)
+        fd_1 = FreqDistIndex.load(corpus_1.freq_dist_path)
         most_frequent_words_1 = set([word for word, _ in fd_1.most_common(top_sample)])
         for corpus_2 in Preferences.source_corpus_metas:
             if corpus_1.name == corpus_2.name:
                 continue
-            fd_2 = FreqDist.load(corpus_2.freq_dist_path)
+            fd_2 = FreqDistIndex.load(corpus_2.freq_dist_path)
             most_frequent_words_2 = set([word for word, _ in fd_2.most_common(top_sample)])
 
             percent_overlap = 100 * len(most_frequent_words_1.intersection(most_frequent_words_2)) / top_sample
