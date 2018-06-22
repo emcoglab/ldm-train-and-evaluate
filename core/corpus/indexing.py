@@ -27,13 +27,37 @@ from ..corpus.corpus import BatchedCorpus
 logger = logging.getLogger(__name__)
 
 
-# noinspection PyAbstractClass
 class FreqDist(nltk.probability.FreqDist):
     """
-    Extension of nltk.probability.FreqDist with a few useful helper methods.
+    Extension of nltk.probability.FreqDist.
+    Provides a few extra helper methods, as well as token indexing dictionaries.
     """
 
     _file_extension = ".freqdist"
+
+    def __init__(self, samples=None):
+        super().__init__(samples)
+
+        # Build token indexing dictionaries
+
+        token2id = {}
+        current_id = 0
+        for token, _freq in self.most_common():
+            token2id[token] = current_id
+            current_id += 1
+
+        # A dictionary of token-keyed indices
+        self.token2id = token2id
+        # A dictionary of index-keyed tokens
+        self.id2token = dict((v, k) for k, v in token2id.items())
+
+    @property
+    def tokens(self):
+        return [k for k, v in self.token2id.items()]
+
+    @property
+    def indices(self):
+        return [k for k, v in self.id2token.items()]
 
     @classmethod
     def could_load(cls, filename: str) -> bool:
@@ -60,6 +84,17 @@ class FreqDist(nltk.probability.FreqDist):
         with open(filename, mode="r") as file:
             # instances are loaded as dicts, so we must cast it up to a FreqDist
             return cls(json.load(file))
+
+    def export_token_indices(self, filename):
+        """
+        Saves a json dump of token indices.
+        :param filename:
+        :return:
+        """
+        with open(filename, mode="w") as file:
+            json.dump(self.token2id, file,
+                      # Remove whitespace for smaller files
+                      separators=(',', ':'))
 
     def rank(self, token):
         """
@@ -115,68 +150,3 @@ class LetterIndexing(object):
         Converts integers 0, 1, 2, ... into letters a, b, c, ...
         """
         return LetterIndexing._the_alphabet[i]
-
-
-class TokenIndexDictionary(object):
-    def __init__(self, token2id):
-        """
-        Constructor.
-        :param token2id:
-        """
-        # A dictionary of token-keyed indices
-        self.token2id = token2id
-        # A dictionary of index-keyed tokens
-        self.id2token = dict((v, k) for k, v in token2id.items())
-
-    @property
-    def tokens(self):
-        return [k for k, v in self.token2id.items()]
-
-    @property
-    def indices(self):
-        return [k for k, v in self.id2token.items()]
-
-    def __len__(self):
-        """
-        The number of indexed tokens in the dictionary
-        :return:
-        """
-        return len(self.token2id)
-
-    def save(self, filename):
-        """
-        Saves a TokenIndexDictionary to a file
-        :param filename:
-        :return:
-        """
-        with open(filename, mode="w") as file:
-            json.dump(self.token2id, file,
-                      # Remove whitespace for smaller files
-                      separators=(',', ':'))
-
-    @classmethod
-    def from_freqdist(cls, freq_dist: FreqDist) -> 'TokenIndexDictionary':
-        """
-        Constructs an TokenIndexDictionary from a FreqDist.
-        Tokes are 0-indexed.
-        :param freq_dist:
-        :return:
-        """
-        token2id = {}
-        current_id = 0
-        for token, _freq in freq_dist.most_common():
-            token2id[token] = current_id
-            current_id += 1
-
-        return cls(token2id)
-
-    @classmethod
-    def load(cls, filename) -> 'TokenIndexDictionary':
-        """
-        Loads an TokenIndexDictionary from a file.
-        :param filename:
-        :return:
-        """
-        logger.warning("It's better to compute a TokenIndexDictionary from a FreqDist than to load a saved version.")
-        with open(filename, mode="r") as file:
-            return cls(json.load(file))

@@ -18,38 +18,36 @@ caiwingfield.net
 import unittest
 
 from ..core.corpus.corpus import BatchedCorpus
-from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
+from ..core.corpus.indexing import FreqDist
 
 
 from .testing_materials.metadata import test_corpus_metadata
 
 
-class TokenIndexDictionaryTests(unittest.TestCase):
-    """Tests for core.corpus.indexing.TokenIndexDictionary."""
+class TokenIndexingTests(unittest.TestCase):
+    """Tests for core.corpus.indexing.FreqDist involving token indexing."""
 
     def test_tid_is_invertible_token(self):
-        tid = TokenIndexDictionary.from_freqdist(
-            FreqDist.from_batched_corpus(
-                BatchedCorpus(test_corpus_metadata, 3)))
-        for token in tid.tokens:
+        fd = FreqDist.from_batched_corpus(
+            BatchedCorpus(test_corpus_metadata, 3))
+        for token in fd.tokens:
             self.assertEqual(
-                tid.id2token[tid.token2id[token]],
+                fd.id2token[fd.token2id[token]],
                 token
             )
 
     def test_tid_is_invertible_id(self):
-        tid = TokenIndexDictionary.from_freqdist(
-            FreqDist.from_batched_corpus(
-                BatchedCorpus(test_corpus_metadata, 3)))
-        for i in range(len(tid)):
+        fd = FreqDist.from_batched_corpus(
+            BatchedCorpus(test_corpus_metadata, 3))
+        for i in range(len(fd)):
             self.assertEqual(
-                tid.token2id[tid.id2token[i]],
+                fd.token2id[fd.id2token[i]],
                 i
             )
 
 
 class FreqDistTests(unittest.TestCase):
-    """Tests for core.corpus.indexing.FreqDist."""
+    """Tests for core.corpus.indexing.FreqDist involving frequency distributions."""
 
     def test_corpus_contains_specific_items(self):
         fd = FreqDist.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))

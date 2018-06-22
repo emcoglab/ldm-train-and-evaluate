@@ -92,7 +92,7 @@ class NgramModel(DistributionalSemanticModel, metaclass=ABCMeta):
             raise WordNotFoundError(f"The word '{word_1}' was not found.")
 
         try:
-            word_2_index = self.underlying_count_model.token_indices.token2id[word_2]
+            word_2_index = self.underlying_count_model.freq_dist.token2id[word_2]
         except KeyError:
             raise WordNotFoundError(f"The word '{word_2}' was not found.")
 

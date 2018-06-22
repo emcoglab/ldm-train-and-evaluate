@@ -26,7 +26,7 @@ import numpy
 import scipy.sparse
 
 from ..corpus.corpus import CorpusMetadata, WindowedCorpus
-from ..corpus.indexing import TokenIndexDictionary, FreqDist
+from ..corpus.indexing import FreqDist
 from ..model.base import VectorSemanticModel, DistributionalSemanticModel, ScalarSemanticModel
 from ..utils.constants import Chirality
 from ..utils.exceptions import WordNotFoundError
@@ -47,7 +47,6 @@ class CountVectorModel(VectorSemanticModel):
                  freq_dist: FreqDist):
         super().__init__(model_type, corpus_meta, window_radius)
         self.freq_dist = freq_dist
-        self.token_indices = TokenIndexDictionary.from_freqdist(freq_dist)
 
     @property
     def matrix(self) -> scipy.sparse.csr_matrix:
@@ -131,7 +130,7 @@ class CountVectorModel(VectorSemanticModel):
 
     def vector_for_word(self, word: str):
         try:
-            word_id = self.token_indices.token2id[word]
+            word_id = self.freq_dist.token2id[word]
             return self.vector_for_id(word_id)
         except KeyError:
             raise WordNotFoundError(f"The word '{word}' was not found.")
@@ -143,12 +142,12 @@ class CountVectorModel(VectorSemanticModel):
                 raise ValueError("only_consider_most_frequent must be at least 1")
             vocab_size = only_consider_most_frequent
         else:
-            vocab_size = len(self.token_indices.id2token)
+            vocab_size = len(self.freq_dist.id2token)
 
         if not self.contains_word(word):
             raise WordNotFoundError(f"The word '{word}' was not found.")
 
-        target_id = self.token_indices.token2id[word]
+        target_id = self.freq_dist.token2id[word]
         target_vector = self.vector_for_id(target_id)
 
         nearest_neighbours = []
@@ -176,12 +175,12 @@ class CountVectorModel(VectorSemanticModel):
 
             if candidate_id % 10_000 == 0 and candidate_id > 0:
                 logger.info(f'\t{candidate_id:,} out of {vocab_size:,} candidates considered. '
-                            f'"{self.token_indices.id2token[nearest_neighbours[0][0]]}" currently the fave')
+                            f'"{self.freq_dist.id2token[nearest_neighbours[0][0]]}" currently the fave')
 
-        return [self.token_indices.id2token[i] for i, dist in nearest_neighbours]
+        return [self.freq_dist.id2token[i] for i, dist in nearest_neighbours]
 
     def contains_word(self, word: str) -> bool:
-        if word.lower() in [token.lower() for token in self.token_indices.token2id]:
+        if word.lower() in [token.lower() for token in self.freq_dist.token2id]:
             return True
         else:
             return False
@@ -199,7 +198,6 @@ class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
                  freq_dist: FreqDist):
         super().__init__(model_type, corpus_meta, window_radius)
         self.freq_dist = freq_dist
-        self.token_indices = TokenIndexDictionary.from_freqdist(self.freq_dist)
 
     @property
     def _model_ext(self):
@@ -230,10 +228,10 @@ class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
         if not self.contains_word(word):
             raise WordNotFoundError(f"The word '{word}' was not found.")
 
-        return self._model[self.token_indices.token2id[word]]
+        return self._model[self.freq_dist.token2id[word]]
 
     def contains_word(self, word: str) -> bool:
-        if word.lower() in self.token_indices.token2id:
+        if word.lower() in self.freq_dist.token2id:
             return True
         else:
             return False
@@ -265,7 +263,7 @@ class UnsummedCoOccurrenceCountModel(CountVectorModel):
 
     def _retrain(self):
 
-        vocab_size = len(self.token_indices)
+        vocab_size = len(self.freq_dist)
 
         # Initialise cooccurrence matrices
 
@@ -303,8 +301,8 @@ class UnsummedCoOccurrenceCountModel(CountVectorModel):
             target_token = window[target_index]
             context_token = window[context_index]
 
-            target_id = self.token_indices.token2id[target_token]
-            context_id = self.token_indices.token2id[context_token]
+            target_id = self.freq_dist.token2id[target_token]
+            context_id = self.freq_dist.token2id[context_token]
 
             # TODO: Left- and right-context matrices are transposes of one another.  For the edge-most elements of
             # TODO: every window, one is either the target or the context, and the other is the other.  So we could
@@ -339,7 +337,7 @@ class CoOccurrenceCountModel(CountVectorModel):
 
     def _retrain(self):
 
-        vocab_size = len(self.token_indices)
+        vocab_size = len(self.freq_dist)
 
         # Start with an empty sparse matrix
         self._model = scipy.sparse.csr_matrix((vocab_size, vocab_size))
