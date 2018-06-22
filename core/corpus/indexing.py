@@ -17,7 +17,6 @@ caiwingfield.net
 
 import json
 import os
-import pickle
 import logging
 
 import nltk
@@ -43,17 +42,24 @@ class FreqDist(nltk.probability.FreqDist):
         return os.path.isfile(filename)
 
     def save(self, filename: str):
+        """Save the FreqDist to a file."""
         if not filename.endswith(FreqDist._file_extension):
             filename += FreqDist._file_extension
-        with open(filename, mode="wb") as file:
-            pickle.dump(self, file)
+        with open(filename, mode="w") as file:
+            # The fundamental data of a FreqDist is stored as a dict (which in fact it inherits from, I think?)
+            # We can save it as a json text dump, to make it a little more portable (and also human readable!)
+            json.dump(dict(self), file,
+                      # Remove whitespace for smaller files
+                      separators=(',', ':'))
 
     @classmethod
     def load(cls, filename: str) -> 'FreqDist':
+        """Load the FreqDist from a file."""
         if not filename.endswith(FreqDist._file_extension):
             filename += FreqDist._file_extension
-        with open(filename, mode="rb") as file:
-            return pickle.load(file)
+        with open(filename, mode="r") as file:
+            # instances are loaded as dicts, so we must cast it up to a FreqDist
+            return cls(json.load(file))
 
     def rank(self, token):
         """
