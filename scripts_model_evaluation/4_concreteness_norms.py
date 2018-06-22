@@ -20,15 +20,15 @@ import os
 import sys
 from typing import Set, List, Callable, Optional
 
-from pandas import DataFrame, read_csv
 import statsmodels.formula.api as sm
+from pandas import DataFrame, read_csv
 
-from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
+from ..core.corpus.indexing import FreqDist
 from ..core.evaluation.regression import RegressionResult, CalgaryData
 from ..core.model.base import VectorSemanticModel, DistributionalSemanticModel
 from ..core.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
-from ..core.model.predict import SkipGramModel, CbowModel
 from ..core.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
+from ..core.model.predict import SkipGramModel, CbowModel
 from ..core.utils.logging import log_message, date_format
 from ..core.utils.maths import DistanceType, levenshtein_distance
 from ..preferences.preferences import Preferences
@@ -67,7 +67,6 @@ def save_wordlist(vocab: Set[str]):
 def add_all_model_predictors(calgary_data: CalgaryData):
     for corpus_metadata in Preferences.source_corpus_metas:
 
-        token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
         freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 
         for window_radius in Preferences.window_radii:
@@ -75,9 +74,9 @@ def add_all_model_predictors(calgary_data: CalgaryData):
             # N-GRAM MODELS
 
             ngram_models = [
-                LogNgramModel(corpus_metadata, window_radius, token_index),
-                PPMINgramModel(corpus_metadata, window_radius, token_index, freq_dist),
-                ProbabilityRatioNgramModel(corpus_metadata, window_radius, token_index, freq_dist)
+                LogNgramModel(corpus_metadata, window_radius, freq_dist),
+                PPMINgramModel(corpus_metadata, window_radius, freq_dist),
+                ProbabilityRatioNgramModel(corpus_metadata, window_radius, freq_dist)
             ]
 
             for model in ngram_models:
@@ -93,11 +92,12 @@ def add_all_model_predictors(calgary_data: CalgaryData):
             # COUNT MODELS
 
             count_models = [
-                # TODO: these model initialisers should be able to have TIDs and FDs _optionally_ passed, or load them internally
-                LogCoOccurrenceCountModel(corpus_metadata, window_radius, token_index),
-                ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
-                ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
-                PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
+                # TODO: these model initialisers should be able to have FreqDists _optionally_ passed,
+                # TODO: or else load them internally
+                LogCoOccurrenceCountModel(corpus_metadata, window_radius, freq_dist),
+                ConditionalProbabilityModel(corpus_metadata, window_radius, freq_dist),
+                ProbabilityRatioModel(corpus_metadata, window_radius, freq_dist),
+                PPMIModel(corpus_metadata, window_radius, freq_dist)
             ]
 
             for model in count_models:
@@ -335,7 +335,6 @@ def run_all_model_regressions(all_data: DataFrame,
 
     for corpus_metadata in Preferences.source_corpus_metas:
 
-        token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
         freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 
         for window_radius in Preferences.window_radii:
@@ -343,9 +342,9 @@ def run_all_model_regressions(all_data: DataFrame,
             # N-GRAM MODELS
 
             ngram_models = [
-                LogNgramModel(corpus_metadata, window_radius, token_index),
-                PPMINgramModel(corpus_metadata, window_radius, token_index, freq_dist),
-                ProbabilityRatioNgramModel(corpus_metadata, window_radius, token_index, freq_dist)
+                LogNgramModel(corpus_metadata, window_radius, freq_dist),
+                PPMINgramModel(corpus_metadata, window_radius, freq_dist),
+                ProbabilityRatioNgramModel(corpus_metadata, window_radius, freq_dist)
             ]
 
             for model in ngram_models:
@@ -368,10 +367,10 @@ def run_all_model_regressions(all_data: DataFrame,
             # Count models
 
             count_models = [
-                LogCoOccurrenceCountModel(corpus_metadata, window_radius, token_index),
-                ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
-                ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
-                PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
+                LogCoOccurrenceCountModel(corpus_metadata, window_radius),
+                ConditionalProbabilityModel(corpus_metadata, window_radius, freq_dist),
+                ProbabilityRatioModel(corpus_metadata, window_radius, freq_dist),
+                PPMIModel(corpus_metadata, window_radius, freq_dist)
             ]
 
             for model in count_models:

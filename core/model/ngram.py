@@ -19,7 +19,7 @@ import logging
 from abc import ABCMeta
 
 from ..corpus.corpus import CorpusMetadata
-from ..corpus.indexing import TokenIndexDictionary, FreqDist
+from ..corpus.indexing import FreqDist
 from ..model.base import VectorSemanticModel, DistributionalSemanticModel
 from ..model.count import CountVectorModel, LogCoOccurrenceCountModel, PPMIModel, ProbabilityRatioModel
 from ..utils.exceptions import WordNotFoundError
@@ -34,10 +34,9 @@ class NgramModel(DistributionalSemanticModel, metaclass=ABCMeta):
     """
     def __init__(self,
                  model_type: DistributionalSemanticModel.ModelType,
-                 underlying_count_model: CountVectorModel,
-                 ):
+                 underlying_count_model: CountVectorModel):
         super().__init__(model_type=model_type, corpus_meta=underlying_count_model.corpus_meta)
-        self.underlying_count_model = underlying_count_model
+        self.underlying_count_model: CountVectorModel = underlying_count_model
 
     @property
     def window_radius(self) -> int:
@@ -114,9 +113,9 @@ class LogNgramModel(NgramModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary):
+                 freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.log_ngram,
-                         LogCoOccurrenceCountModel(corpus_meta, window_radius, token_indices))
+                         LogCoOccurrenceCountModel(corpus_meta, window_radius, freq_dist))
 
 
 class ProbabilityRatioNgramModel(NgramModel):
@@ -128,10 +127,9 @@ class ProbabilityRatioNgramModel(NgramModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.probability_ratio_ngram,
-                         ProbabilityRatioModel(corpus_meta, window_radius, token_indices, freq_dist))
+                         ProbabilityRatioModel(corpus_meta, window_radius, freq_dist))
 
 
 class PPMINgramModel(NgramModel):
@@ -143,7 +141,6 @@ class PPMINgramModel(NgramModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.ppmi_ngram,
-                         PPMIModel(corpus_meta, window_radius, token_indices, freq_dist))
+                         PPMIModel(corpus_meta, window_radius, freq_dist))

@@ -23,12 +23,12 @@ from os import path
 from matplotlib import pyplot
 from seaborn import distplot
 
-from ..preferences.preferences import Preferences
-from ..core.utils.maths import DistanceType
-from ..core.utils.logging import log_message, date_format
-from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
-from ..core.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
+from ..core.corpus.indexing import FreqDist
 from ..core.evaluation.regression import SppData
+from ..core.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
+from ..core.utils.logging import log_message, date_format
+from ..core.utils.maths import DistanceType
+from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
@@ -41,15 +41,14 @@ def main():
         figures_dir = path.join(Preferences.figures_dir, "priming", "(un)related distances")
 
         freq_dist = FreqDist.load(corpus.freq_dist_path)
-        token_index = TokenIndexDictionary.from_freqdist(freq_dist)
 
         for radius in Preferences.window_radii:
             for distance_type in DistanceType:
                 models = [
-                    LogCoOccurrenceCountModel(corpus, radius, token_index),
-                    ConditionalProbabilityModel(corpus, radius, token_index, freq_dist),
-                    ProbabilityRatioModel(corpus, radius, token_index, freq_dist),
-                    PPMIModel(corpus, radius, token_index, freq_dist)
+                    LogCoOccurrenceCountModel(corpus, radius, freq_dist),
+                    ConditionalProbabilityModel(corpus, radius, freq_dist),
+                    ProbabilityRatioModel(corpus, radius, freq_dist),
+                    PPMIModel(corpus, radius, freq_dist)
                 ]
                 for model in models:
 

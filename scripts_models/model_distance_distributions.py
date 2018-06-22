@@ -20,10 +20,10 @@ from os import path
 
 import numpy
 from matplotlib import pyplot
-from sklearn.metrics.pairwise import pairwise_distances
 from scipy.spatial.distance import squareform
+from sklearn.metrics.pairwise import pairwise_distances
 
-from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
+from ..core.corpus.indexing import FreqDist
 from ..core.model.count import PPMIModel, ProbabilityRatioModel, ConditionalProbabilityModel, LogCoOccurrenceCountModel
 from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
@@ -34,7 +34,6 @@ logger = logging.getLogger(__name__)
 def main():
     for corpus_metadata in [Preferences.source_corpus_metas[1]]:  # 1 = BBC
 
-        token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
         freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 
         distance_type = DistanceType.cosine
@@ -51,10 +50,10 @@ def main():
             # COUNT MODELS
 
             count_models = [
-                LogCoOccurrenceCountModel(corpus_metadata, window_radius, token_index),
-                ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
-                ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
-                PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
+                LogCoOccurrenceCountModel(corpus_metadata, window_radius, freq_dist),
+                ConditionalProbabilityModel(corpus_metadata, window_radius, freq_dist),
+                ProbabilityRatioModel(corpus_metadata, window_radius, freq_dist),
+                PPMIModel(corpus_metadata, window_radius, freq_dist)
             ]
 
             for model in count_models:

@@ -23,7 +23,7 @@ from typing import Set, List, Optional
 import pandas
 import statsmodels.formula.api as sm
 
-from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
+from ..core.corpus.indexing import FreqDist
 from ..core.evaluation.regression import SppData, RegressionResult
 from ..core.model.base import DistributionalSemanticModel
 from ..core.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
@@ -87,7 +87,6 @@ def save_wordpairs(word_pairs):
 def add_all_model_predictors(spp_data: SppData):
     for corpus_metadata in Preferences.source_corpus_metas:
 
-        token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
         freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 
         for window_radius in Preferences.window_radii:
@@ -95,9 +94,9 @@ def add_all_model_predictors(spp_data: SppData):
             # N-GRAM MODELS
 
             ngram_models = [
-                LogNgramModel(corpus_metadata, window_radius, token_index),
-                PPMINgramModel(corpus_metadata, window_radius, token_index, freq_dist),
-                ProbabilityRatioNgramModel(corpus_metadata, window_radius, token_index, freq_dist)
+                LogNgramModel(corpus_metadata, window_radius, freq_dist),
+                PPMINgramModel(corpus_metadata, window_radius, freq_dist),
+                ProbabilityRatioNgramModel(corpus_metadata, window_radius, freq_dist)
             ]
 
             for model in ngram_models:
@@ -110,10 +109,10 @@ def add_all_model_predictors(spp_data: SppData):
             # COUNT MODELS
 
             count_models = [
-                LogCoOccurrenceCountModel(corpus_metadata, window_radius, token_index),
-                ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
-                ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
-                PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
+                LogCoOccurrenceCountModel(corpus_metadata, window_radius, freq_dist),
+                ConditionalProbabilityModel(corpus_metadata, window_radius, freq_dist),
+                ProbabilityRatioModel(corpus_metadata, window_radius, freq_dist),
+                PPMIModel(corpus_metadata, window_radius, freq_dist)
             ]
 
             for model in count_models:
@@ -256,7 +255,6 @@ def run_all_model_regressions(all_data: pandas.DataFrame,
 
     for corpus_metadata in Preferences.source_corpus_metas:
 
-        token_index = TokenIndexDictionary.load(corpus_metadata.index_path)
         freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 
         for window_radius in Preferences.window_radii:
@@ -264,9 +262,9 @@ def run_all_model_regressions(all_data: pandas.DataFrame,
             # N-GRAM MODELS
 
             ngram_models = [
-                LogNgramModel(corpus_metadata, window_radius, token_index),
-                PPMINgramModel(corpus_metadata, window_radius, token_index, freq_dist),
-                ProbabilityRatioNgramModel(corpus_metadata, window_radius, token_index, freq_dist)
+                LogNgramModel(corpus_metadata, window_radius, freq_dist),
+                PPMINgramModel(corpus_metadata, window_radius, freq_dist),
+                ProbabilityRatioNgramModel(corpus_metadata, window_radius, freq_dist)
             ]
 
             for model in ngram_models:
@@ -281,10 +279,10 @@ def run_all_model_regressions(all_data: pandas.DataFrame,
             # Count models
 
             count_models = [
-                LogCoOccurrenceCountModel(corpus_metadata, window_radius, token_index),
-                ConditionalProbabilityModel(corpus_metadata, window_radius, token_index, freq_dist),
-                ProbabilityRatioModel(corpus_metadata, window_radius, token_index, freq_dist),
-                PPMIModel(corpus_metadata, window_radius, token_index, freq_dist)
+                LogCoOccurrenceCountModel(corpus_metadata, window_radius, freq_dist),
+                ConditionalProbabilityModel(corpus_metadata, window_radius, freq_dist),
+                ProbabilityRatioModel(corpus_metadata, window_radius, freq_dist),
+                PPMIModel(corpus_metadata, window_radius, freq_dist)
             ]
 
             for model in count_models:

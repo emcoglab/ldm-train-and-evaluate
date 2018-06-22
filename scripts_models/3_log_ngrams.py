@@ -18,7 +18,7 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.corpus.indexing import TokenIndexDictionary
+from ..core.corpus.indexing import FreqDist
 from ..core.model.count import LogCoOccurrenceCountModel
 from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
@@ -29,9 +29,9 @@ logger = logging.getLogger(__name__)
 def main():
 
     for meta in Preferences.source_corpus_metas:
-        token_indices = TokenIndexDictionary.load(meta.index_path)
+        freq_dist = FreqDist.load(meta.freq_dist_path)
         for radius in Preferences.window_radii:
-            model = LogCoOccurrenceCountModel(meta, radius, token_indices)
+            model = LogCoOccurrenceCountModel(meta, radius, freq_dist)
             if not model.could_load:
                 model.train()
 

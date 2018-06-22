@@ -23,15 +23,13 @@ class CorpusMetadata:
     Corpus metadata.
     """
 
-    def __init__(self, name, path, freq_dist_path=None, index_path=None):
+    def __init__(self, name, path, freq_dist_path=None):
         # The name of the corpus
         self.name = name
         # The path to the corpus
         self.path = path
         # The path to the frequency distribution for the corpus
         self.freq_dist_path = freq_dist_path
-        # THe path to the index dictionary for the corpus
-        self.index_path = index_path
 
 
 class StreamedCorpus(object):

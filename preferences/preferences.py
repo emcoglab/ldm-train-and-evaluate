@@ -36,8 +36,7 @@ class Preferences(object):
         tokenised=CorpusMetadata(
             name="BNC",
             path="/Volumes/Data/corpora/BNC/2 Tokenised/BNC.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/BNC.freqdist",
-            index_path="/Volumes/Data/vectors/indexes/BNC.index"))
+            freq_dist_path="/Volumes/Data/vectors/indexes/BNC.freqdist"))
     bnc_text_processing_metas = dict(
         raw=CorpusMetadata(
             name="BNC-text",
@@ -48,8 +47,7 @@ class Preferences(object):
         tokenised=CorpusMetadata(
             name="BNC-text",
             path="/Volumes/Data/corpora/BNC-text/2 Tokenised/BNC-text.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/BNC_text.freqdist",
-            index_path="/Volumes/Data/vectors/indexes/BNC_text.index"))
+            freq_dist_path="/Volumes/Data/vectors/indexes/BNC_text.freqdist"))
     bnc_speech_processing_metas = dict(
         raw=CorpusMetadata(
             name="BNC-speech",
@@ -60,8 +58,7 @@ class Preferences(object):
         tokenised=CorpusMetadata(
             name="BNC-speech",
             path="/Volumes/Data/corpora/BNC-speech/2 Tokenised/BNC-speech.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/BNC_speech.freqdist",
-            index_path="/Volumes/Data/vectors/indexes/BNC_speech.index"))
+            freq_dist_path="/Volumes/Data/vectors/indexes/BNC_speech.freqdist"))
     bbc_processing_metas = dict(
         raw=CorpusMetadata(
             name="BBC",
@@ -78,8 +75,7 @@ class Preferences(object):
         tokenised=CorpusMetadata(
             name="BBC",
             path="/Volumes/Data/corpora/BBC/4 Tokenised/BBC.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/BBC.freqdist",
-            index_path="/Volumes/Data/vectors/indexes/BBC.index"))
+            freq_dist_path="/Volumes/Data/vectors/indexes/BBC.freqdist"))
     ukwac_processing_metas = dict(
         raw=CorpusMetadata(
             name="UKWAC",
@@ -93,8 +89,7 @@ class Preferences(object):
         tokenised=CorpusMetadata(
             name="UKWAC",
             path="/Volumes/Data/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/UKWAC.freqdist",
-            index_path="/Volumes/Data/vectors/indexes/UKWAC.index"))
+            freq_dist_path="/Volumes/Data/vectors/indexes/UKWAC.freqdist"))
 
     # The final locations of the processed corpora
     source_corpus_metas = [

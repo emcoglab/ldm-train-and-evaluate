@@ -44,9 +44,10 @@ class CountVectorModel(VectorSemanticModel):
                  model_type: DistributionalSemanticModel.ModelType,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary):
+                 freq_dist: FreqDist):
         super().__init__(model_type, corpus_meta, window_radius)
-        self.token_indices = token_indices
+        self.freq_dist = freq_dist
+        self.token_indices = TokenIndexDictionary.from_freqdist(freq_dist)
 
     @property
     def matrix(self) -> scipy.sparse.csr_matrix:
@@ -195,9 +196,10 @@ class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
                  model_type: DistributionalSemanticModel.ModelType,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary):
+                 freq_dist: FreqDist):
         super().__init__(model_type, corpus_meta, window_radius)
-        self.token_indices = token_indices
+        self.freq_dist = freq_dist
+        self.token_indices = TokenIndexDictionary.from_freqdist(self.freq_dist)
 
     @property
     def _model_ext(self):
@@ -245,10 +247,10 @@ class UnsummedCoOccurrenceCountModel(CountVectorModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary,
+                 freq_dist: FreqDist,
                  chirality: Chirality):
         super().__init__(DistributionalSemanticModel.ModelType.unsummed_cooccurrence,
-                         corpus_meta, window_radius, token_indices)
+                         corpus_meta, window_radius, freq_dist)
         self._chirality = chirality
 
     # Overwrite, to include chirality
@@ -332,8 +334,8 @@ class CoOccurrenceCountModel(CountVectorModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary):
-        super().__init__(VectorSemanticModel.ModelType.cooccurrence, corpus_meta, window_radius, token_indices)
+                 freq_dist: FreqDist):
+        super().__init__(VectorSemanticModel.ModelType.cooccurrence, corpus_meta, window_radius, freq_dist)
 
     def _retrain(self):
 
@@ -347,7 +349,7 @@ class CoOccurrenceCountModel(CountVectorModel):
             # Accumulate both left and right occurrences
             for chirality in Chirality:
                 # Get each unsummed model
-                unsummed_model = UnsummedCoOccurrenceCountModel(self.corpus_meta, radius, self.token_indices, chirality)
+                unsummed_model = UnsummedCoOccurrenceCountModel(self.corpus_meta, radius, self.freq_dist, chirality)
                 unsummed_model.train()
 
                 # And add it to the current matrix
@@ -371,13 +373,12 @@ class LogCoOccurrenceCountModel(CountVectorModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary):
-        super().__init__(VectorSemanticModel.ModelType.log_cooccurrence,
-                         corpus_meta, window_radius, token_indices)
+                 freq_dist: FreqDist):
+        super().__init__(VectorSemanticModel.ModelType.log_cooccurrence, corpus_meta, window_radius, freq_dist)
 
     def _retrain(self):
         # Get the cooccurrence model
-        ngram_model = CoOccurrenceCountModel(self.corpus_meta, self.window_radius, self.token_indices)
+        ngram_model = CoOccurrenceCountModel(self.corpus_meta, self.window_radius, self.freq_dist)
         ngram_model.train()
 
         self._model = ngram_model.matrix
@@ -402,15 +403,13 @@ class CoOccurrenceProbabilityModel(CountVectorModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.cooccurrence_probability,
-                         corpus_meta, window_radius, token_indices)
-        self._freq_dist = freq_dist
+                         corpus_meta, window_radius, freq_dist)
 
     def _retrain(self):
         # Get the cooccurrence model
-        ngram_model = CoOccurrenceCountModel(self.corpus_meta, self.window_radius, self.token_indices)
+        ngram_model = CoOccurrenceCountModel(self.corpus_meta, self.window_radius, self.freq_dist)
         ngram_model.train()
 
         # The probability is just the cooccurrence count, divided by the width of the window and the size of the corpus
@@ -419,7 +418,7 @@ class CoOccurrenceProbabilityModel(CountVectorModel):
         # The width of the window is twice the radius
         # We don't do 2r+1 because we only count the context words, not the target word
         self._model /= self.window_radius * 2
-        self._model /= self._freq_dist.N()
+        self._model /= self.freq_dist.N()
 
 
 class TokenProbabilityModel(CountScalarModel):
@@ -437,15 +436,13 @@ class TokenProbabilityModel(CountScalarModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.token_probability,
-                         corpus_meta, window_radius, token_indices)
-        self._freq_dist = freq_dist
+                         corpus_meta, window_radius, freq_dist)
 
     def _retrain(self):
         # Get the cooccurrence model
-        ngram_model = CoOccurrenceCountModel(self.corpus_meta, self.window_radius, self.token_indices)
+        ngram_model = CoOccurrenceCountModel(self.corpus_meta, self.window_radius, self.freq_dist)
         ngram_model.train()
 
         # The probability is just the token count, divided by the width of the window and the size of the corpus
@@ -455,7 +452,7 @@ class TokenProbabilityModel(CountScalarModel):
         # The width of the window is twice the radius
         # We don't do 2r+1 because we only count the context words, not the target word
         self._model /= self.window_radius * 2
-        self._model /= self._freq_dist.N()
+        self._model /= self.freq_dist.N()
 
 
 class ConditionalProbabilityModel(CountVectorModel):
@@ -471,24 +468,18 @@ class ConditionalProbabilityModel(CountVectorModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 # TODO: this argument can be removed, replaced by TokenIndexDictionary.from_freqdist(freq_dist)
-                 token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
-        super().__init__(VectorSemanticModel.ModelType.conditional_probability, corpus_meta, window_radius,
-                         token_indices)
-        self._freq_dist = freq_dist
+        super().__init__(VectorSemanticModel.ModelType.conditional_probability, corpus_meta, window_radius, freq_dist)
 
     def _retrain(self):
-        ngram_probability_model = CoOccurrenceProbabilityModel(self.corpus_meta, self.window_radius, self.token_indices,
-                                                               self._freq_dist)
+        ngram_probability_model = CoOccurrenceProbabilityModel(self.corpus_meta, self.window_radius, self.freq_dist)
         ngram_probability_model.train()
 
         # Convert to csr for linear algebra
         self._model = ngram_probability_model.matrix
         del ngram_probability_model
 
-        token_probability_model = TokenProbabilityModel(self.corpus_meta, self.window_radius,
-                                                        self.token_indices, self._freq_dist)
+        token_probability_model = TokenProbabilityModel(self.corpus_meta, self.window_radius, self.freq_dist)
         token_probability_model.train()
 
         # Here we divide each n-gram probability value by the token probability value.
@@ -523,15 +514,13 @@ class ContextProbabilityModel(CountScalarModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.context_probability,
-                         corpus_meta, window_radius, token_indices)
-        self._freq_dist = freq_dist
+                         corpus_meta, window_radius, freq_dist)
 
     def _retrain(self):
         # Get the cooccurrence model
-        ngram_model = CoOccurrenceCountModel(self.corpus_meta, self.window_radius, self.token_indices)
+        ngram_model = CoOccurrenceCountModel(self.corpus_meta, self.window_radius, self.freq_dist)
         ngram_model.train()
 
         # The probability is just the token count, divided by the width of the window and the size of the corpus
@@ -540,7 +529,7 @@ class ContextProbabilityModel(CountScalarModel):
         # The width of the window is twice the radius
         # We don't do 2r+1 because we only count the context words, not the target word
         self._model /= self.window_radius * 2
-        self._model /= self._freq_dist.N()
+        self._model /= self.freq_dist.N()
 
 
 class ProbabilityRatioModel(CountVectorModel):
@@ -556,23 +545,18 @@ class ProbabilityRatioModel(CountVectorModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
-        super().__init__(DistributionalSemanticModel.ModelType.probability_ratio, corpus_meta, window_radius,
-                         token_indices)
-        self._freq_dist = freq_dist
+        super().__init__(DistributionalSemanticModel.ModelType.probability_ratio, corpus_meta, window_radius, freq_dist)
 
     def _retrain(self):
-        cond_prob_model = ConditionalProbabilityModel(self.corpus_meta, self.window_radius,
-                                                      self.token_indices, self._freq_dist)
+        cond_prob_model = ConditionalProbabilityModel(self.corpus_meta, self.window_radius, self.freq_dist)
         cond_prob_model.train()
 
         # Convert to csr for linear algebra
         self._model = cond_prob_model.matrix
         del cond_prob_model
 
-        context_probability_model = ContextProbabilityModel(self.corpus_meta, self.window_radius,
-                                                            self.token_indices, self._freq_dist)
+        context_probability_model = ContextProbabilityModel(self.corpus_meta, self.window_radius, self.freq_dist)
         context_probability_model.train()
 
         # Here we divide each conditional n-gram probability value by the context probability value.
@@ -616,16 +600,13 @@ class PPMIModel(CountVectorModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 token_indices: TokenIndexDictionary,
                  freq_dist: FreqDist):
-        super().__init__(DistributionalSemanticModel.ModelType.ppmi, corpus_meta, window_radius, token_indices)
-        self._freq_dist = freq_dist
+        super().__init__(DistributionalSemanticModel.ModelType.ppmi, corpus_meta, window_radius, freq_dist)
 
     def _retrain(self):
 
         # Start with probability ratio model
-        ratios_model = ProbabilityRatioModel(self.corpus_meta, self.window_radius, self.token_indices,
-                                             self._freq_dist)
+        ratios_model = ProbabilityRatioModel(self.corpus_meta, self.window_radius, self.freq_dist)
         ratios_model.train()
 
         # Copy ratios model matrix

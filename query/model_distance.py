@@ -17,10 +17,10 @@ caiwingfield.net
 
 import argparse
 
-from ..core.corpus.indexing import TokenIndexDictionary, FreqDist
+from ..core.corpus.indexing import FreqDist
 from ..core.model.base import DistributionalSemanticModel
-from ..core.model.count import LogCoOccurrenceCountModel, CoOccurrenceCountModel, CoOccurrenceProbabilityModel, TokenProbabilityModel, \
-    ContextProbabilityModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
+from ..core.model.count import LogCoOccurrenceCountModel, CoOccurrenceCountModel, CoOccurrenceProbabilityModel, \
+    TokenProbabilityModel, ContextProbabilityModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
 from ..core.model.predict import CbowModel, SkipGramModel
 from ..core.utils.maths import DistanceType
 from ..preferences.preferences import Preferences
@@ -60,7 +60,6 @@ def main(args):
     else:
         raise ValueError(f"Corpus {corpus_name} doesn't exist.")
 
-    token_indices = TokenIndexDictionary.load(corpus_metadata.index_path)
     freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 
     # Switch on model type
@@ -73,21 +72,21 @@ def main(args):
         # This is too complicated for now, as it involves chirality.
         raise NotImplementedError()
     elif model_type is DistributionalSemanticModel.ModelType.cooccurrence:
-        model = CoOccurrenceCountModel(corpus_metadata, radius, token_indices)
+        model = CoOccurrenceCountModel(corpus_metadata, radius, freq_dist)
     elif model_type is DistributionalSemanticModel.ModelType.log_cooccurrence:
-        model = LogCoOccurrenceCountModel(corpus_metadata, radius, token_indices)
+        model = LogCoOccurrenceCountModel(corpus_metadata, radius, freq_dist)
     elif model_type is DistributionalSemanticModel.ModelType.cooccurrence_probability:
-        model = CoOccurrenceProbabilityModel(corpus_metadata, radius, token_indices, freq_dist)
+        model = CoOccurrenceProbabilityModel(corpus_metadata, radius, freq_dist)
     elif model_type is DistributionalSemanticModel.ModelType.token_probability:
-        model = TokenProbabilityModel(corpus_metadata, radius, token_indices, freq_dist)
+        model = TokenProbabilityModel(corpus_metadata, radius, freq_dist)
     elif model_type is DistributionalSemanticModel.ModelType.context_probability:
-        model = ContextProbabilityModel(corpus_metadata, radius, token_indices, freq_dist)
+        model = ContextProbabilityModel(corpus_metadata, radius, freq_dist)
     elif model_type is DistributionalSemanticModel.ModelType.conditional_probability:
-        model = ConditionalProbabilityModel(corpus_metadata, radius, token_indices, freq_dist)
+        model = ConditionalProbabilityModel(corpus_metadata, radius, freq_dist)
     elif model_type is DistributionalSemanticModel.ModelType.probability_ratio:
-        model = ProbabilityRatioModel(corpus_metadata, radius, token_indices, freq_dist)
+        model = ProbabilityRatioModel(corpus_metadata, radius, freq_dist)
     elif model_type is DistributionalSemanticModel.ModelType.ppmi:
-        model = PPMIModel(corpus_metadata, radius, token_indices, freq_dist)
+        model = PPMIModel(corpus_metadata, radius, freq_dist)
     else:
         raise ValueError()
 

@@ -177,5 +177,6 @@ class TokenIndexDictionary(object):
         :param filename:
         :return:
         """
+        logger.warning("It's better to compute a TokenIndexDictionary from a FreqDist than to load a saved version.")
         with open(filename, mode="r") as file:
             return cls(json.load(file))
