@@ -49,6 +49,8 @@ def main(args):
 
     s = "" if occurrences == 1 else "s"
     print(f"Word '{word}' occurs in corpus '{corpus_metadata.name}' {occurrences} time{s}.")
+    if occurrences >= 1:
+        print(f"It's the #{freq_dist.token2id[word] + 1} most frequent word.")
 
 
 if __name__ == '__main__':
