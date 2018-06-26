@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    for corpus_metadata in [Preferences.source_corpus_metas[1]]:  # 1 = BBC
+    for corpus_metadata in [Preferences.source_corpus_metas.bbc]:
 
         freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 

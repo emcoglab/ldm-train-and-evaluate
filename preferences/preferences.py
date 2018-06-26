@@ -14,7 +14,7 @@ caiwingfield.net
 2017
 ---------------------------
 """
-
+from collections import namedtuple
 from os import path
 
 from ..core.corpus.corpus import CorpusMetadata
@@ -92,11 +92,11 @@ class Preferences(object):
             freq_dist_path="/Volumes/Data/vectors/indexes/UKWAC.freqdist"))
 
     # The final locations of the processed corpora
-    source_corpus_metas = [
-        bnc_processing_metas["tokenised"],
-        bbc_processing_metas["tokenised"],
-        ukwac_processing_metas["tokenised"]
-    ]
+    source_corpus_metas = namedtuple('SourceCorpusMetas', ['bnc', 'bbc', 'ukwac'])(
+        bnc=bnc_processing_metas["tokenised"],
+        bbc=bbc_processing_metas["tokenised"],
+        ukwac=ukwac_processing_metas["tokenised"],
+    )
 
     # Word lists
     brysbaert_1w = CorpusMetadata(
