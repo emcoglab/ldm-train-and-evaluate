@@ -23,7 +23,7 @@ from os import path
 from matplotlib import pyplot
 from seaborn import distplot
 
-from ..core.corpus.indexing import FreqDistIndex
+from ..core.corpus.indexing import FreqDist
 from ..core.evaluation.regression import SppData
 from ..core.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
 from ..core.utils.logging import log_message, date_format
@@ -40,7 +40,7 @@ def main():
     for corpus in Preferences.source_corpus_metas:
         figures_dir = path.join(Preferences.figures_dir, "priming", "(un)related distances")
 
-        freq_dist = FreqDistIndex.load(corpus.freq_dist_path)
+        freq_dist: FreqDist = FreqDist.load(corpus.freq_dist_path)
 
         for radius in Preferences.window_radii:
             for distance_type in DistanceType:

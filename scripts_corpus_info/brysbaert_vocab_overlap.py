@@ -20,7 +20,7 @@ import os
 import sys
 
 from ..core.utils.logging import log_message, date_format
-from ..core.corpus.indexing import FreqDistIndex
+from ..core.corpus.indexing import FreqDist
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ def main():
 
     for corpus_meta in Preferences.source_corpus_metas:
 
-        freq_dist = FreqDistIndex.load(corpus_meta.freq_dist_path)
+        freq_dist: FreqDist = FreqDist.load(corpus_meta.freq_dist_path)
 
         info_dir = os.path.dirname(corpus_meta.freq_dist_path)
 

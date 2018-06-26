@@ -19,7 +19,7 @@ import logging
 from abc import ABCMeta
 
 from ..corpus.corpus import CorpusMetadata
-from ..corpus.indexing import FreqDistIndex
+from ..corpus.indexing import FreqDist
 from ..model.base import VectorSemanticModel, DistributionalSemanticModel
 from ..model.count import CountVectorModel, LogCoOccurrenceCountModel, PPMIModel, ProbabilityRatioModel
 from ..utils.exceptions import WordNotFoundError
@@ -92,7 +92,7 @@ class NgramModel(DistributionalSemanticModel, metaclass=ABCMeta):
             raise WordNotFoundError(f"The word '{word_1}' was not found.")
 
         try:
-            word_2_index = self.underlying_count_model.freq_dist.token2id[word_2]
+            word_2_index = self.underlying_count_model.token_index.token2id[word_2]
         except KeyError:
             raise WordNotFoundError(f"The word '{word_2}' was not found.")
 
@@ -113,7 +113,7 @@ class LogNgramModel(NgramModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 freq_dist: FreqDistIndex):
+                 freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.log_ngram,
                          LogCoOccurrenceCountModel(corpus_meta, window_radius, freq_dist))
 
@@ -127,7 +127,7 @@ class ProbabilityRatioNgramModel(NgramModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 freq_dist: FreqDistIndex):
+                 freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.probability_ratio_ngram,
                          ProbabilityRatioModel(corpus_meta, window_radius, freq_dist))
 
@@ -141,6 +141,6 @@ class PPMINgramModel(NgramModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 freq_dist: FreqDistIndex):
+                 freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.ppmi_ngram,
                          PPMIModel(corpus_meta, window_radius, freq_dist))

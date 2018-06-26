@@ -26,7 +26,7 @@ import numpy
 import scipy.sparse
 
 from ..corpus.corpus import CorpusMetadata, WindowedCorpus
-from ..corpus.indexing import FreqDistIndex
+from ..corpus.indexing import FreqDist, TokenIndex
 from ..model.base import VectorSemanticModel, DistributionalSemanticModel, ScalarSemanticModel
 from ..utils.constants import Chirality
 from ..utils.exceptions import WordNotFoundError
@@ -44,9 +44,10 @@ class CountVectorModel(VectorSemanticModel):
                  model_type: DistributionalSemanticModel.ModelType,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 freq_dist: FreqDistIndex):
+                 freq_dist: FreqDist):
         super().__init__(model_type, corpus_meta, window_radius)
-        self.freq_dist = freq_dist
+        self.freq_dist: FreqDist = freq_dist
+        self.token_index: TokenIndex = TokenIndex.from_freqdist_ranks(freq_dist)
 
     @property
     def matrix(self) -> scipy.sparse.csr_matrix:
@@ -130,7 +131,7 @@ class CountVectorModel(VectorSemanticModel):
 
     def vector_for_word(self, word: str):
         try:
-            word_id = self.freq_dist.token2id[word]
+            word_id = self.token_index.token2id[word]
             return self.vector_for_id(word_id)
         except KeyError:
             raise WordNotFoundError(f"The word '{word}' was not found.")
@@ -142,12 +143,12 @@ class CountVectorModel(VectorSemanticModel):
                 raise ValueError("only_consider_most_frequent must be at least 1")
             vocab_size = only_consider_most_frequent
         else:
-            vocab_size = len(self.freq_dist.id2token)
+            vocab_size = len(self.token_index.id2token)
 
         if not self.contains_word(word):
             raise WordNotFoundError(f"The word '{word}' was not found.")
 
-        target_id = self.freq_dist.token2id[word]
+        target_id = self.token_index.token2id[word]
         target_vector = self.vector_for_id(target_id)
 
         nearest_neighbours = []
@@ -175,12 +176,12 @@ class CountVectorModel(VectorSemanticModel):
 
             if candidate_id % 10_000 == 0 and candidate_id > 0:
                 logger.info(f'\t{candidate_id:,} out of {vocab_size:,} candidates considered. '
-                            f'"{self.freq_dist.id2token[nearest_neighbours[0][0]]}" currently the fave')
+                            f'"{self.token_index.id2token[nearest_neighbours[0][0]]}" currently the fave')
 
-        return [self.freq_dist.id2token[i] for i, dist in nearest_neighbours]
+        return [self.token_index.id2token[i] for i, dist in nearest_neighbours]
 
     def contains_word(self, word: str) -> bool:
-        if word.lower() in [token.lower() for token in self.freq_dist.token2id]:
+        if word.lower() in [token.lower() for token in self.token_index.token2id]:
             return True
         else:
             return False
@@ -195,9 +196,10 @@ class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
                  model_type: DistributionalSemanticModel.ModelType,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 freq_dist: FreqDistIndex):
+                 freq_dist: FreqDist):
         super().__init__(model_type, corpus_meta, window_radius)
-        self.freq_dist = freq_dist
+        self.freq_dist: FreqDist = freq_dist
+        self.token_index: TokenIndex = TokenIndex.from_freqdist_ranks(freq_dist)
 
     @property
     def _model_ext(self):
@@ -228,10 +230,10 @@ class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
         if not self.contains_word(word):
             raise WordNotFoundError(f"The word '{word}' was not found.")
 
-        return self._model[self.freq_dist.token2id[word]]
+        return self._model[self.token_index.token2id[word]]
 
     def contains_word(self, word: str) -> bool:
-        if word.lower() in self.freq_dist.token2id:
+        if word.lower() in self.token_index.token2id:
             return True
         else:
             return False
@@ -245,7 +247,7 @@ class UnsummedCoOccurrenceCountModel(CountVectorModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 freq_dist: FreqDistIndex,
+                 freq_dist: FreqDist,
                  chirality: Chirality):
         super().__init__(DistributionalSemanticModel.ModelType.unsummed_cooccurrence,
                          corpus_meta, window_radius, freq_dist)
@@ -301,8 +303,8 @@ class UnsummedCoOccurrenceCountModel(CountVectorModel):
             target_token = window[target_index]
             context_token = window[context_index]
 
-            target_id = self.freq_dist.token2id[target_token]
-            context_id = self.freq_dist.token2id[context_token]
+            target_id = self.token_index.token2id[target_token]
+            context_id = self.token_index.token2id[context_token]
 
             # TODO: Left- and right-context matrices are transposes of one another.  For the edge-most elements of
             # TODO: every window, one is either the target or the context, and the other is the other.  So we could
@@ -332,7 +334,7 @@ class CoOccurrenceCountModel(CountVectorModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 freq_dist: FreqDistIndex):
+                 freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.cooccurrence, corpus_meta, window_radius, freq_dist)
 
     def _retrain(self):
@@ -371,7 +373,7 @@ class LogCoOccurrenceCountModel(CountVectorModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 freq_dist: FreqDistIndex):
+                 freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.log_cooccurrence, corpus_meta, window_radius, freq_dist)
 
     def _retrain(self):
@@ -401,7 +403,7 @@ class CoOccurrenceProbabilityModel(CountVectorModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 freq_dist: FreqDistIndex):
+                 freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.cooccurrence_probability,
                          corpus_meta, window_radius, freq_dist)
 
@@ -434,7 +436,7 @@ class TokenProbabilityModel(CountScalarModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 freq_dist: FreqDistIndex):
+                 freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.token_probability,
                          corpus_meta, window_radius, freq_dist)
 
@@ -466,7 +468,7 @@ class ConditionalProbabilityModel(CountVectorModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 freq_dist: FreqDistIndex):
+                 freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.conditional_probability, corpus_meta, window_radius, freq_dist)
 
     def _retrain(self):
@@ -512,7 +514,7 @@ class ContextProbabilityModel(CountScalarModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 freq_dist: FreqDistIndex):
+                 freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.context_probability,
                          corpus_meta, window_radius, freq_dist)
 
@@ -543,7 +545,7 @@ class ProbabilityRatioModel(CountVectorModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 freq_dist: FreqDistIndex):
+                 freq_dist: FreqDist):
         super().__init__(DistributionalSemanticModel.ModelType.probability_ratio, corpus_meta, window_radius, freq_dist)
 
     def _retrain(self):
@@ -598,7 +600,7 @@ class PPMIModel(CountVectorModel):
     def __init__(self,
                  corpus_meta: CorpusMetadata,
                  window_radius: int,
-                 freq_dist: FreqDistIndex):
+                 freq_dist: FreqDist):
         super().__init__(DistributionalSemanticModel.ModelType.ppmi, corpus_meta, window_radius, freq_dist)
 
     def _retrain(self):

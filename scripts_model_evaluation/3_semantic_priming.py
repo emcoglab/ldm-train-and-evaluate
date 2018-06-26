@@ -23,7 +23,7 @@ from typing import Set, List, Optional
 import pandas
 import statsmodels.formula.api as sm
 
-from ..core.corpus.indexing import FreqDistIndex
+from ..core.corpus.indexing import FreqDist
 from ..core.evaluation.regression import SppData, RegressionResult
 from ..core.model.base import DistributionalSemanticModel
 from ..core.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
@@ -87,7 +87,7 @@ def save_wordpairs(word_pairs):
 def add_all_model_predictors(spp_data: SppData):
     for corpus_metadata in Preferences.source_corpus_metas:
 
-        freq_dist = FreqDistIndex.load(corpus_metadata.freq_dist_path)
+        freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 
         for window_radius in Preferences.window_radii:
 
@@ -255,7 +255,7 @@ def run_all_model_regressions(all_data: pandas.DataFrame,
 
     for corpus_metadata in Preferences.source_corpus_metas:
 
-        freq_dist = FreqDistIndex.load(corpus_metadata.freq_dist_path)
+        freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 
         for window_radius in Preferences.window_radii:
 

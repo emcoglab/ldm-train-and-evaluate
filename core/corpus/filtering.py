@@ -19,7 +19,7 @@ import re
 
 from typing import List
 
-from .indexing import FreqDistIndex
+from .indexing import FreqDist
 
 
 def filter_punctuation(unfiltered_corpus: List[str]) -> List[str]:
@@ -54,7 +54,7 @@ def filter_frequency(unfiltered_corpus: List[str], ignore_tokens_with_freqs_at_m
         return unfiltered_corpus
     else:
         if freq_dist is None:
-            freq_dist = FreqDistIndex(unfiltered_corpus)
+            freq_dist = FreqDist(unfiltered_corpus)
         return [token
                 for token in unfiltered_corpus
                 if freq_dist[token] > ignore_tokens_with_freqs_at_most]

@@ -24,7 +24,7 @@ from ..core.model.ngram import LogNgramModel
 from ..core.utils.constants import Chirality
 from ..core.utils.maths import DistanceType
 from ..core.corpus.corpus import BatchedCorpus
-from ..core.corpus.indexing import FreqDistIndex
+from ..core.corpus.indexing import FreqDist
 from ..core.model.count import UnsummedCoOccurrenceCountModel, CoOccurrenceCountModel, LogCoOccurrenceCountModel, \
     ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
 
@@ -35,7 +35,7 @@ class TestUnsummedCoOccurrenceModel(unittest.TestCase):
     def test_unsummed_cooccurrence_r1_left_values(self):
         model = UnsummedCoOccurrenceCountModel(test_corpus_metadata,
                                                window_radius=1,
-                                               freq_dist=FreqDistIndex.from_batched_corpus(
+                                               freq_dist=FreqDist.from_batched_corpus(
                                                    BatchedCorpus(test_corpus_metadata, 3)),
                                                chirality=Chirality.left)
         model.train(force_retrain=True)
@@ -53,7 +53,7 @@ class TestUnsummedCoOccurrenceModel(unittest.TestCase):
     def test_unsummed_cooccurrence_r1_right_values(self):
         model = UnsummedCoOccurrenceCountModel(test_corpus_metadata,
                                                window_radius=1,
-                                               freq_dist=FreqDistIndex.from_batched_corpus(
+                                               freq_dist=FreqDist.from_batched_corpus(
                                                    BatchedCorpus(test_corpus_metadata, 3)),
                                                chirality=Chirality.right)
         model.train(force_retrain=True)
@@ -73,7 +73,7 @@ class TestCoOccurrenceModel(unittest.TestCase):
     def test_cooccurrence_contains_abcd(self):
         model = CoOccurrenceCountModel(test_corpus_metadata,
                                        window_radius=1,
-                                       freq_dist=FreqDistIndex.from_batched_corpus(
+                                       freq_dist=FreqDist.from_batched_corpus(
                                            BatchedCorpus(test_corpus_metadata, 3)))
         model.train(force_retrain=True)
 
@@ -85,7 +85,7 @@ class TestCoOccurrenceModel(unittest.TestCase):
     def test_cooccurrence_does_not_contain_e(self):
         model = CoOccurrenceCountModel(test_corpus_metadata,
                                        window_radius=1,
-                                       freq_dist=FreqDistIndex.from_batched_corpus(
+                                       freq_dist=FreqDist.from_batched_corpus(
                                            BatchedCorpus(test_corpus_metadata, 3)))
         model.train(force_retrain=True)
 
@@ -94,7 +94,7 @@ class TestCoOccurrenceModel(unittest.TestCase):
     def test_cooccurrence_r1_values(self):
         model = CoOccurrenceCountModel(test_corpus_metadata,
                                        window_radius=1,
-                                       freq_dist=FreqDistIndex.from_batched_corpus(
+                                       freq_dist=FreqDist.from_batched_corpus(
                                            BatchedCorpus(test_corpus_metadata, 3)))
         model.train(force_retrain=True)
 
@@ -111,7 +111,7 @@ class TestCoOccurrenceModel(unittest.TestCase):
     def test_cooccurrence_r2_values(self):
         model = CoOccurrenceCountModel(test_corpus_metadata,
                                        window_radius=2,
-                                       freq_dist=FreqDistIndex.from_batched_corpus(
+                                       freq_dist=FreqDist.from_batched_corpus(
                                            BatchedCorpus(test_corpus_metadata, 3)))
         model.train(force_retrain=True)
 
@@ -128,7 +128,7 @@ class TestCoOccurrenceModel(unittest.TestCase):
     def test_cooccurrence_r9_values(self):
         model = CoOccurrenceCountModel(test_corpus_metadata,
                                        window_radius=9,
-                                       freq_dist=FreqDistIndex.from_batched_corpus(
+                                       freq_dist=FreqDist.from_batched_corpus(
                                            BatchedCorpus(test_corpus_metadata, 3)))
         model.train(force_retrain=True)
 
@@ -145,7 +145,7 @@ class TestCoOccurrenceModel(unittest.TestCase):
     def test_cooccurrence_r9_distance(self):
         model = CoOccurrenceCountModel(test_corpus_metadata,
                                        window_radius=9,
-                                       freq_dist=FreqDistIndex.from_batched_corpus(
+                                       freq_dist=FreqDist.from_batched_corpus(
                                            BatchedCorpus(test_corpus_metadata, 3)))
         model.train(force_retrain=True)
 
@@ -159,7 +159,7 @@ class TestLogCoOccurrence(unittest.TestCase):
     def test_log_cooccurrece_r1_values(self):
         model = LogCoOccurrenceCountModel(test_corpus_metadata,
                                           window_radius=1,
-                                          freq_dist=FreqDistIndex.from_batched_corpus(
+                                          freq_dist=FreqDist.from_batched_corpus(
                                               BatchedCorpus(test_corpus_metadata, 3)))
         model.train(force_retrain=True)
 
@@ -182,7 +182,7 @@ class TestLogCoOccurrence(unittest.TestCase):
 
 class TestConditionalProbability(unittest.TestCase):
     def test_conditional_probability_r1_values(self):
-        fd = FreqDistIndex.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
+        fd: FreqDist = FreqDist.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
         model = ConditionalProbabilityModel(test_corpus_metadata,
                                             window_radius=1,
                                             freq_dist=fd)
@@ -204,7 +204,7 @@ class TestConditionalProbability(unittest.TestCase):
 
 class TestProbabilityRatios(unittest.TestCase):
     def test_probability_ratios_r1_values(self):
-        fd = FreqDistIndex.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
+        fd = FreqDist.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
         model = ProbabilityRatioModel(test_corpus_metadata,
                                       window_radius=1,
                                       freq_dist=fd)
@@ -226,7 +226,7 @@ class TestProbabilityRatios(unittest.TestCase):
 
 class TestPPMI(unittest.TestCase):
     def test_ppmi_r1_values(self):
-        fd = FreqDistIndex.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
+        fd = FreqDist.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3))
         model = PPMIModel(test_corpus_metadata,
                           window_radius=1,
                           freq_dist=fd)
@@ -253,7 +253,7 @@ class TestNgram(unittest.TestCase):
     def test_ngram_a_b(self):
         model = LogNgramModel(test_corpus_metadata,
                               window_radius=1,
-                              freq_dist=FreqDistIndex.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3)))
+                              freq_dist=FreqDist.from_batched_corpus(BatchedCorpus(test_corpus_metadata, 3)))
         model.train(force_retrain=True)
 
         self.assertAlmostEqual(

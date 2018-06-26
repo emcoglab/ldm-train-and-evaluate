@@ -17,7 +17,7 @@ caiwingfield.net
 
 import argparse
 
-from ..core.corpus.indexing import FreqDistIndex
+from ..core.corpus.indexing import FreqDist
 from ..core.model.base import DistributionalSemanticModel
 from ..core.model.count import LogCoOccurrenceCountModel, CoOccurrenceCountModel, CoOccurrenceProbabilityModel, \
     TokenProbabilityModel, ContextProbabilityModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
@@ -60,7 +60,7 @@ def main(args):
     else:
         raise ValueError(f"Corpus {corpus_name} doesn't exist.")
 
-    freq_dist = FreqDistIndex.load(corpus_metadata.freq_dist_path)
+    freq_dist: FreqDist = FreqDist.load(corpus_metadata.freq_dist_path)
 
     # Switch on model type
     model_type = DistributionalSemanticModel.ModelType.from_slug(model_name)

@@ -18,7 +18,7 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.corpus.indexing import FreqDistIndex
+from ..core.corpus.indexing import FreqDist
 from ..core.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
     AssociationTester, ColourEmotionAssociation, ThematicRelatedness, AssociationResults
 from ..core.model.count import PPMIModel, LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel
@@ -47,7 +47,7 @@ def main():
 
     for corpus_metadata in Preferences.source_corpus_metas:
 
-        freq_dist = FreqDistIndex.load(corpus_metadata.freq_dist_path)
+        freq_dist = FreqDist.load(corpus_metadata.freq_dist_path)
 
         for window_radius in Preferences.window_radii:
 

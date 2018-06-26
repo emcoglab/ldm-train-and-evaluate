@@ -18,7 +18,7 @@ caiwingfield.net
 
 import argparse
 
-from ..core.corpus.indexing import FreqDistIndex
+from ..core.corpus.indexing import FreqDist
 from ..preferences.preferences import Preferences
 
 
@@ -40,7 +40,7 @@ def main(args):
     else:
         raise ValueError(f"Corpus {corpus_name} doesn't exist.")
 
-    freq_dist = FreqDistIndex.load(corpus_metadata.freq_dist_path)
+    freq_dist: FreqDist = FreqDist.load(corpus_metadata.freq_dist_path)
 
     try:
         occurrences = freq_dist[word]
@@ -50,7 +50,7 @@ def main(args):
     s = "" if occurrences == 1 else "s"
     print(f"Word '{word}' occurs in corpus '{corpus_metadata.name}' {occurrences} time{s}.")
     if occurrences >= 1:
-        print(f"It's the #{freq_dist.token2id[word] + 1} most frequent word.")
+        print(f"It's the #{freq_dist.rank(word) + 1} most frequent word.")
 
 
 if __name__ == '__main__':

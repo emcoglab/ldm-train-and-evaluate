@@ -20,7 +20,7 @@ import os
 import sys
 
 from ..core.utils.logging import log_message, date_format
-from ..core.corpus.indexing import FreqDistIndex
+from ..core.corpus.indexing import FreqDist
 from ..preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
@@ -88,7 +88,7 @@ def save_frequency_distribution_graph(freq_dist, filename, corpus_name="corpus",
 
 def save_frequency_distribution_info(freq_dist, filename):
     """
-    Saves information about a FreqDistIndex
+    Saves information about a FreqDist
     :param freq_dist:
     :param filename:
     :return:
@@ -127,7 +127,7 @@ def main():
 
     for corpus_meta in Preferences.source_corpus_metas:
 
-        freq_dist = FreqDistIndex.load(corpus_meta.freq_dist_path)
+        freq_dist: FreqDist = FreqDist.load(corpus_meta.freq_dist_path)
 
         info_dir = os.path.dirname(corpus_meta.freq_dist_path)
 
