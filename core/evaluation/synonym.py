@@ -405,6 +405,7 @@ class SynonymTester(object):
         """
         # The current best guess
         best_guess_i = -1
+        # _d for distance
         best_guess_d = math.inf
 
         # List in reverse order, just to negate any possibility that we preference the first option, which is usually
@@ -434,6 +435,7 @@ class SynonymTester(object):
         """
         # The current best guess
         best_guess_i = -1
+        # _a for association
         best_guess_a = -math.inf
 
         # List in reverse order: in case we have all items identical we won't automatically pick the first one (which is
@@ -444,7 +446,7 @@ class SynonymTester(object):
             except WordNotFoundError as er:
                 logger.warning(er.message)
                 # Make sure we don't pick this one
-                guess_a = math.inf
+                guess_a = -math.inf
 
             if guess_a > best_guess_a:
                 best_guess_i = option_i
