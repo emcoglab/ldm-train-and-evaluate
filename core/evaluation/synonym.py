@@ -52,12 +52,18 @@ class SynonymTestQuestion(object):
     """
 
     def __init__(self, prompt: str, options: List[str], correct_i: int):
-        self.correct_i = correct_i
-        self.options = options
-        self.prompt = prompt
+        self.correct_i: int = correct_i
+        self.options: List[str] = options
+        self.prompt: str = prompt
 
     def __copy__(self):
         return SynonymTestQuestion(self.prompt, self.options.copy(), self.correct_i)
+
+    def __str__(self):
+        stars = []
+        for option in self.options:
+            stars.append(f'{option}*' if option is self.correct_answer_word else option)
+        return f"{self.prompt}: {', '.join(stars)}"
 
     @property
     def correct_answer_word(self) -> str:
@@ -408,20 +414,30 @@ class SynonymTester(object):
         # _d for distance
         best_guess_d = math.inf
 
+        # Record distances here so we can check for ties when a selection is finally made
+        distances = []
+
         # List in reverse order, just to negate any possibility that we preference the first option, which is usually
         # the correct one.
         for option_i, option in reversed(list(enumerate(question.options))):
             try:
                 guess_d = model.distance_between(question.prompt, option, distance_type,
                                                  truncate_vectors_at_length)
+                distances.append(guess_d)
             except WordNotFoundError as er:
                 logger.warning(er.message)
-                # Make sure we don't pick this one
+                # Make sure we don't pick this one, so we give it the largest possible distance
                 guess_d = math.inf
 
             if guess_d < best_guess_d:
                 best_guess_i = option_i
                 best_guess_d = guess_d
+
+        tied_entry_indices = [i for i, d in enumerate(distances) if d == best_guess_d]
+        if len(tied_entry_indices) > 1 and best_guess_d > 0:
+            tied_entries = [question.options[i].upper() for i in tied_entry_indices]
+            logger.warning(f"{question.prompt.upper()}'s chosen synonym {question.options[best_guess_i]} "
+                           f"was tied with {' and '.join(tied_entries)}.")
 
         return AnsweredQuestion(copy(question), best_guess_i)
 
@@ -438,18 +454,28 @@ class SynonymTester(object):
         # _a for association
         best_guess_a = -math.inf
 
+        # Record associations here so we can check for ties when a selection is finally made
+        associations = []
+
         # List in reverse order: in case we have all items identical we won't automatically pick the first one (which is
         # usually the correct one).
         for option_i, option in reversed(list(enumerate(question.options))):
             try:
                 guess_a = model.association_between(question.prompt, option)
+                associations.append(guess_a)
             except WordNotFoundError as er:
                 logger.warning(er.message)
-                # Make sure we don't pick this one
+                # Make sure we don't pick this one, so we give it the smallest possible association
                 guess_a = -math.inf
 
             if guess_a > best_guess_a:
                 best_guess_i = option_i
                 best_guess_a = guess_a
+
+        tied_entry_indices = [i for i, a in enumerate(associations) if a == best_guess_a]
+        if len(tied_entry_indices) > 1 and best_guess_a > 0:
+            tied_entries = [question.options[i].upper() for i in tied_entry_indices]
+            logger.warning(f"{question.prompt.upper()}'s chosen synonym {question.options[best_guess_i]} "
+                           f"was tied with {' and '.join(tied_entries)}.")
 
         return AnsweredQuestion(copy(question), best_guess_i)
