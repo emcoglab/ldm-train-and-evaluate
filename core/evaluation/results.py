@@ -22,6 +22,7 @@ from abc import ABCMeta
 from typing import List, Optional
 
 import pandas
+from numpy import nan
 
 from ..model.base import DistributionalSemanticModel
 from ..model.predict import PredictVectorModel
@@ -165,4 +166,8 @@ class EvaluationResults(metaclass=ABCMeta):
         """
         Load from a CSV (use if the pickle gets lost or corrupted somehow.
         """
-        self.data = pandas.read_csv(self._csv_path)
+        self.data = pandas.read_csv(self._csv_path, converters={
+            # Check if embedding size is the empty string,
+            # as it would be for Count models
+            "Embedding size": lambda v: int(v) if len(v) > 0 else nan
+        })
