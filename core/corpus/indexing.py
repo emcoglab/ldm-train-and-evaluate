@@ -108,7 +108,7 @@ class FreqDist(nltk.probability.FreqDist):
             # instances are loaded as dicts, so we must cast it up to a FreqDist
             return cls(json.load(file))
 
-    def rank(self, token):
+    def rank(self, token) -> int:
         """
         The rank of a token in an ordered list of all sampled tokens, ordered most- to least-frequent.
 
