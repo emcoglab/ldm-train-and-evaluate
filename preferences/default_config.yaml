@@ -1,0 +1,99 @@
+# Paths for the location of files relevant to each corpus.
+#
+# Each corpus has a path and an index.
+#
+#   path: the absolute location of the .corpus file
+#   index: the absolute location of the .freqdist file
+corpora:
+
+  # The three main corpora
+  bnc:
+    name:  "BNC"
+    path:  "/Volumes/Data/corpora/BNC/2 Tokenised/BNC.corpus"
+    index: "/Volumes/Data/vectors/indexes/BNC.freqdist"
+  subtitles:
+    name:  "BBC"
+    path:  "/Volumes/Data/corpora/BBC/4 Tokenised/BBC.corpus"
+    index: "/Volumes/Data/vectors/indexes/BBC.freqdist"
+  ukwac:
+    name:  "UKWAC"
+    path:  "/Volumes/Data/corpora/UKWAC/3 Tokenised/UKWAC.corpus"
+    index: "/Volumes/Data/vectors/indexes/UKWAC.freqdist"
+
+  # Other corpora
+  bnc-text:
+    name:  "BNC-text"
+    path:  "/Volumes/Data/corpora/BNC-text/2 Tokenised/BNC-text.corpus"
+    index: "/Volumes/Data/vectors/indexes/BNC_text.freqdist"
+  bnc-speech:
+    name:  "BNC-speech"
+    path:  "/Volumes/Data/corpora/BNC-speech/2 Tokenised/BNC-text.corpus"
+    index: "/Volumes/Data/vectors/indexes/BNC_speech.freqdist"
+
+  # Previous processing steps
+  # bnc
+  bnc-raw:
+    name:  "BNC"
+    path:  "/Volumes/Data/corpora/BNC/0 XML version/Texts"
+  bnc-detagged:
+    name:  "BNC"
+    path:  "/Volumes/Data/corpora/BNC/1 Detagged"
+  # bnc-text
+  bnc-text-raw:
+    name:  "BNC-text"
+    path:  "/Volumes/Data/corpora/BNC-text/0 XML version"
+  bnc-text-detagged:
+    name:  "BNC-text"
+    path:  "/Volumes/Data/corpora/BNC-text/1 Detagged"
+  # bnc-speech
+  bnc-speech-raw:
+    name:  "BNC-speech"
+    path:  "/Volumes/Data/corpora/BNC-speech/0 XML version"
+  bnc-speech-detagged:
+    name:  "BNC-speech"
+    path:  "/Volumes/Data/corpora/BNC-speech/1 Detagged"
+  # subtitles
+  subtitles-raw:
+    name:  "BBC"
+    path:  "/Volumes/Data/corpora/BBC/0 XML version"
+  subtitles-no-srt:
+    name:  "BBC"
+    path:  "/Volumes/Data/corpora/BBC/1 No srt formatting"
+  subtitles-no-nonspeech:
+    name:  "BBC"
+    path:  "/Volumes/Data/corpora/BBC/2 No nonspeech"
+  subtitles-replaced-symbols:
+    name:  "BBC"
+    path:  "/Volumes/Data/corpora/BBC/3 Replaced symbols"
+  # ukwac
+  ukwac-raw:
+    name: "UKWAC"
+    path: "/Volumes/Data/corpora/UKWAC/0 Raw untagged/cleaned_pre.pcorpus"
+  ukwac-no-urls:
+    name: "UKWAC"
+    path: "/Volumes/Data/corpora/UKWAC/1 Text only/cleaned_pre.pcorpus"
+  ukwac-partitioned:
+    name: "UKWAC"
+    path: "/Volumes/Data/corpora/UKWAC/2 Partitioned"
+
+# Word lists for coverage checks
+word-lists:
+  brysbaert-1-word:
+    path: "/Users/caiwingfield/code/corpus_analysis/scripts_corpus_info/brysbaert1.wordlist"
+
+# Locations of files relevant to each model
+models:
+  # The directory where all models live.  Within this directory, models must be arranged in the following manner:
+  #
+  #   <directory>/<model-name>/<*model-files>
+  directory: "/Volumes/Data/vectors/"
+
+# Locations of files relevant to tests
+tests:
+  directory: "/Volumes/Data/evaluation/tests/"
+
+# Locations of results to be saved
+results:
+  directory: "/Volumes/Data/evaluation/results/"
+  figures-directory: "/Volumes/Data/evaluation/figures/"
+  summary-directory: "/Volumes/Data/evaluation/summary"

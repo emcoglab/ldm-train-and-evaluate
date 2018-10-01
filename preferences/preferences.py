@@ -17,79 +17,83 @@ caiwingfield.net
 from collections import namedtuple
 from os import path
 
+from .config import Config
 from ..core.corpus.corpus import CorpusMetadata
 
 
-class Preferences(object):
+class Preferences:
     """
-    Global preferences for models.
+    Preferences for models.
     """
+    
+    # Static config
+    _config: Config = Config()
 
     # Paths for intermediate processing steps
     bnc_processing_metas = dict(
         raw=CorpusMetadata(
-            name="BNC",
-            path="/Volumes/Data/corpora/BNC/0 XML version/Texts"),
+            name=_config.value_by_key_path("corpora", "bnc-raw", "name"),
+            path=_config.value_by_key_path("corpora", "bnc-raw", "path")),
         detagged=CorpusMetadata(
-            name="BNC",
-            path="/Volumes/Data/corpora/BNC/1 Detagged"),
+            name=_config.value_by_key_path("corpora", "bnc-detagged", "name"),
+            path=_config.value_by_key_path("corpora", "bnc-detagged", "path")),
         tokenised=CorpusMetadata(
-            name="BNC",
-            path="/Volumes/Data/corpora/BNC/2 Tokenised/BNC.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/BNC.freqdist"))
+            name=_config.value_by_key_path("corpora", "bnc", "name"),
+            path=_config.value_by_key_path("corpora", "bnc", "path"),
+            freq_dist_path=_config.value_by_key_path("corpora", "bnc", "index")))
     bnc_text_processing_metas = dict(
         raw=CorpusMetadata(
-            name="BNC-text",
-            path="/Volumes/Data/corpora/BNC-text/0 XML version"),
+            name=_config.value_by_key_path("corpora", "bnc-text-raw", "name"),
+            path=_config.value_by_key_path("corpora", "bnc-text-raw", "path")),
         detagged=CorpusMetadata(
-            name="BNC-text",
-            path="/Volumes/Data/corpora/BNC-text/1 Detagged"),
+            name=_config.value_by_key_path("corpora", "bnc-text-detagged", "name"),
+            path=_config.value_by_key_path("corpora", "bnc-text-detagged", "path")),
         tokenised=CorpusMetadata(
-            name="BNC-text",
-            path="/Volumes/Data/corpora/BNC-text/2 Tokenised/BNC-text.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/BNC_text.freqdist"))
+            name=_config.value_by_key_path("corpora", "bnc-text", "name"),
+            path=_config.value_by_key_path("corpora", "bnc-text", "path"),
+            freq_dist_path=_config.value_by_key_path("corpora", "bnc-text", "index")))
     bnc_speech_processing_metas = dict(
         raw=CorpusMetadata(
-            name="BNC-speech",
-            path="/Volumes/Data/corpora/BNC-speech/0 XML version"),
+            name=_config.value_by_key_path("corpora", "bnc-speech-raw", "name"),
+            path=_config.value_by_key_path("corpora", "bnc-speech-raw", "path")),
         detagged=CorpusMetadata(
-            name="BNC-speech",
-            path="/Volumes/Data/corpora/BNC-speech/1 Detagged"),
+            name=_config.value_by_key_path("corpora", "bnc-speech-detagged", "name"),
+            path=_config.value_by_key_path("corpora", "bnc-speech-detagged", "path")),
         tokenised=CorpusMetadata(
-            name="BNC-speech",
-            path="/Volumes/Data/corpora/BNC-speech/2 Tokenised/BNC-speech.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/BNC_speech.freqdist"))
+            name=_config.value_by_key_path("corpora", "bnc-speech", "name"),
+            path=_config.value_by_key_path("corpora", "bnc-speech", "path"),
+            freq_dist_path=_config.value_by_key_path("corpora", "bnc-speech", "index")))
     bbc_processing_metas = dict(
         raw=CorpusMetadata(
-            name="BBC",
-            path="/Volumes/Data/corpora/BBC-mini/0 Raw"),
+            name=_config.value_by_key_path("corpora", "subtitles-raw", "name"),
+            path=_config.value_by_key_path("corpora", "subtitles-raw", "path")),
         no_srt=CorpusMetadata(
-            name="BBC",
-            path="/Volumes/Data/corpora/BBC-mini/1 No srt formatting"),
+            name=_config.value_by_key_path("corpora", "subtitles-no-srt", "name"),
+            path=_config.value_by_key_path("corpora", "subtitles-no-srt", "path")),
         no_nonspeech=CorpusMetadata(
-            name="BBC",
-            path="/Volumes/Data/corpora/BBC-mini/2 No nonspeech"),
+            name=_config.value_by_key_path("corpora", "subtitles-no-nonspeech", "name"),
+            path=_config.value_by_key_path("corpora", "subtitles-no-nonspeech", "path")),
         replaced_symbols=CorpusMetadata(
-            name="BBC",
-            path="/Volumes/Data/corpora/BBC/3 Replaced symbols"),
+            name=_config.value_by_key_path("corpora", "subtitles-replaced-symbols", "name"),
+            path=_config.value_by_key_path("corpora", "subtitles-replaced-symbols", "path")),
         tokenised=CorpusMetadata(
-            name="BBC",
-            path="/Volumes/Data/corpora/BBC/4 Tokenised/BBC.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/BBC.freqdist"))
+            name=_config.value_by_key_path("corpora", "subtitles", "name"),
+            path=_config.value_by_key_path("corpora", "subtitles", "path"),
+            freq_dist_path=_config.value_by_key_path("corpora", "subtitles", "index")))
     ukwac_processing_metas = dict(
         raw=CorpusMetadata(
-            name="UKWAC",
-            path="/Volumes/Data/corpora/UKWAC/0 Raw untagged/cleaned_pre.pcorpus"),
+            name=_config.value_by_key_path("corpora", "ukwac-raw", "name"),
+            path=_config.value_by_key_path("corpora", "ukwac-raw", "path")),
         no_urls=CorpusMetadata(
-            name="UKWAC",
-            path="/Volumes/Data/corpora/UKWAC/1 Text only/cleaned_pre.pcorpus"),
+            name=_config.value_by_key_path("corpora", "ukwac-no-urls", "name"),
+            path=_config.value_by_key_path("corpora", "ukwac-no-urls", "path")),
         partitioned=CorpusMetadata(
-            name="UKWAC",
-            path="/Volumes/Data/corpora/UKWAC/2 Partitioned"),
+            name=_config.value_by_key_path("corpora", "ukwac-partitioned", "name"),
+            path=_config.value_by_key_path("corpora", "ukwac-partitioned", "path")),
         tokenised=CorpusMetadata(
-            name="UKWAC",
-            path="/Volumes/Data/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/UKWAC.freqdist"))
+            name=_config.value_by_key_path("corpora", "ukwac", "name"),
+            path=_config.value_by_key_path("corpora", "ukwac", "path"),
+            freq_dist_path=_config.value_by_key_path("corpora", "ukwac", "index")))
 
     # The final locations of the processed corpora
     source_corpus_metas = namedtuple('SourceCorpusMetas', ['bnc', 'bbc', 'ukwac'])(
@@ -101,7 +105,7 @@ class Preferences(object):
     # Word lists
     brysbaert_1w = CorpusMetadata(
         name="Brysbaert 1 word",
-        path="/Users/caiwingfield/code/corpus_analysis/scripts_corpus_info/brysbaert1.wordlist")
+        path=_config.value_by_key_path("word-lists", "brysbaert-1-word", "path"))
 
     # We will test models with windows of each of these radii
     window_radii = [1, 3, 5, 10]
@@ -111,13 +115,11 @@ class Preferences(object):
     predict_embedding_sizes = [50, 100, 200, 300, 500]
 
     # The base directory for the models to be saved
-    model_dir                 = "/Volumes/Data/vectors/"
+    model_dir                 = _config.value_by_key_path("models", "directory")
 
     # TESTS
-    
-    evaluation_dir            = "/Volumes/Data/evaluation/"
 
-    test_dir                  = path.join(evaluation_dir, "tests/")
+    test_dir                  = _config.value_by_key_path("tests", "directory")
 
     # Synonym tests
     toefl_question_path       = path.join(test_dir, "TOEFL_BrEng_&_substitutions", "toefl.qst")
@@ -145,8 +147,8 @@ class Preferences(object):
     calgary_elexicon_csv      = path.join(test_dir, "Calgary", "elexicon", "I150283.csv")
 
     # TEST RESULTS
-    
-    results_dir               = path.join(evaluation_dir, "results/")
+
+    results_dir               = _config.value_by_key_path("results", "directory")
 
     synonym_results_dir       = path.join(results_dir, "synonyms/")
     association_results_dir   = path.join(results_dir, "association/")
@@ -159,5 +161,5 @@ class Preferences(object):
 
     # FIGURES
 
-    figures_dir               = path.join(evaluation_dir, "figures/")
-    summary_dir               = path.join(evaluation_dir, "summary/")
+    figures_dir               = _config.value_by_key_path("results", "figures-directory")
+    summary_dir               = _config.value_by_key_path("results", "summary-directory")
