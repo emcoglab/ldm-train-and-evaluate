@@ -360,7 +360,7 @@ def add_elexicon_predictors(spp_data: SppData):
     else:
         logger.info("Adding Levenshtein-distance priming predictor to SPP data.")
 
-        priming_word_columns = ["MatchedPrimeWord", "TargetWord"]
+        priming_word_columns = ["MatchedPrime", "TargetWord"]
         matched_word_pairs = spp_data.dataframe[priming_word_columns].copy()
 
         # The priming OLD is the difference between related and matched unrelated pair OLDs

@@ -26,7 +26,7 @@ class TestSppData(unittest.TestCase):
 
         for target_word in ["son", "quiet", "leaves", "frankenstein", "gas"]:
 
-            matched_prime         = spp_data.dataframe.query(f"PrimeType == 'first_associate' & TargetWord == '{target_word}'")["MatchedPrimeWord"].iloc[0]
+            matched_prime         = spp_data.dataframe.query(f"PrimeType == 'first_associate' & TargetWord == '{target_word}'")["MatchedPrime"].iloc[0]
             matched_matched_prime = spp_data.dataframe.query(f"PrimeType == 'first_unrelated' & TargetWord == '{target_word}'")["PrimeWord"].iloc[0]
 
             self.assertEqual(matched_prime, matched_matched_prime)
