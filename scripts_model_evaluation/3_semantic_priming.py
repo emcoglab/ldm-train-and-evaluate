@@ -146,7 +146,7 @@ def regression_wrapper(spp_data: SppData):
     results_path = path.join(Preferences.spp_results_dir, "regression.csv")
 
     # Get only the first associate prime–target pairs
-    first_assoc_prime_data = spp_data.dataframe.query('PrimeType == "first_associate"')
+    # first_assoc_prime_data = spp_data.dataframe.query('PrimeType == "first_associate"')
 
     # Compute all models for non-priming data
 
@@ -170,7 +170,7 @@ def regression_wrapper(spp_data: SppData):
         "PrimeTarget_OrthLD"
     ]
 
-    results = run_all_model_regressions(first_assoc_prime_data, dependent_variable_names, baseline_variable_names,
+    results = run_all_model_regressions(spp_data.dataframe, dependent_variable_names, baseline_variable_names,
                                         for_priming_effect=False)
 
     # Compute all models for priming data
@@ -190,7 +190,7 @@ def regression_wrapper(spp_data: SppData):
         "PrimeTarget_OrthLD_Priming"
     ]
 
-    priming_results = run_all_model_regressions(first_assoc_prime_data, dependent_variable_priming_names, baseline_variable_priming_names,
+    priming_results = run_all_model_regressions(spp_data.dataframe, dependent_variable_priming_names, baseline_variable_priming_names,
                                                 for_priming_effect=True)
 
     results.extend(priming_results)
