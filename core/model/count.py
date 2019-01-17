@@ -16,11 +16,11 @@ caiwingfield.net
 """
 
 import logging
-import os
 import sys
 
 from abc import abstractmethod, ABCMeta
 from operator import itemgetter
+from os import path, makedirs
 
 import numpy
 import scipy.sparse
@@ -64,14 +64,17 @@ class CountVectorModel(VectorSemanticModel):
     def _save(self):
         # Only save a model if we got one.
         assert self.is_trained
-        scipy.sparse.save_npz(os.path.join(self.save_dir, self._model_filename_with_ext), self._model, compressed=False)
+        if not path.isdir(self.save_dir):
+            logger.warning(f"{self.save_dir} does not exist, making it.")
+            makedirs(self.save_dir)
+        scipy.sparse.save_npz(path.join(self.save_dir, self._model_filename_with_ext), self._model, compressed=False)
 
     # BUG: This appears to leak memory if used repeatedly :[
     def _load(self, memory_map: bool = False):
 
         # Use scipy.sparse.csr_matrix for trained models
         self._model = self._load_npz_with_mmap(
-            file=os.path.join(self.save_dir, self._model_filename_with_ext),
+            file=path.join(self.save_dir, self._model_filename_with_ext),
             memory_map=memory_map
         ).tocsr()
 
@@ -211,18 +214,21 @@ class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
 
     def _save(self):
         assert self.is_trained
+        if not path.isdir(self.save_dir):
+            logger.warning(f"{self.save_dir} does not exist, making it.")
+            makedirs(self.save_dir)
         # Can't use scipy save_npz, as this isn's a sparse matrix, it's a vector.
         # So just use numpy savez
         #     https://stackoverflow.com/questions/31468117/python-3-can-pickle-handle-byte-objects-larger-than-4gb
         #     https://github.com/numpy/numpy/issues/3858
-        numpy.savez(os.path.join(self.save_dir, self._model_filename_with_ext), self._model)
+        numpy.savez(path.join(self.save_dir, self._model_filename_with_ext), self._model)
 
     def _load(self, memory_map: bool = False):
 
         if memory_map:
             logger.warning(f"Memory mapping not currently supported for Vector models")
 
-        self._model = numpy.load(os.path.join(self.save_dir, self._model_filename_with_ext))["arr_0"]
+        self._model = numpy.load(path.join(self.save_dir, self._model_filename_with_ext))["arr_0"]
         assert self.is_trained
 
     def scalar_for_word(self, word: str):
