@@ -15,12 +15,11 @@ caiwingfield.net
 ---------------------------
 """
 
-import os
 import sys
 import glob
 import logging
-
 from enum import Enum, auto
+from os import path, mkdir
 from shutil import copyfile
 
 from lxml import etree
@@ -36,9 +35,9 @@ def main():
     out_text_dir    = Preferences.bnc_text_processing_metas["raw"].path
     out_speech_dir  = Preferences.bnc_speech_processing_metas["raw"].path
 
-    logger.info("Detagging and sorting corpus documents")
+    logger.info("Sorting corpus documents")
 
-    for doc_i, source_doc_path in enumerate(glob.glob(os.path.join(docs_parent_dir, "**/*.xml"), recursive=True)):
+    for doc_i, source_doc_path in enumerate(glob.glob(path.join(docs_parent_dir, "**/*.xml"), recursive=True)):
 
         xml_doc = etree.parse(source_doc_path)
         xml_root = xml_doc.getroot()
@@ -84,7 +83,9 @@ def main():
             # This error logically cannot be raised, it's just here to help PyCharm's static analysis.
             raise ImportError()
 
-        target_doc_path = os.path.join(destination_dir, os.path.basename(source_doc_path))
+        if not path.isdir(destination_dir):
+            mkdir(destination_dir)
+        target_doc_path = path.join(destination_dir, path.basename(source_doc_path))
 
         copyfile(source_doc_path, target_doc_path)
 
