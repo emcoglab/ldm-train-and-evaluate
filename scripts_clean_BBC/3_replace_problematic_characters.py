@@ -16,9 +16,10 @@ caiwingfield.net
 """
 
 import glob
-import os
 import sys
 import logging
+
+from os import path, mkdir
 
 from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
@@ -31,15 +32,19 @@ def main():
     start_over = True
 
     subs_source_dir = Preferences.bbc_processing_metas["no_nonspeech"].path
-    subs_target_dir = Preferences.bbc_processing_metas["replaced_symbols"]
+    subs_target_dir = Preferences.bbc_processing_metas["replaced_symbols"].path
 
-    subs_source_paths = list(glob.iglob(os.path.join(subs_source_dir, '*.srt')))
+    if not path.isdir(subs_target_dir):
+        logger.warning(f"{subs_target_dir} does not exist, making it.")
+        mkdir(subs_target_dir)
+
+    subs_source_paths = list(glob.iglob(path.join(subs_source_dir, '*.srt')))
 
     for i, source_path in enumerate(subs_source_paths):
-        target_path = os.path.join(subs_target_dir, os.path.basename(source_path))
+        target_path = path.join(subs_target_dir, path.basename(source_path))
 
         # If we've already processed this file, skip it.
-        if os.path.isfile(target_path) and not start_over:
+        if path.isfile(target_path) and not start_over:
             continue
 
         with open(source_path, mode="r", encoding="utf-8", errors="ignore") as source_file:

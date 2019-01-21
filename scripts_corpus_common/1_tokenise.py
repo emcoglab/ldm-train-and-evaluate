@@ -17,8 +17,9 @@ caiwingfield.net
 
 import glob
 import logging
-import os
 import sys
+
+from os import path, mkdir
 
 import nltk
 
@@ -56,14 +57,14 @@ def main():
         token_count = 0
 
         # Skip corpora which are already done.
-        if os.path.isfile(corpus_meta['target'].path):
-            logger.info(f"The file {os.path.basename(corpus_meta['target'].path)} already exists in this location.")
+        if path.isfile(corpus_meta['target'].path):
+            logger.info(f"The file {path.basename(corpus_meta['target'].path)} already exists in this location.")
             logger.info(f"Skipping!")
             continue
 
-        source_paths = glob.glob(os.path.join(corpus_meta['source'].path, "*.*"))
+        source_paths = glob.glob(path.join(corpus_meta['source'].path, "*.*"))
         # The should be loaded in the order that they were produced
-        source_doc_filenames = sorted([os.path.basename(path) for path in source_paths])
+        source_doc_filenames = sorted([path.basename(p) for p in source_paths])
 
         logger.info(f"Loading {corpus_meta['source'].name} corpus from {corpus_meta['source'].path}")
 
@@ -74,6 +75,10 @@ def main():
 
             # Filter punctuation
             corpus_doc = filter_punctuation(corpus_doc)
+
+            if not path.isdir(path.dirname(corpus_meta['target'].path)):
+                logger.warning(f"{corpus_meta['target'].path} doesn't exist, making it.")
+                mkdir(path.dirname(corpus_meta['target'].path))
 
             with open(corpus_meta['target'].path, mode="a", encoding="utf-8") as tokenised_corpus_file:
 

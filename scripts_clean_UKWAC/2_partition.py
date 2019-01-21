@@ -17,8 +17,9 @@ caiwingfield.net
 """
 
 import logging
-import os
 import sys
+
+from os import path, mkdir
 
 from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
@@ -35,6 +36,10 @@ def main():
     corpus_meta = dict(
         source=Preferences.ukwac_processing_metas["no_urls"],
         target=Preferences.ukwac_processing_metas["partitioned"])
+
+    if not path.isdir(corpus_meta['target'].path):
+        logger.warning(f"{corpus_meta['target'].path} does not exist, making it.")
+        mkdir(corpus_meta['target'].path)
 
     logger.info(f"Loading {corpus_meta['source'].name} corpus from {corpus_meta['source'].path}")
 
@@ -54,11 +59,11 @@ def main():
 
             if len(lines) >= lines_per_part:
                 part_number += 1
-                target_path = os.path.join(corpus_meta['target'].path, target_filename_pattern.format(part_number))
+                target_path = path.join(corpus_meta['target'].path, target_filename_pattern.format(part_number))
 
                 total_line_count += len(lines)
 
-                logger.info(f"Writing next {len(lines):,} lines to {os.path.basename(target_path)}."
+                logger.info(f"Writing next {len(lines):,} lines to {path.basename(target_path)}."
                             f" ({total_line_count:,} lines total.)")
 
                 with open(target_path, mode="w", encoding="utf-8") as target_file:

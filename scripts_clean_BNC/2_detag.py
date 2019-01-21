@@ -16,10 +16,10 @@ caiwingfield.net
 ---------------------------
 """
 
-import os
 import sys
 import glob
 import logging
+from os import path, mkdir
 
 from lxml import etree
 
@@ -46,7 +46,7 @@ def main():
         )
     ]
 
-    xsl_filename = os.path.join(os.path.dirname(__file__), "justTheWords.xsl")  # This file is under source control
+    xsl_filename = path.join(path.dirname(__file__), "justTheWords.xsl")  # This file is under source control
     xslt = etree.parse(xsl_filename)
     xslt_transform = etree.XSLT(xslt)
 
@@ -56,14 +56,16 @@ def main():
 
         docs_parent_dir = corpus["docs_parent_dir"]
         out_dir = corpus["out_dir"]
+        if not path.isdir(out_dir):
+            mkdir(out_dir)
 
-        for i, xml_doc_path in enumerate(glob.glob(os.path.join(docs_parent_dir, "**/*.xml"), recursive=True)):
+        for i, xml_doc_path in enumerate(glob.glob(path.join(docs_parent_dir, "**/*.xml"), recursive=True)):
 
             xml_doc = etree.parse(xml_doc_path)
 
             new_doc = xslt_transform(xml_doc)
 
-            txt_doc_path = os.path.join(out_dir, os.path.splitext(os.path.basename(xml_doc_path))[0] + ".txt")
+            txt_doc_path = path.join(out_dir, path.splitext(path.basename(xml_doc_path))[0] + ".txt")
 
             with open(txt_doc_path, mode="w", encoding="utf-8") as target_file:
                 target_file.write(str(new_doc))
