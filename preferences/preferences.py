@@ -25,71 +25,74 @@ class Preferences(object):
     Global preferences for models.
     """
 
+    # Main data location
+    data = "/Volumes/Data/"
+
     # Paths for intermediate processing steps
     bnc_processing_metas = dict(
         raw=CorpusMetadata(
             name="BNC",
-            path="/Volumes/Data/corpora/BNC/0 XML version/Texts"),
+            path=path.join(data, "corpora/BNC/0 XML version/Texts")),
         detagged=CorpusMetadata(
             name="BNC",
-            path="/Volumes/Data/corpora/BNC/1 Detagged"),
+            path=path.join(data, "corpora/BNC/1 Detagged")),
         tokenised=CorpusMetadata(
             name="BNC",
-            path="/Volumes/Data/corpora/BNC/2 Tokenised/BNC.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/BNC.freqdist"))
+            path=path.join(data, "corpora/BNC/2 Tokenised/BNC.corpus"),
+            freq_dist_path="/Volumes/Lore/indexes/BNC.freqdist"))
     bnc_text_processing_metas = dict(
         raw=CorpusMetadata(
             name="BNC-text",
-            path="/Volumes/Data/corpora/BNC-text/0 XML version"),
+            path=path.join(data, "corpora/BNC-text/0 XML version")),
         detagged=CorpusMetadata(
             name="BNC-text",
-            path="/Volumes/Data/corpora/BNC-text/1 Detagged"),
+            path=path.join(data, "corpora/BNC-text/1 Detagged")),
         tokenised=CorpusMetadata(
             name="BNC-text",
-            path="/Volumes/Data/corpora/BNC-text/2 Tokenised/BNC-text.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/BNC_text.freqdist"))
+            path=path.join(data, "corpora/BNC-text/2 Tokenised/BNC-text.corpus"),
+            freq_dist_path=path.join(data, "indexes/BNC_text.freqdist")))
     bnc_speech_processing_metas = dict(
         raw=CorpusMetadata(
             name="BNC-speech",
-            path="/Volumes/Data/corpora/BNC-speech/0 XML version"),
+            path=path.join(data, "corpora/BNC-speech/0 XML version")),
         detagged=CorpusMetadata(
             name="BNC-speech",
-            path="/Volumes/Data/corpora/BNC-speech/1 Detagged"),
+            path=path.join(data, "corpora/BNC-speech/1 Detagged")),
         tokenised=CorpusMetadata(
             name="BNC-speech",
-            path="/Volumes/Data/corpora/BNC-speech/2 Tokenised/BNC-speech.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/BNC_speech.freqdist"))
+            path=path.join(data, "corpora/BNC-speech/2 Tokenised/BNC-speech.corpus"),
+            freq_dist_path=path.join(data, "indexes/BNC_speech.freqdist")))
     bbc_processing_metas = dict(
         raw=CorpusMetadata(
             name="BBC",
-            path="/Volumes/Data/corpora/BBC-mini/0 Raw"),
+            path=path.join(data, "corpora/BBC/0 Raw")),
         no_srt=CorpusMetadata(
             name="BBC",
-            path="/Volumes/Data/corpora/BBC-mini/1 No srt formatting"),
+            path=path.join(data, "corpora/BBC/1 No srt formatting")),
         no_nonspeech=CorpusMetadata(
             name="BBC",
-            path="/Volumes/Data/corpora/BBC-mini/2 No nonspeech"),
+            path=path.join(data, "corpora/BBC/2 No nonspeech")),
         replaced_symbols=CorpusMetadata(
             name="BBC",
-            path="/Volumes/Data/corpora/BBC/3 Replaced symbols"),
+            path=path.join(data, "corpora/BBC/3 Replaced symbols")),
         tokenised=CorpusMetadata(
             name="BBC",
-            path="/Volumes/Data/corpora/BBC/4 Tokenised/BBC.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/BBC.freqdist"))
+            path=path.join(data, "corpora/BBC/4 Tokenised/BBC.corpus"),
+            freq_dist_path=path.join(data, "indexes/BBC.freqdist")))
     ukwac_processing_metas = dict(
         raw=CorpusMetadata(
             name="UKWAC",
-            path="/Volumes/Data/corpora/UKWAC/0 Raw untagged/cleaned_pre.pcorpus"),
+            path=path.join(data, "corpora/UKWAC/0 Raw untagged/cleaned_pre.pos.corpus")),
         no_urls=CorpusMetadata(
             name="UKWAC",
-            path="/Volumes/Data/corpora/UKWAC/1 Text only/cleaned_pre.pcorpus"),
+            path=path.join(data, "corpora/UKWAC/1 Text only/cleaned_pre.pos.corpus")),
         partitioned=CorpusMetadata(
             name="UKWAC",
-            path="/Volumes/Data/corpora/UKWAC/2 Partitioned"),
+            path=path.join(data, "corpora/UKWAC/2 Partitioned")),
         tokenised=CorpusMetadata(
             name="UKWAC",
-            path="/Volumes/Data/corpora/UKWAC/3 Tokenised/UKWAC.corpus",
-            freq_dist_path="/Volumes/Data/vectors/indexes/UKWAC.freqdist"))
+            path=path.join(data, "corpora/UKWAC/3 Tokenised/UKWAC.corpus"),
+            freq_dist_path=path.join(data, "indexes/UKWAC.freqdist")))
 
     # The final locations of the processed corpora
     source_corpus_metas = namedtuple('SourceCorpusMetas', ['bnc', 'bbc', 'ukwac'])(
@@ -111,11 +114,11 @@ class Preferences(object):
     predict_embedding_sizes = [50, 100, 200, 300, 500]
 
     # The base directory for the models to be saved
-    model_dir                 = "/Volumes/Data/vectors/"
+    model_dir                 = path.join(data, "vectors/")
 
     # TESTS
     
-    evaluation_dir            = "/Volumes/Data/evaluation/"
+    evaluation_dir            = path.join(data, "ldm evaluation/")
 
     test_dir                  = path.join(evaluation_dir, "tests/")
 
