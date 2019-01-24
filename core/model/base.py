@@ -71,11 +71,13 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
         context_probability      = auto()
         conditional_probability  = auto()
         probability_ratio        = auto()
+        pmi                      = auto()
         ppmi                     = auto()
 
         # Ngram model
         log_ngram               = auto()
         probability_ratio_ngram = auto()
+        pmi_ngram               = auto()
         ppmi_ngram              = auto()
 
         @property
@@ -115,6 +117,9 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             elif self is DistributionalSemanticModel.ModelType.probability_ratio:
                 return DistributionalSemanticModel.MetaType.count
 
+            elif self is DistributionalSemanticModel.ModelType.pmi:
+                return DistributionalSemanticModel.MetaType.count
+
             elif self is DistributionalSemanticModel.ModelType.ppmi:
                 return DistributionalSemanticModel.MetaType.count
 
@@ -122,6 +127,9 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
                 return DistributionalSemanticModel.MetaType.ngram
 
             elif self is DistributionalSemanticModel.ModelType.probability_ratio_ngram:
+                return DistributionalSemanticModel.MetaType.ngram
+
+            elif self is DistributionalSemanticModel.ModelType.pmi_ngram:
                 return DistributionalSemanticModel.MetaType.ngram
 
             elif self is DistributionalSemanticModel.ModelType.ppmi_ngram:
@@ -167,6 +175,9 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             elif self is DistributionalSemanticModel.ModelType.probability_ratio:
                 return "probability_ratios"
 
+            elif self is DistributionalSemanticModel.ModelType.pmi:
+                return "pmi"
+
             elif self is DistributionalSemanticModel.ModelType.ppmi:
                 return "ppmi"
 
@@ -175,6 +186,9 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
 
             elif self is DistributionalSemanticModel.ModelType.probability_ratio_ngram:
                 return "probability_ratios_ngram"
+
+            elif self is DistributionalSemanticModel.ModelType.pmi_ngram:
+                return "pmi_ngram"
 
             elif self is DistributionalSemanticModel.ModelType.ppmi_ngram:
                 return "ppmi_ngram"
@@ -219,6 +233,9 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             elif self is DistributionalSemanticModel.ModelType.probability_ratio:
                 return "Probability ratio"
 
+            elif self is DistributionalSemanticModel.ModelType.pmi:
+                return "PMI"
+
             elif self is DistributionalSemanticModel.ModelType.ppmi:
                 return "PPMI"
 
@@ -227,6 +244,9 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
 
             elif self is DistributionalSemanticModel.ModelType.probability_ratio_ngram:
                 return "Probability ratio n-gram"
+
+            elif self is DistributionalSemanticModel.ModelType.pmi_ngram:
+                return "PMI n-gram"
 
             elif self is DistributionalSemanticModel.ModelType.ppmi_ngram:
                 return "PPMI n-gram"
@@ -271,6 +291,9 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
             elif slug == "probability_ratio":
                 return cls.probability_ratio
 
+            elif slug == "pmi":
+                return cls.pmi
+
             elif slug == "ppmi":
                 return cls.ppmi
 
@@ -279,6 +302,9 @@ class DistributionalSemanticModel(metaclass=ABCMeta):
 
             elif slug == "probability_ratios_ngram":
                 return cls.probability_ratio_ngram
+
+            elif slug == "pmi_ngram":
+                return cls.pmi_ngram
 
             elif slug == "ppmi_ngram":
                 return cls.ppmi_ngram
