@@ -591,6 +591,37 @@ class ProbabilityRatioModel(CountVectorModel):
         self._model = self._model.transpose().tocsr()
 
 
+class PMIModel(CountVectorModel):
+    """
+    A model where the vectors consist of the pointwise mutual information between the context and the target.
+
+     PMI(c,t) = log_2 r(c,t)
+
+    c: context token
+    t: target token
+    """
+
+    def __init__(self,
+                 corpus_meta: CorpusMetadata,
+                 window_radius: int,
+                 freq_dist: FreqDist):
+        super().__init__(DistributionalSemanticModel.ModelType.pmi, corpus_meta, window_radius, freq_dist)
+
+    def _retrain(self):
+
+        # Start with probability ratio model
+        ratios_model = ProbabilityRatioModel(self.corpus_meta, self.window_radius, self.freq_dist)
+        ratios_model.train()
+
+        # Copy ratios model matrix
+        self._model = ratios_model.matrix
+        del ratios_model
+
+        # PMI model data is log_2 of ratios model data
+        self._model.data = numpy.log2(self._model.data)
+        self._model.eliminate_zeros()
+
+
 class PPMIModel(CountVectorModel):
     """
     A model where the vectors consist of the positive pointwise mutual information between the context and the target.
@@ -611,16 +642,13 @@ class PPMIModel(CountVectorModel):
 
     def _retrain(self):
 
-        # Start with probability ratio model
-        ratios_model = ProbabilityRatioModel(self.corpus_meta, self.window_radius, self.freq_dist)
-        ratios_model.train()
+        # Start with pmi
+        pmi_model = PMIModel(self.corpus_meta, self.window_radius, self.freq_dist)
+        pmi_model.train()
 
-        # Copy ratios model matrix
-        self._model = ratios_model.matrix
-        del ratios_model
-
-        # PPMI model data is log_2 of ratios model data
-        self._model.data = numpy.log2(self._model.data)
+        # Copy pmi model matrix
+        self._model = pmi_model.matrix
+        del pmi_model
 
         # Keep non-negative values only
         self._model.data[self._model.data < 0] = 0

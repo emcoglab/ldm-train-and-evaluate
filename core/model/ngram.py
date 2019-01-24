@@ -21,7 +21,7 @@ from abc import ABCMeta
 from ..corpus.corpus import CorpusMetadata
 from ..corpus.indexing import FreqDist
 from ..model.base import VectorSemanticModel, DistributionalSemanticModel
-from ..model.count import CountVectorModel, LogCoOccurrenceCountModel, PPMIModel, ProbabilityRatioModel
+from ..model.count import CountVectorModel, LogCoOccurrenceCountModel, PPMIModel, ProbabilityRatioModel, PMIModel
 from ..utils.exceptions import WordNotFoundError
 
 logger = logging.getLogger(__name__)
@@ -130,6 +130,20 @@ class ProbabilityRatioNgramModel(NgramModel):
                  freq_dist: FreqDist):
         super().__init__(VectorSemanticModel.ModelType.probability_ratio_ngram,
                          ProbabilityRatioModel(corpus_meta, window_radius, freq_dist))
+
+
+class PMINgramModel(NgramModel):
+    """
+    A model where the distance between word w and u is the PMI between words w and u.
+    Should be symmetric.
+    """
+
+    def __init__(self,
+                 corpus_meta: CorpusMetadata,
+                 window_radius: int,
+                 freq_dist: FreqDist):
+        super().__init__(VectorSemanticModel.ModelType.pmi_ngram,
+                         PMIModel(corpus_meta, window_radius, freq_dist))
 
 
 class PPMINgramModel(NgramModel):
