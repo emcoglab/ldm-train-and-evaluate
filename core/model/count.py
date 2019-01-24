@@ -502,6 +502,8 @@ class ConditionalProbabilityModel(CountVectorModel):
         #
         # According to https://stackoverflow.com/a/12238133/2883198, this is how you do that:
         self._model.data = self._model.data / token_probability_model.vector.repeat(numpy.diff(self._model.indptr))
+        # The division causes the data to become a 1-d numpy.matrix, so we convert it back into a numpy.ndarray
+        self._model.data = numpy.squeeze(numpy.asarray(self._model.data))
         self._model.eliminate_zeros()
 
 
@@ -587,6 +589,8 @@ class ProbabilityRatioModel(CountVectorModel):
         # that the row method is fast, so we'll transpose, divide, transpose back.
         self._model = self._model.transpose().tocsr()
         self._model.data = self._model.data / context_probability_model.vector.repeat(numpy.diff(self._model.indptr))
+        # The division causes the data to become a 1-d numpy.matrix, so we convert it back into a numpy.ndarray
+        self._model.data = numpy.squeeze(numpy.asarray(self._model.data))
         self._model.eliminate_zeros()
         self._model = self._model.transpose().tocsr()
 
