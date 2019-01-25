@@ -1,0 +1,10 @@
+gensim
+lxml
+matplotlib
+nltk
+numpy
+pandas
+scipy
+sklearn
+srt
+statsmodels
