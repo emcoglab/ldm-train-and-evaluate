@@ -18,9 +18,9 @@ caiwingfield.net
 import json
 import os
 import logging
+from typing import List, Dict
 
 import nltk
-from typing import List, Dict
 
 from ..corpus.corpus import BatchedCorpus
 

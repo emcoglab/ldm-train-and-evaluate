@@ -16,9 +16,9 @@ caiwingfield.net
 """
 
 import logging
-import os
 
 from abc import abstractmethod
+from os import path, makedirs
 
 import gensim
 
@@ -75,10 +75,13 @@ class PredictVectorModel(VectorSemanticModel):
 
     def _save(self):
         assert self.is_trained
-        self._model.save(os.path.join(self.save_dir, self._model_filename))
+        if not path.isdir(self.save_dir):
+            logger.warning(f"{self.save_dir} does not exist, making it.")
+            makedirs(self.save_dir)
+        self._model.save(path.join(self.save_dir, self._model_filename))
 
     def _load(self, memory_map: bool = False):
-        self._model = gensim.models.Word2Vec.load(fname=os.path.join(self.save_dir, self._model_filename),
+        self._model = gensim.models.Word2Vec.load(fname=path.join(self.save_dir, self._model_filename),
                                                   mmap="r" if memory_map else None)
         assert self.is_trained
 

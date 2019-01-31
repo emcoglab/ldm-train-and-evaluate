@@ -16,11 +16,11 @@ caiwingfield.net
 """
 
 import logging
-import os
 import sys
 
 from abc import abstractmethod, ABCMeta
 from operator import itemgetter
+from os import path, makedirs
 
 import numpy
 import scipy.sparse
@@ -64,14 +64,17 @@ class CountVectorModel(VectorSemanticModel):
     def _save(self):
         # Only save a model if we got one.
         assert self.is_trained
-        scipy.sparse.save_npz(os.path.join(self.save_dir, self._model_filename_with_ext), self._model, compressed=False)
+        if not path.isdir(self.save_dir):
+            logger.warning(f"{self.save_dir} does not exist, making it.")
+            makedirs(self.save_dir)
+        scipy.sparse.save_npz(path.join(self.save_dir, self._model_filename_with_ext), self._model, compressed=False)
 
     # BUG: This appears to leak memory if used repeatedly :[
     def _load(self, memory_map: bool = False):
 
         # Use scipy.sparse.csr_matrix for trained models
         self._model = self._load_npz_with_mmap(
-            file=os.path.join(self.save_dir, self._model_filename_with_ext),
+            file=path.join(self.save_dir, self._model_filename_with_ext),
             memory_map=memory_map
         ).tocsr()
 
@@ -211,18 +214,21 @@ class CountScalarModel(ScalarSemanticModel, metaclass=ABCMeta):
 
     def _save(self):
         assert self.is_trained
+        if not path.isdir(self.save_dir):
+            logger.warning(f"{self.save_dir} does not exist, making it.")
+            makedirs(self.save_dir)
         # Can't use scipy save_npz, as this isn's a sparse matrix, it's a vector.
         # So just use numpy savez
         #     https://stackoverflow.com/questions/31468117/python-3-can-pickle-handle-byte-objects-larger-than-4gb
         #     https://github.com/numpy/numpy/issues/3858
-        numpy.savez(os.path.join(self.save_dir, self._model_filename_with_ext), self._model)
+        numpy.savez(path.join(self.save_dir, self._model_filename_with_ext), self._model)
 
     def _load(self, memory_map: bool = False):
 
         if memory_map:
             logger.warning(f"Memory mapping not currently supported for Vector models")
 
-        self._model = numpy.load(os.path.join(self.save_dir, self._model_filename_with_ext))["arr_0"]
+        self._model = numpy.load(path.join(self.save_dir, self._model_filename_with_ext))["arr_0"]
         assert self.is_trained
 
     def scalar_for_word(self, word: str):
@@ -496,6 +502,8 @@ class ConditionalProbabilityModel(CountVectorModel):
         #
         # According to https://stackoverflow.com/a/12238133/2883198, this is how you do that:
         self._model.data = self._model.data / token_probability_model.vector.repeat(numpy.diff(self._model.indptr))
+        # The division causes the data to become a 1-d numpy.matrix, so we convert it back into a numpy.ndarray
+        self._model.data = numpy.squeeze(numpy.asarray(self._model.data))
         self._model.eliminate_zeros()
 
 
@@ -581,8 +589,41 @@ class ProbabilityRatioModel(CountVectorModel):
         # that the row method is fast, so we'll transpose, divide, transpose back.
         self._model = self._model.transpose().tocsr()
         self._model.data = self._model.data / context_probability_model.vector.repeat(numpy.diff(self._model.indptr))
+        # The division causes the data to become a 1-d numpy.matrix, so we convert it back into a numpy.ndarray
+        self._model.data = numpy.squeeze(numpy.asarray(self._model.data))
         self._model.eliminate_zeros()
         self._model = self._model.transpose().tocsr()
+
+
+class PMIModel(CountVectorModel):
+    """
+    A model where the vectors consist of the pointwise mutual information between the context and the target.
+
+     PMI(c,t) = log_2 r(c,t)
+
+    c: context token
+    t: target token
+    """
+
+    def __init__(self,
+                 corpus_meta: CorpusMetadata,
+                 window_radius: int,
+                 freq_dist: FreqDist):
+        super().__init__(DistributionalSemanticModel.ModelType.pmi, corpus_meta, window_radius, freq_dist)
+
+    def _retrain(self):
+
+        # Start with probability ratio model
+        ratios_model = ProbabilityRatioModel(self.corpus_meta, self.window_radius, self.freq_dist)
+        ratios_model.train()
+
+        # Copy ratios model matrix
+        self._model = ratios_model.matrix
+        del ratios_model
+
+        # PMI model data is log_2 of ratios model data
+        self._model.data = numpy.log2(self._model.data)
+        self._model.eliminate_zeros()
 
 
 class PPMIModel(CountVectorModel):
@@ -605,16 +646,13 @@ class PPMIModel(CountVectorModel):
 
     def _retrain(self):
 
-        # Start with probability ratio model
-        ratios_model = ProbabilityRatioModel(self.corpus_meta, self.window_radius, self.freq_dist)
-        ratios_model.train()
+        # Start with pmi
+        pmi_model = PMIModel(self.corpus_meta, self.window_radius, self.freq_dist)
+        pmi_model.train()
 
-        # Copy ratios model matrix
-        self._model = ratios_model.matrix
-        del ratios_model
-
-        # PPMI model data is log_2 of ratios model data
-        self._model.data = numpy.log2(self._model.data)
+        # Copy pmi model matrix
+        self._model = pmi_model.matrix
+        del pmi_model
 
         # Keep non-negative values only
         self._model.data[self._model.data < 0] = 0

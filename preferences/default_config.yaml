@@ -10,25 +10,25 @@ corpora:
   bnc:
     name:  "BNC"
     path:  "/Volumes/Data/corpora/BNC/2 Tokenised/BNC.corpus"
-    index: "/Volumes/Data/vectors/indexes/BNC.freqdist"
+    index: "/Volumes/Data/indexes/BNC.freqdist"
   subtitles:
     name:  "BBC"
     path:  "/Volumes/Data/corpora/BBC/4 Tokenised/BBC.corpus"
-    index: "/Volumes/Data/vectors/indexes/BBC.freqdist"
+    index: "/Volumes/Data/indexes/BBC.freqdist"
   ukwac:
     name:  "UKWAC"
     path:  "/Volumes/Data/corpora/UKWAC/3 Tokenised/UKWAC.corpus"
-    index: "/Volumes/Data/vectors/indexes/UKWAC.freqdist"
+    index: "/Volumes/Data/indexes/UKWAC.freqdist"
 
   # Other corpora
   bnc-text:
     name:  "BNC-text"
     path:  "/Volumes/Data/corpora/BNC-text/2 Tokenised/BNC-text.corpus"
-    index: "/Volumes/Data/vectors/indexes/BNC_text.freqdist"
+    index: "/Volumes/Data/indexes/BNC_text.freqdist"
   bnc-speech:
     name:  "BNC-speech"
     path:  "/Volumes/Data/corpora/BNC-speech/2 Tokenised/BNC-text.corpus"
-    index: "/Volumes/Data/vectors/indexes/BNC_speech.freqdist"
+    index: "/Volumes/Data/indexes/BNC_speech.freqdist"
 
   # Previous processing steps
   # bnc

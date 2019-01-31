@@ -16,7 +16,6 @@ caiwingfield.net
 """
 
 import re
-
 from typing import List
 
 from .indexing import FreqDist

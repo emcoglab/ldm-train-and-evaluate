@@ -63,7 +63,7 @@ class RegressionData(metaclass=ABCMeta):
             self._all_data = self._load_from_csv()
         else:
             logger.info(f"Loading {name} data from source xls file")
-            self._all_data = self._load_from_source_xls()
+            self._all_data = self._load_from_source()
 
         assert self._all_data is not None
 
@@ -128,9 +128,9 @@ class RegressionData(metaclass=ABCMeta):
         return os.path.isfile(self._csv_path)
 
     @abstractmethod
-    def _load_from_source_xls(self) -> pandas.DataFrame:
+    def _load_from_source(self) -> pandas.DataFrame:
         """
-        Load data from excel file, dealing with errors in source material.
+        Load data from the source data file, dealing with errors in source material.
         """
         raise NotImplementedError()
 
@@ -232,21 +232,18 @@ class SppData(RegressionData):
             first_assoc_data.to_csv(results_file)
 
     @classmethod
-    def _load_from_source_xls(cls) -> pandas.DataFrame:
-        xls = pandas.ExcelFile(Preferences.spp_path_xls)
-        prime_target_data = xls.parse("Prime-Target Data")
-
-        prime_target_data: pandas.DataFrame = prime_target_data.copy()
+    def _load_from_source(cls) -> pandas.DataFrame:
+        prime_target_data: pandas.DataFrame = pandas.read_csv(Preferences.spp_path_xls, header=0)
 
         # Convert all to strings (to avoid False becoming a bool 😭)
         prime_target_data["TargetWord"] = prime_target_data["TargetWord"].apply(str)
         prime_target_data["PrimeWord"] = prime_target_data["PrimeWord"].apply(str)
-        prime_target_data["MatchedPrimeWord"] = prime_target_data["MatchedPrimeWord"].apply(str)
+        prime_target_data["MatchedPrime"] = prime_target_data["MatchedPrime"].apply(str)
 
         # Convert all to lower case
         prime_target_data["TargetWord"] = prime_target_data["TargetWord"].str.lower()
         prime_target_data["PrimeWord"] = prime_target_data["PrimeWord"].str.lower()
-        prime_target_data["MatchedPrimeWord"] = prime_target_data["MatchedPrimeWord"].str.lower()
+        prime_target_data["MatchedPrime"] = prime_target_data["MatchedPrime"].str.lower()
 
         return prime_target_data
 
@@ -340,7 +337,7 @@ class SppData(RegressionData):
             # We're assuming that the matched predictor has already been added, so we can safely join
             # on the matched prime pair here, since there'll be a PrimeWord-matched predictor there
             # already.
-            key_column = "MatchedPrimeWord" if for_priming_effect else "PrimeWord"
+            key_column = "MatchedPrime" if for_priming_effect else "PrimeWord"
 
             # Add model distance column to data frame
             model_association = self.dataframe[
@@ -349,10 +346,14 @@ class SppData(RegressionData):
                 model_association_or_none,
                 axis=1)
 
-            # The priming predictor is the difference in model distance between the related and
-            # matched-unrelated word pairs.
             if for_priming_effect:
-                self.dataframe[predictor_name] = model_association - self.dataframe[self.predictor_name_for_model(model, distance_type, for_priming_effect=False)]
+                # The priming predictor is the difference in model distance between the related and
+                # matched-unrelated word pairs.
+                self.dataframe[predictor_name] = (
+                        # The model association between the MATCHED prime word and the target word
+                        model_association
+                        # The already-calculated model association between the prime word and the target word
+                        - self.dataframe[self.predictor_name_for_model(model, distance_type, for_priming_effect=False)])
             else:
                 self.dataframe[predictor_name] = model_association
 
@@ -377,7 +378,7 @@ class CalgaryData(RegressionData):
         self._add_response_columns()
 
     @classmethod
-    def _load_from_source_xls(cls) -> pandas.DataFrame:
+    def _load_from_source(cls) -> pandas.DataFrame:
         """
         Load data from excel file, dealing with errors in source material.
         """

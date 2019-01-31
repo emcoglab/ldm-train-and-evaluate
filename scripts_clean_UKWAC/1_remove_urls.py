@@ -18,6 +18,7 @@ caiwingfield.net
 
 import logging
 import sys
+from os import path, mkdir
 
 from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
@@ -38,6 +39,10 @@ def main():
     corpus_meta = dict(
         source=Preferences.ukwac_processing_metas["raw"],
         target=Preferences.ukwac_processing_metas["no_urls"])
+
+    if not path.isdir(path.dirname(corpus_meta['target'].path)):
+        logger.warning(f"{corpus_meta['target'].path} does not exist, making it.")
+        mkdir(path.dirname(corpus_meta['target'].path))
 
     logger.info(f"Removing URL references from {corpus_meta['source'].name} corpus")
     with open(corpus_meta['source'].path, mode="r", encoding="utf-8", errors="ignore") as source_file:

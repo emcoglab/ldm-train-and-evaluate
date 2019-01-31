@@ -67,6 +67,19 @@ class DistanceType(Enum):
         else:
             raise ValueError()
 
+    @classmethod
+    def from_name(cls, name: str) -> 'DistanceType':
+        """Get a distance type from a name."""
+        name = name.lower()
+        if name is "euclidean":
+            return cls.Euclidean
+        elif name is "cosine":
+            return cls.cosine
+        elif name is "correlation":
+            return cls.correlation
+        else:
+            raise NotImplementedError()
+
 
 def distance(u: numpy.ndarray, v: numpy.ndarray, distance_type: DistanceType) -> float:
     """

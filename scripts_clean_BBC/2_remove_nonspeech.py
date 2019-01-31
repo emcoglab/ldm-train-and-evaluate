@@ -17,9 +17,10 @@ caiwingfield.net
 
 import glob
 import logging
-import os
 import string
 import sys
+
+from os import path, mkdir
 
 from ..core.utils.logging import log_message, date_format
 from ..preferences.preferences import Preferences
@@ -69,15 +70,19 @@ def main():
         source=Preferences.bbc_processing_metas["no_srt"],
         target=Preferences.bbc_processing_metas["no_nonspeech"])
 
-    subs_source_paths = list(glob.iglob(os.path.join(subtitles['source'].path, '*.srt')))
+    if not path.isdir(subtitles['target'].path):
+        logger.warning(f"{subtitles['target'].path} does not exist, making it.")
+        mkdir(subtitles['target'].path)
+
+    subs_source_paths = list(glob.iglob(path.join(subtitles['source'].path, '*.srt')))
 
     count = 0
     for source_path in subs_source_paths:
         count += 1
-        target_path = os.path.join(subtitles['target'].path, os.path.basename(source_path))
+        target_path = path.join(subtitles['target'].path, path.basename(source_path))
 
         # If we've already processed this file, skip it.
-        if os.path.isfile(target_path) and not start_over:
+        if path.isfile(target_path) and not start_over:
             continue
 
         with open(source_path, mode="r", encoding="utf-8", errors="ignore") as source_file:
