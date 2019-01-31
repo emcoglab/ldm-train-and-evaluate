@@ -21,7 +21,7 @@ class Singleton(type):
     Use as a metaclass to make a class a singleton.
     With thanks to https://stackoverflow.com/questions/6760685/creating-a-singleton-in-python.
     """
-    _instances = {}
+    _instances = dict()
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:

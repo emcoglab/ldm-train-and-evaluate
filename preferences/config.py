@@ -21,7 +21,7 @@ from typing import Dict
 
 import yaml
 
-from ldm.core.utils.metaclasses import Singleton
+from ..core.utils.metaclasses import Singleton
 
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,6 @@ class Config(metaclass=Singleton):
     """
     Config class.
     It's a singleton, so whatever state it's in when it's called the first time, that's how it'll remain.
-
     """
 
     def __init__(self, use_config_overrides_from_file: str = None):
