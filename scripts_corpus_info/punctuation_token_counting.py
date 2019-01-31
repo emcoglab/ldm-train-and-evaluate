@@ -22,9 +22,9 @@ import sys
 
 import nltk
 
-from ..core.corpus.tokenising import modified_word_tokenize
-from ..core.corpus.filtering import filter_punctuation
-from ..core.corpus.indexing import FreqDist
+from ..ldm.corpus.tokenising import modified_word_tokenize
+from ..ldm.corpus.filtering import filter_punctuation
+from ..ldm.corpus.indexing import FreqDist
 
 logger = logging.getLogger()
 

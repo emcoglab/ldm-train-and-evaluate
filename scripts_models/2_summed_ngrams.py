@@ -18,9 +18,9 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.corpus.indexing import FreqDist
-from ..core.model.count import CoOccurrenceCountModel
-from ..preferences.preferences import Preferences
+from ..ldm.corpus.indexing import FreqDist
+from ..ldm.model.count import CoOccurrenceCountModel
+from ..ldm.preferences.preferences import Preferences
 
 logger = logging.getLogger()
 

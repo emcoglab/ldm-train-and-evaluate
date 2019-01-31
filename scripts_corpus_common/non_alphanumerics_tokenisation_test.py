@@ -20,7 +20,7 @@ import sys
 
 import nltk.corpus as corpus
 
-from ..core.corpus.tokenising import modified_word_tokenize
+from ..ldm.corpus.tokenising import modified_word_tokenize
 
 logger = logging.getLogger()
 

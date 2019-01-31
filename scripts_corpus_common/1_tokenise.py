@@ -23,10 +23,10 @@ from os import path, mkdir
 
 import nltk
 
-from ..core.utils.logging import log_message, date_format
-from ..core.corpus.filtering import filter_punctuation
-from ..core.corpus.tokenising import modified_word_tokenize
-from ..preferences.preferences import Preferences
+from ..ldm.utils.logging import log_message, date_format
+from ..ldm.corpus.filtering import filter_punctuation
+from ..ldm.corpus.tokenising import modified_word_tokenize
+from ..ldm.preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 

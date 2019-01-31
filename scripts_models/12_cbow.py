@@ -18,9 +18,9 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.model.predict import CbowModel
-from ..preferences.preferences import Preferences
-from ..core.utils.logging import log_message, date_format
+from ..ldm.model.predict import CbowModel
+from ..ldm.preferences.preferences import Preferences
+from ..ldm.utils.logging import log_message, date_format
 
 logger = logging.getLogger(__name__)
 

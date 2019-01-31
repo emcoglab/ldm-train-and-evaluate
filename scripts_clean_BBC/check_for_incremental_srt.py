@@ -23,7 +23,7 @@ import os
 
 import srt
 
-from ..preferences.preferences import Preferences
+from ..ldm.preferences.preferences import Preferences
 
 
 def main():

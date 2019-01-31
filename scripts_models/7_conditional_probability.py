@@ -18,10 +18,10 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.corpus.indexing import FreqDist
-from ..core.model.count import ConditionalProbabilityModel
-from ..core.utils.logging import log_message, date_format
-from ..preferences.preferences import Preferences
+from ..ldm.corpus.indexing import FreqDist
+from ..ldm.model.count import ConditionalProbabilityModel
+from ..ldm.utils.logging import log_message, date_format
+from ..ldm.preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 

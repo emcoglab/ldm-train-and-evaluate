@@ -23,15 +23,15 @@ from typing import Set, List, Callable, Optional
 import statsmodels.formula.api as sm
 from pandas import DataFrame, read_csv
 
-from ..core.corpus.indexing import FreqDist
-from ..core.evaluation.regression import RegressionResult, CalgaryData
-from ..core.model.base import VectorSemanticModel, DistributionalSemanticModel
-from ..core.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
-from ..core.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
-from ..core.model.predict import SkipGramModel, CbowModel
-from ..core.utils.logging import log_message, date_format
-from ..core.utils.maths import DistanceType, levenshtein_distance
-from ..preferences.preferences import Preferences
+from ..ldm.corpus.indexing import FreqDist
+from ..ldm.evaluation.regression import RegressionResult, CalgaryData
+from ..ldm.model.base import VectorSemanticModel, DistributionalSemanticModel
+from ..ldm.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
+from ..ldm.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
+from ..ldm.model.predict import SkipGramModel, CbowModel
+from ..ldm.utils.logging import log_message, date_format
+from ..ldm.utils.maths import DistanceType, levenshtein_distance
+from ..ldm.preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 

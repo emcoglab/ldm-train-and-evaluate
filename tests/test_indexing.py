@@ -17,8 +17,8 @@ caiwingfield.net
 
 import unittest
 
-from ..core.corpus.corpus import BatchedCorpus
-from ..core.corpus.indexing import FreqDist, TokenIndex
+from ..ldm.corpus.corpus import BatchedCorpus
+from ..ldm.corpus.indexing import FreqDist, TokenIndex
 
 from .testing_materials.metadata import test_corpus_metadata
 

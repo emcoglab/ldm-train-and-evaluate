@@ -21,8 +21,8 @@ import logging
 
 from os import path, mkdir
 
-from ..core.utils.logging import log_message, date_format
-from ..preferences.preferences import Preferences
+from ..ldm.utils.logging import log_message, date_format
+from ..ldm.preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 

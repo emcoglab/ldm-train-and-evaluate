@@ -18,14 +18,14 @@ caiwingfield.net
 import logging
 import sys
 
-from ..core.corpus.indexing import FreqDist
-from ..core.evaluation.synonym import ToeflTest, EslTest, LbmMcqTest, SynonymTester, SynonymResults
-from ..core.model.count import PPMIModel, LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel
-from ..core.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
-from ..core.model.predict import SkipGramModel, CbowModel
-from ..core.utils.logging import log_message, date_format
-from ..core.utils.maths import DistanceType
-from ..preferences.preferences import Preferences
+from ..ldm.corpus.indexing import FreqDist
+from ..ldm.evaluation.synonym import ToeflTest, EslTest, LbmMcqTest, SynonymTester, SynonymResults
+from ..ldm.model.count import PPMIModel, LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel
+from ..ldm.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
+from ..ldm.model.predict import SkipGramModel, CbowModel
+from ..ldm.utils.logging import log_message, date_format
+from ..ldm.utils.maths import DistanceType
+from ..ldm.preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 

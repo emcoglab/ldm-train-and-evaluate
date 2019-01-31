@@ -19,7 +19,7 @@ import unittest
 
 import numpy
 
-from ..core.utils.maths import distance, DistanceType, levenshtein_distance, binomial_bayes_factor
+from ..ldm.utils.maths import distance, DistanceType, levenshtein_distance, binomial_bayes_factor
 
 
 class DistanceTests(unittest.TestCase):

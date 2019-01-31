@@ -23,12 +23,12 @@ from os import path
 from matplotlib import pyplot
 from seaborn import distplot
 
-from ..core.corpus.indexing import FreqDist
-from ..core.evaluation.regression import SppData
-from ..core.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
-from ..core.utils.logging import log_message, date_format
-from ..core.utils.maths import DistanceType
-from ..preferences.preferences import Preferences
+from ..ldm.corpus.indexing import FreqDist
+from ..ldm.evaluation.regression import SppData
+from ..ldm.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
+from ..ldm.utils.logging import log_message, date_format
+from ..ldm.utils.maths import DistanceType
+from ..ldm.preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 

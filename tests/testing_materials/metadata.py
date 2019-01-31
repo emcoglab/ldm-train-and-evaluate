@@ -17,7 +17,7 @@ caiwingfield.net
 
 import os
 
-from ...core.corpus.corpus import CorpusMetadata
+from ...ldm.corpus.corpus import CorpusMetadata
 
 test_corpus_base_dir = os.path.dirname(os.path.realpath(__file__))
 

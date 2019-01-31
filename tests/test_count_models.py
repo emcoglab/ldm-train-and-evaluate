@@ -20,12 +20,12 @@ import math
 
 import numpy
 
-from ..core.model.ngram import LogNgramModel
-from ..core.utils.constants import Chirality
-from ..core.utils.maths import DistanceType
-from ..core.corpus.corpus import BatchedCorpus
-from ..core.corpus.indexing import FreqDist
-from ..core.model.count import UnsummedCoOccurrenceCountModel, CoOccurrenceCountModel, LogCoOccurrenceCountModel, \
+from ..ldm.model.ngram import LogNgramModel
+from ..ldm.utils.constants import Chirality
+from ..ldm.utils.maths import DistanceType
+from ..ldm.corpus.corpus import BatchedCorpus
+from ..ldm.corpus.indexing import FreqDist
+from ..ldm.model.count import UnsummedCoOccurrenceCountModel, CoOccurrenceCountModel, LogCoOccurrenceCountModel, \
     ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
 
 from .testing_materials.metadata import test_corpus_metadata

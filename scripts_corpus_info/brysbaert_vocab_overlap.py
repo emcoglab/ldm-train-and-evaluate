@@ -19,9 +19,9 @@ import logging
 import os
 import sys
 
-from ..core.utils.logging import log_message, date_format
-from ..core.corpus.indexing import FreqDist
-from ..preferences.preferences import Preferences
+from ..ldm.utils.logging import log_message, date_format
+from ..ldm.corpus.indexing import FreqDist
+from ..ldm.preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 

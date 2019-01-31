@@ -17,7 +17,7 @@ caiwingfield.net
 
 import unittest
 
-from ..core.evaluation.regression import SppData
+from ..ldm.evaluation.regression import SppData
 
 
 class TestSppData(unittest.TestCase):

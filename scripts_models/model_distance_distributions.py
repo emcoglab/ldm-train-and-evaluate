@@ -23,10 +23,10 @@ from matplotlib import pyplot
 from scipy.spatial.distance import squareform
 from sklearn.metrics.pairwise import pairwise_distances
 
-from ..core.corpus.indexing import FreqDist
-from ..core.model.count import PPMIModel, ProbabilityRatioModel, ConditionalProbabilityModel, LogCoOccurrenceCountModel
-from ..core.utils.maths import DistanceType
-from ..preferences.preferences import Preferences
+from ..ldm.corpus.indexing import FreqDist
+from ..ldm.model.count import PPMIModel, ProbabilityRatioModel, ConditionalProbabilityModel, LogCoOccurrenceCountModel
+from ..ldm.utils.maths import DistanceType
+from ..ldm.preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
