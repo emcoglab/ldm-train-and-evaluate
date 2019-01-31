@@ -1,0 +1,3 @@
+[submodule "ldm"]
+	path = ldm
+	url = git@github.com:emcoglab/ldm-core.git
