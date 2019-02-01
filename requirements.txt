@@ -1,11 +1,11 @@
-gensim
+-r ldm/requirements.txt
 lxml
 matplotlib
 nltk
 numpy
 pandas
+seaborn
+scikit-learn
 scipy
-sklearn
 srt
 statsmodels
-yaml
