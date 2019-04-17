@@ -23,12 +23,12 @@ from os import path
 from matplotlib import pyplot
 from seaborn import distplot
 
+from constants import DISTANCE_TYPES
 from ..ldm.corpus.indexing import FreqDist
 from ..ldm.evaluation.regression import SppData
 from ..ldm.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
-from ..ldm.utils.logging import log_message, date_format
-from ..ldm.utils.maths import DistanceType
 from ..ldm.preferences.preferences import Preferences
+from ..ldm.utils.logging import log_message, date_format
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ def main():
         freq_dist: FreqDist = FreqDist.load(corpus.freq_dist_path)
 
         for radius in Preferences.window_radii:
-            for distance_type in DistanceType:
+            for distance_type in DISTANCE_TYPES:
                 models = [
                     LogCoOccurrenceCountModel(corpus, radius, freq_dist),
                     ConditionalProbabilityModel(corpus, radius, freq_dist),

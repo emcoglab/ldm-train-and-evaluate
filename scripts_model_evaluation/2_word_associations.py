@@ -18,15 +18,15 @@ caiwingfield.net
 import logging
 import sys
 
+from constants import DISTANCE_TYPES
 from ..ldm.corpus.indexing import FreqDist
 from ..ldm.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
     AssociationTester, ColourEmotionAssociation, ThematicRelatedness, AssociationResults
 from ..ldm.model.count import PPMIModel, LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ..ldm.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
 from ..ldm.model.predict import SkipGramModel, CbowModel
-from ..ldm.utils.logging import log_message, date_format
-from ..ldm.utils.maths import DistanceType
 from ..ldm.preferences.preferences import Preferences
+from ..ldm.utils.logging import log_message, date_format
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,7 @@ def main():
 
             for model in count_models:
                 for test in test_battery:
-                    for distance_type in DistanceType:
+                    for distance_type in DISTANCE_TYPES:
                         if not results.results_exist_for(test.name, model, distance_type):
                             model.train(memory_map=True)
                             results.extend_with_results(AssociationTester.administer_test(test, model, distance_type))
@@ -98,7 +98,7 @@ def main():
 
                 for model in predict_models:
                     for test in test_battery:
-                        for distance_type in DistanceType:
+                        for distance_type in DISTANCE_TYPES:
                             if not results.results_exist_for(test.name, model, distance_type):
                                 model.train(memory_map=True)
                                 results.extend_with_results(

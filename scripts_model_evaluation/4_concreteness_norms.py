@@ -23,6 +23,7 @@ from typing import Set, List, Callable, Optional
 import statsmodels.formula.api as sm
 from pandas import DataFrame, read_csv
 
+from constants import DISTANCE_TYPES
 from ..ldm.corpus.indexing import FreqDist
 from ..ldm.evaluation.regression import RegressionResult, CalgaryData
 from ..ldm.model.base import VectorSemanticModel, DistributionalSemanticModel
@@ -101,7 +102,7 @@ def add_all_model_predictors(calgary_data: CalgaryData):
             ]
 
             for model in count_models:
-                for distance_type in DistanceType:
+                for distance_type in DISTANCE_TYPES:
                     for reference_word in calgary_data.reference_words:
                         calgary_data.add_model_predictor_fixed_reference(model, distance_type, reference_word=reference_word, memory_map=True)
                     calgary_data.add_model_predictor_min_distance(model, distance_type)
@@ -120,7 +121,7 @@ def add_all_model_predictors(calgary_data: CalgaryData):
                 ]
 
                 for model in predict_models:
-                    for distance_type in DistanceType:
+                    for distance_type in DISTANCE_TYPES:
                         for reference_word in calgary_data.reference_words:
                             calgary_data.add_model_predictor_fixed_reference(model, distance_type, reference_word=reference_word, memory_map=True)
                         calgary_data.add_model_predictor_min_distance(model, distance_type)
@@ -374,7 +375,7 @@ def run_all_model_regressions(all_data: DataFrame,
             ]
 
             for model in count_models:
-                for distance_type in DistanceType:
+                for distance_type in DISTANCE_TYPES:
                     for dv_name in dependent_variable_names:
                         result = run_single_model_regression_fixed_reference(all_data, distance_type, dv_name, model, "concrete", baseline_variable_names)
                         results.append(result)
@@ -400,7 +401,7 @@ def run_all_model_regressions(all_data: DataFrame,
                 ]
 
                 for model in predict_models:
-                    for distance_type in DistanceType:
+                    for distance_type in DISTANCE_TYPES:
                         for dv_name in dependent_variable_names:
                             result = run_single_model_regression_fixed_reference(all_data, distance_type, dv_name, model, "concrete", baseline_variable_names)
                             results.append(result)

@@ -23,6 +23,7 @@ from typing import Set, List, Optional
 import pandas
 import statsmodels.formula.api as sm
 
+from constants import DISTANCE_TYPES
 from ..ldm.corpus.indexing import FreqDist
 from ..ldm.evaluation.regression import SppData, RegressionResult
 from ..ldm.model.base import DistributionalSemanticModel
@@ -116,7 +117,7 @@ def add_all_model_predictors(spp_data: SppData):
             ]
 
             for model in count_models:
-                for distance_type in DistanceType:
+                for distance_type in DISTANCE_TYPES:
                     spp_data.add_model_predictor(model, distance_type, for_priming_effect=False, memory_map=True)
                     spp_data.add_model_predictor(model, distance_type, for_priming_effect=True, memory_map=True)
                 model.untrain()
@@ -133,7 +134,7 @@ def add_all_model_predictors(spp_data: SppData):
                 ]
 
                 for model in predict_models:
-                    for distance_type in DistanceType:
+                    for distance_type in DISTANCE_TYPES:
                         spp_data.add_model_predictor(model, distance_type, for_priming_effect=False, memory_map=True)
                         spp_data.add_model_predictor(model, distance_type, for_priming_effect=True, memory_map=True)
                     model.untrain()
@@ -286,7 +287,7 @@ def run_all_model_regressions(all_data: pandas.DataFrame,
             ]
 
             for model in count_models:
-                for distance_type in DistanceType:
+                for distance_type in DISTANCE_TYPES:
                     for dv_name in dependent_variable_names:
                         result = run_single_model_regression(all_data, distance_type, dv_name, model, baseline_variable_names, for_priming_effect)
                         results.append(result)
@@ -305,7 +306,7 @@ def run_all_model_regressions(all_data: pandas.DataFrame,
                 ]
 
                 for model in predict_models:
-                    for distance_type in DistanceType:
+                    for distance_type in DISTANCE_TYPES:
                         for dv_name in dependent_variable_names:
                             result = run_single_model_regression(all_data, distance_type, dv_name, model, baseline_variable_names, for_priming_effect)
                             results.append(result)
