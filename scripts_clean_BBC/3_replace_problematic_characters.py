@@ -53,7 +53,6 @@ def main():
 
                     fixed_line = str.replace(line, "�", "£")
 
-                    # target_file.write(fixed_line.strip('\'\"-'))
                     target_file.write(fixed_line)
 
         if i % 1000 == 0:

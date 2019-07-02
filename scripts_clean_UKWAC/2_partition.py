@@ -18,7 +18,6 @@ caiwingfield.net
 
 import logging
 import sys
-
 from os import path, mkdir
 
 from ..ldm.utils.logging import log_message, date_format

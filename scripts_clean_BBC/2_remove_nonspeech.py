@@ -59,7 +59,6 @@ def is_suspected_credits(line):
     line_stripped = line.lower().strip(string.punctuation + " \n")
 
     return line_stripped.startswith("subtitles by ")
-    pass
 
 
 def main():

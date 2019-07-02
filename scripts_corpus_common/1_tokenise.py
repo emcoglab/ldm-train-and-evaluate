@@ -18,7 +18,6 @@ caiwingfield.net
 import glob
 import logging
 import sys
-
 from os import path, mkdir
 
 import nltk
