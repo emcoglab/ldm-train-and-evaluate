@@ -19,13 +19,13 @@ import logging
 import sys
 
 from constants import DISTANCE_TYPES
-from ..ldm.corpus.indexing import FreqDist
-from ..ldm.evaluation.synonym import ToeflTest, EslTest, LbmMcqTest, SynonymTester, SynonymResults
-from ..ldm.model.count import PPMIModel, LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel
-from ..ldm.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
-from ..ldm.model.predict import SkipGramModel, CbowModel
-from ..ldm.preferences.preferences import Preferences
-from ..ldm.utils.logging import log_message, date_format
+from ldm.corpus.indexing import FreqDist
+from ldm.evaluation.synonym import ToeflTest, EslTest, LbmMcqTest, SynonymTester, SynonymResults
+from ldm.model.count import PPMIModel, LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel
+from ldm.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
+from ldm.model.predict import SkipGramModel, CbowModel
+from ldm.preferences.preferences import Preferences
+from ldm.utils.logging import log_message, date_format
 
 logger = logging.getLogger(__name__)
 
