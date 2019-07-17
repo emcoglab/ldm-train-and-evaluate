@@ -21,6 +21,7 @@ from os import path
 from typing import Set, List, Optional
 
 import pandas
+from numpy import nan
 import statsmodels.formula.api as sm
 
 from constants import DISTANCE_TYPES
@@ -336,6 +337,8 @@ def add_elexicon_predictors(spp_data: SppData):
 
     def levenshtein_distance_local(word_pair):
         word_1, word_2 = word_pair
+        if pandas.isna(word_1) or pandas.isna(word_2):
+            return nan
         return levenshtein_distance(word_1, word_2)
 
     # Add Levenshtein distance column to data frame
