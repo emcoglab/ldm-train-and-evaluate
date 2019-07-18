@@ -44,9 +44,9 @@ def main():
     save_wordlist(spp_data.vocabulary)
     save_wordpairs(spp_data.word_pairs)
 
-    add_all_model_predictors(spp_data)
-
     add_elexicon_predictors(spp_data)
+
+    add_all_model_predictors(spp_data)
 
     spp_data.export_csv_first_associate_only()
 
@@ -348,11 +348,10 @@ def add_elexicon_predictors(spp_data: SppData):
     else:
         logger.info("Adding Levenshtein-distance predictor to SPP data.")
 
-        word_columns = ["PrimeWord", "TargetWord"]
-        word_pairs = spp_data.dataframe[word_columns].copy()
-        word_pairs[levenshtein_column_name] = word_pairs[word_columns].apply(levenshtein_distance_local, axis=1)
+        word_pairs = spp_data.dataframe[["PrimeWord", "TargetWord"]].copy()
+        word_pairs[levenshtein_column_name] = word_pairs[["PrimeWord", "TargetWord"]].apply(levenshtein_distance_local, axis=1)
 
-        spp_data.add_word_pair_keyed_predictor(word_pairs, merge_on=word_columns)
+        spp_data.add_word_pair_keyed_predictor(word_pairs, merge_on=["PrimeWord", "TargetWord"])
 
     # Add Levenshtein priming distance column to data frame
     priming_levenshtein_column_name = "PrimeTarget_OrthLD_Priming"
@@ -361,14 +360,15 @@ def add_elexicon_predictors(spp_data: SppData):
     else:
         logger.info("Adding Levenshtein-distance priming predictor to SPP data.")
 
-        priming_word_columns = ["MatchedPrime", "TargetWord"]
-        matched_word_pairs = spp_data.dataframe[priming_word_columns].copy()
+        # need both of them when
+        matched_word_pairs = spp_data.dataframe[["PrimeWord", "TargetWord", "MatchedPrime"]].copy()
 
         # The priming OLD is the difference between related and matched unrelated pair OLDs
-        matched_word_pairs[priming_levenshtein_column_name] = matched_word_pairs[priming_word_columns].apply(
+        matched_word_pairs[priming_levenshtein_column_name] = matched_word_pairs[["MatchedPrime", "TargetWord"]].apply(
             levenshtein_distance_local, axis=1) - spp_data.dataframe[levenshtein_column_name]
 
-        spp_data.add_word_pair_keyed_predictor(matched_word_pairs, merge_on=priming_word_columns)
+        spp_data.add_word_pair_keyed_predictor(matched_word_pairs[["PrimeWord", "TargetWord", priming_levenshtein_column_name]],
+                                               merge_on=["PrimeWord", "TargetWord"])
 
 
 def add_elexicon_predictor(spp_data: SppData,
