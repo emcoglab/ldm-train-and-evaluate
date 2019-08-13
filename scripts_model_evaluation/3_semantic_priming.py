@@ -223,25 +223,25 @@ def run_single_model_regression(all_data: pandas.DataFrame,
     baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
     model_formula = f"{baseline_formula} + {model_predictor_name}"
 
-    baseline_regression = sm.ols(
+    baseline_regression_results = sm.ols(
         formula=baseline_formula,
         data=regression_data).fit()
-    model_regression = sm.ols(
+    model_regression_results = sm.ols(
         formula=model_formula,
         data=regression_data).fit()
 
     return RegressionResult(
-        dv_name,
-        model,
-        distance_type,
-        baseline_regression.rsquared,
-        baseline_regression.bic,
-        model_regression.rsquared,
-        model_regression.bic,
-        model_regression.tvalues[model_predictor_name],
-        model_regression.pvalues[model_predictor_name],
-        model_regression.params[model_predictor_name],
-        model_regression.df_resid
+        dv_name=dv_name,
+        model=model,
+        distance_type=distance_type,
+        baseline_r2=baseline_regression_results.rsquared,
+        baseline_bic=baseline_regression_results.bic,
+        model_r2=model_regression_results.rsquared,
+        model_bic=model_regression_results.bic,
+        model_t=model_regression_results.tvalues[model_predictor_name],
+        model_p=model_regression_results.pvalues[model_predictor_name],
+        model_beta=model_regression_results.params[model_predictor_name],
+        df=model_regression_results.df_resid,
     )
 
 
