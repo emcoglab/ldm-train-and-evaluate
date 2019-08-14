@@ -18,15 +18,17 @@ caiwingfield.net
 import logging
 import sys
 from os import path
+from os.path import join, dirname, realpath
 from typing import Set, List, Optional
 
-import pandas
 from numpy import nan
 import statsmodels.formula.api as sm
+from pandas import DataFrame, isna, read_csv
+from statsmodels.regression.linear_model import RegressionResults
 
 from constants import DISTANCE_TYPES
 from ldm.corpus.indexing import FreqDist
-from ldm.evaluation.regression import SppData, RegressionResult
+from ldm.evaluation.regression import SppData, RegressionResult, variance_inflation_factors
 from ldm.model.base import DistributionalSemanticModel
 from ldm.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
 from ldm.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
@@ -205,7 +207,7 @@ def regression_wrapper(spp_data: SppData):
             results_file.write(separator.join(result.fields) + '\n')
 
 
-def run_single_model_regression(all_data: pandas.DataFrame,
+def run_single_model_regression(all_data: DataFrame,
                                 distance_type: Optional[DistanceType],
                                 dv_name: str,
                                 model: DistributionalSemanticModel,
@@ -223,12 +225,18 @@ def run_single_model_regression(all_data: pandas.DataFrame,
     baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
     model_formula = f"{baseline_formula} + {model_predictor_name}"
 
-    baseline_regression_results = sm.ols(
+    baseline_regression_results: RegressionResults = sm.ols(
         formula=baseline_formula,
         data=regression_data).fit()
-    model_regression_results = sm.ols(
+    model_regression_results: RegressionResults = sm.ols(
         formula=model_formula,
         data=regression_data).fit()
+    
+    model_design_matrix_df: DataFrame = DataFrame(data=model_regression_results.model.exog,
+                                                  columns=model_regression_results.model.exog_names)
+
+    vifs = variance_inflation_factors(model_design_matrix_df)
+    vifs = vifs[vifs.index != 'Intercept']
 
     return RegressionResult(
         dv_name=dv_name,
@@ -242,10 +250,12 @@ def run_single_model_regression(all_data: pandas.DataFrame,
         model_p=model_regression_results.pvalues[model_predictor_name],
         model_beta=model_regression_results.params[model_predictor_name],
         df=model_regression_results.df_resid,
+        max_vif=vifs.max(),
+        max_vif_predictor=vifs.idxmax(),
     )
 
 
-def run_all_model_regressions(all_data: pandas.DataFrame,
+def run_all_model_regressions(all_data: DataFrame,
                               dependent_variable_names: List[str],
                               baseline_variable_names: List[str],
                               for_priming_effect: bool):
@@ -317,7 +327,7 @@ def run_all_model_regressions(all_data: pandas.DataFrame,
 
 def add_elexicon_predictors(spp_data: SppData):
 
-    elexicon_dataframe: pandas.DataFrame = pandas.read_csv(Preferences.spp_elexicon_csv, header=0, encoding="utf-8")
+    elexicon_dataframe: DataFrame = read_csv(Preferences.spp_elexicon_csv, header=0, encoding="utf-8")
 
     # Make sure the words are lowercase, as we'll use them as merging keys
     elexicon_dataframe['Word'] = elexicon_dataframe['Word'].str.lower()
@@ -337,7 +347,7 @@ def add_elexicon_predictors(spp_data: SppData):
 
     def levenshtein_distance_local(word_pair):
         word_1, word_2 = word_pair
-        if pandas.isna(word_1) or pandas.isna(word_2):
+        if isna(word_1) or isna(word_2):
             return nan
         return levenshtein_distance(word_1, word_2)
 
@@ -361,18 +371,18 @@ def add_elexicon_predictors(spp_data: SppData):
         logger.info("Adding Levenshtein-distance priming predictor to SPP data.")
 
         # need both of them when
-        matched_word_pairs = spp_data.dataframe[["PrimeWord", "TargetWord", "MatchedPrime"]].copy()
+        matched_pairs = spp_data.dataframe[["PrimeWord", "TargetWord", "MatchedPrime"]].copy()
 
         # The priming OLD is the difference between related and matched unrelated pair OLDs
-        matched_word_pairs[priming_levenshtein_column_name] = matched_word_pairs[["MatchedPrime", "TargetWord"]].apply(
+        matched_pairs[priming_levenshtein_column_name] = matched_pairs[["MatchedPrime", "TargetWord"]].apply(
             levenshtein_distance_local, axis=1) - spp_data.dataframe[levenshtein_column_name]
 
-        spp_data.add_word_pair_keyed_predictor(matched_word_pairs[["PrimeWord", "TargetWord", priming_levenshtein_column_name]],
+        spp_data.add_word_pair_keyed_predictor(matched_pairs[["PrimeWord", "TargetWord", priming_levenshtein_column_name]],
                                                merge_on=["PrimeWord", "TargetWord"])
 
 
 def add_elexicon_predictor(spp_data: SppData,
-                           elexicon_dataframe: pandas.DataFrame,
+                           elexicon_dataframe: DataFrame,
                            predictor_name: str,
                            prime_or_target: str):
     assert (prime_or_target in ["Prime", "Target"])

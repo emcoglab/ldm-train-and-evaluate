@@ -22,10 +22,11 @@ from typing import Set, List, Callable, Optional
 
 import statsmodels.formula.api as sm
 from pandas import DataFrame, read_csv
+from statsmodels.regression.linear_model import RegressionResults
 
 from constants import DISTANCE_TYPES
 from ..ldm.corpus.indexing import FreqDist
-from ..ldm.evaluation.regression import RegressionResult, CalgaryData
+from ..ldm.evaluation.regression import RegressionResult, CalgaryData, variance_inflation_factors
 from ..ldm.model.base import VectorSemanticModel, DistributionalSemanticModel
 from ..ldm.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
 from ..ldm.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
@@ -186,25 +187,33 @@ def run_single_model_regression_min_distance(all_data: DataFrame,
     baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
     model_formula = f"{baseline_formula} + {model_predictor_name}"
 
-    baseline_regression = sm.ols(
+    baseline_regression_results: RegressionResults = sm.ols(
         formula=baseline_formula,
         data=regression_data).fit()
-    model_regression = sm.ols(
+    model_regression_results: RegressionResults = sm.ols(
         formula=model_formula,
         data=regression_data).fit()
 
+    model_design_matrix_df: DataFrame = DataFrame(data=model_regression_results.model.exog,
+                                                  columns=model_regression_results.model.exog_names)
+
+    vifs = variance_inflation_factors(model_design_matrix_df)
+    vifs = vifs[vifs.index != 'Intercept']
+
     return RegressionResult(
-        f"{dv_name}_min_distance",
-        model,
-        distance_type,
-        baseline_regression.rsquared,
-        baseline_regression.bic,
-        model_regression.rsquared,
-        model_regression.bic,
-        model_regression.tvalues[model_predictor_name],
-        model_regression.pvalues[model_predictor_name],
-        model_regression.params[model_predictor_name],
-        model_regression.df_resid
+        dv_name=f"{dv_name}_min_distance",
+        model=model,
+        distance_type=distance_type,
+        baseline_r2=baseline_regression_results.rsquared,
+        baseline_bic=baseline_regression_results.bic,
+        model_r2=model_regression_results.rsquared,
+        model_bic=model_regression_results.bic,
+        model_t=model_regression_results.tvalues[model_predictor_name],
+        model_p=model_regression_results.pvalues[model_predictor_name],
+        model_beta=model_regression_results.params[model_predictor_name],
+        df=model_regression_results.df_resid,
+        max_vif=vifs.max(),
+        max_vif_predictor=vifs.idxmax(),
     )
 
 
@@ -225,25 +234,33 @@ def run_single_model_regression_reference_difference(all_data: DataFrame,
     baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
     model_formula = f"{baseline_formula} + {model_predictor_name}"
 
-    baseline_regression = sm.ols(
+    baseline_regression_results: RegressionResults = sm.ols(
         formula=baseline_formula,
         data=regression_data).fit()
-    model_regression = sm.ols(
+    model_regression_results: RegressionResults = sm.ols(
         formula=model_formula,
         data=regression_data).fit()
 
+    model_design_matrix_df: DataFrame = DataFrame(data=model_regression_results.model.exog,
+                                                  columns=model_regression_results.model.exog_names)
+
+    vifs = variance_inflation_factors(model_design_matrix_df)
+    vifs = vifs[vifs.index != 'Intercept']
+
     return RegressionResult(
-        f"{dv_name}_diff_distance",
-        model,
-        distance_type,
-        baseline_regression.rsquared,
-        baseline_regression.bic,
-        model_regression.rsquared,
-        model_regression.bic,
-        model_regression.tvalues[model_predictor_name],
-        model_regression.pvalues[model_predictor_name],
-        model_regression.params[model_predictor_name],
-        model_regression.df_resid
+        dv_name=f"{dv_name}_diff_distance",
+        model=model,
+        distance_type=distance_type,
+        baseline_r2=baseline_regression_results.rsquared,
+        baseline_bic=baseline_regression_results.bic,
+        model_r2=model_regression_results.rsquared,
+        model_bic=model_regression_results.bic,
+        model_t=model_regression_results.tvalues[model_predictor_name],
+        model_p=model_regression_results.pvalues[model_predictor_name],
+        model_beta=model_regression_results.params[model_predictor_name],
+        df=model_regression_results.df_resid,
+        max_vif=vifs.max(),
+        max_vif_predictor=vifs.idxmax(),
     )
 
 
@@ -265,26 +282,34 @@ def run_dual_model_regression_both_references(all_data: DataFrame,
     baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
     model_formula = f"{baseline_formula} + {' + '.join(model_predictor_names)}"
 
-    baseline_regression = sm.ols(
+    baseline_regression_results: RegressionResults = sm.ols(
         formula=baseline_formula,
         data=regression_data).fit()
-    model_regression = sm.ols(
+    model_regression_results: RegressionResults = sm.ols(
         formula=model_formula,
         data=regression_data).fit()
 
+    model_design_matrix_df: DataFrame = DataFrame(data=model_regression_results.model.exog,
+                                                  columns=model_regression_results.model.exog_names)
+
+    vifs = variance_inflation_factors(model_design_matrix_df)
+    vifs = vifs[vifs.index != 'Intercept']
+
     return RegressionResult(
-        f"{dv_name}_dual_distance",
-        model,
-        distance_type,
-        baseline_regression.rsquared,
-        baseline_regression.bic,
-        model_regression.rsquared,
-        model_regression.bic,
+        dv_name=f"{dv_name}_min_distance",
+        model=model,
+        distance_type=distance_type,
+        baseline_r2=baseline_regression_results.rsquared,
+        baseline_bic=baseline_regression_results.bic,
+        model_r2=model_regression_results.rsquared,
+        model_bic=model_regression_results.bic,
         # TODO: this is not a good way to deal with this
-        "; ".join([f"{predictor}: {model_regression.tvalues[predictor]}" for predictor in model_predictor_names]),
-        "; ".join([f"{predictor}: {model_regression.pvalues[predictor]}" for predictor in model_predictor_names]),
-        "; ".join([f"{predictor}: {model_regression.params[predictor]}" for predictor in model_predictor_names]),
-        model_regression.df_resid
+        model_t="; ".join([f"{predictor}: {model_regression_results.tvalues[predictor]}" for predictor in model_predictor_names]),
+        model_p="; ".join([f"{predictor}: {model_regression_results.pvalues[predictor]}" for predictor in model_predictor_names]),
+        model_beta="; ".join([f"{predictor}: {model_regression_results.params[predictor]}" for predictor in model_predictor_names]),
+        df=model_regression_results.df_resid,
+        max_vif=vifs.max(),
+        max_vif_predictor=vifs.idxmax(),
     )
 
 
@@ -306,25 +331,33 @@ def run_single_model_regression_fixed_reference(all_data: DataFrame,
     baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
     model_formula = f"{baseline_formula} + {model_predictor_name}"
 
-    baseline_regression = sm.ols(
+    baseline_regression_results: RegressionResults = sm.ols(
         formula=baseline_formula,
         data=regression_data).fit()
-    model_regression = sm.ols(
+    model_regression_results: RegressionResults = sm.ols(
         formula=model_formula,
         data=regression_data).fit()
 
+    model_design_matrix_df: DataFrame = DataFrame(data=model_regression_results.model.exog,
+                                                  columns=model_regression_results.model.exog_names)
+
+    vifs = variance_inflation_factors(model_design_matrix_df)
+    vifs = vifs[vifs.index != 'Intercept']
+
     return RegressionResult(
-        f"{dv_name}_{reference_word}_distance",
-        model,
-        distance_type,
-        baseline_regression.rsquared,
-        baseline_regression.bic,
-        model_regression.rsquared,
-        model_regression.bic,
-        model_regression.tvalues[model_predictor_name],
-        model_regression.pvalues[model_predictor_name],
-        model_regression.params[model_predictor_name],
-        model_regression.df_resid
+        dv_name=f"{dv_name}_{reference_word}_distance",
+        model=model,
+        distance_type=distance_type,
+        baseline_r2=baseline_regression_results.rsquared,
+        baseline_bic=baseline_regression_results.bic,
+        model_r2=model_regression_results.rsquared,
+        model_bic=model_regression_results.bic,
+        model_t=model_regression_results.tvalues[model_predictor_name],
+        model_p=model_regression_results.pvalues[model_predictor_name],
+        model_beta=model_regression_results.params[model_predictor_name],
+        df=model_regression_results.df_resid,
+        max_vif=vifs.max(),
+        max_vif_predictor=vifs.idxmax(),
     )
 
 
@@ -332,7 +365,7 @@ def run_all_model_regressions(all_data: DataFrame,
                               dependent_variable_names: List[str],
                               baseline_variable_names: List[str]):
 
-    results : List[RegressionResult] = []
+    results: List[RegressionResult] = []
 
     for corpus_metadata in Preferences.source_corpus_metas:
 
@@ -368,7 +401,7 @@ def run_all_model_regressions(all_data: DataFrame,
             # Count models
 
             count_models = [
-                LogCoOccurrenceCountModel(corpus_metadata, window_radius),
+                LogCoOccurrenceCountModel(corpus_metadata, window_radius, freq_dist),
                 ConditionalProbabilityModel(corpus_metadata, window_radius, freq_dist),
                 ProbabilityRatioModel(corpus_metadata, window_radius, freq_dist),
                 PPMIModel(corpus_metadata, window_radius, freq_dist)
