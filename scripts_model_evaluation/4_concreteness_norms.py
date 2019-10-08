@@ -296,7 +296,7 @@ def run_dual_model_regression_both_references(all_data: DataFrame,
     vifs = vifs[vifs.index != 'Intercept']
 
     return RegressionResult(
-        dv_name=f"{dv_name}_min_distance",
+        dv_name=f"{dv_name}_dual_distance",
         model=model,
         distance_type=distance_type,
         baseline_r2=baseline_regression_results.rsquared,
