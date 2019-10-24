@@ -32,14 +32,13 @@ logger = logging.getLogger(__name__)
 
 def main():
 
-    test_battery = [
-        ToeflTest(),
-        EslTest(),
-        LbmMcqTest()
+    tester_battery = [
+        SynonymTester(test=ToeflTest()),
+        SynonymTester(test=EslTest()),
+        SynonymTester(test=LbmMcqTest())
     ]
 
     results = SynonymResults()
-    results.load()
 
     for corpus_metadata in Preferences.source_corpus_metas:
 
@@ -56,11 +55,11 @@ def main():
             ]
 
             for model in ngram_models:
-                for test in test_battery:
-                    if not results.results_exist_for(test.name, model, None):
+                for tester in tester_battery:
+                    if not tester.has_tested_model(model):
                         model.train(memory_map=True)
-                        results.extend_with_results(SynonymTester.administer_test_with_similarity(test, model))
-                        results.save()
+                        tester.administer_test(model)
+                    results.add_result(tester.test.name, model, None, tester.results_for_model(model))
 
                 # release memory
                 model.untrain()
@@ -76,13 +75,12 @@ def main():
             ]
 
             for model in count_models:
-                for test in test_battery:
+                for tester in tester_battery:
                     for distance_type in DISTANCE_TYPES:
-                        # TODO: horrifically inefficient: we load existing results each time
-                        if not results.results_exist_for(test.name, model, distance_type):
+                        if not tester.has_tested_model(model, distance_type):
                             model.train(memory_map=True)
-                            results.extend_with_results(SynonymTester.administer_test_with_distance(test, model, distance_type))
-                            results.save()
+                            tester.administer_test(model, distance_type)
+                        results.add_result(tester.test.name, model, distance_type, tester.results_for_model(model))
 
                 # release memory
                 model.untrain()
@@ -91,12 +89,13 @@ def main():
             # PPMI (TRUNCATED, for replication of B&L 2007)
             model = PPMIModel(corpus_metadata, window_radius, freq_dist)
             truncate_length = 10_000
-            for test in test_battery:
+            for tester in tester_battery:
                 for distance_type in DISTANCE_TYPES:
-                    if not results.results_exist_for(test.name, model, distance_type, truncate_length):
+                    if not tester.has_tested_model(model, distance_type, truncate_length=truncate_length):
                         model.train(memory_map=True)
-                        results.extend_with_results(SynonymTester.administer_test_with_distance(test, model, distance_type, truncate_length))
-                        results.save()
+                        tester.administer_test(model, distance_type, truncate_length)
+                    results.add_result(tester.test.name, model, distance_type, tester.results_for_model(model),
+                                       append_to_model_name=f" ({truncate_length})")
 
             # release memory
             model.untrain()
@@ -111,12 +110,12 @@ def main():
                 ]
 
                 for model in predict_models:
-                    for test in test_battery:
+                    for tester in tester_battery:
                         for distance_type in DISTANCE_TYPES:
-                            if not results.results_exist_for(test.name, model, distance_type):
+                            if not tester.has_tested_model(model, distance_type):
                                 model.train(memory_map=True)
-                                results.extend_with_results(SynonymTester.administer_test_with_distance(test, model, distance_type))
-                                results.save()
+                                tester.administer_test(model, distance_type)
+                            results.add_result(tester.test.name, model, distance_type, tester.results_for_model(model))
 
                     # release memory
                     model.untrain()
