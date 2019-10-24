@@ -26,20 +26,6 @@ python -m corpus_analysis.scripts_model_evaluation.1_synonym_tests
 This is because of weird behaviour of Python which I don't understand.
 
 
-## Critical path
-
-To reproduce each stage of the analysis, each script directory contains a script named `0_crit_path.sh`.  This should 
-run all necessary scripts in order.
-
-Run it like:
-```commandline
-sh 0_crit_path.sh
-```
-from above the project directory.  There is also a `0_crit_path.sh` in the root of the project, which should run each 
-other `0_crit_path.sh` script in order, reproducing the whole project from scratch.  (This will take a long time and a 
-lot of memory!)
-
-
 ## Dependencies
 
 This project requires Python 3.6+.
