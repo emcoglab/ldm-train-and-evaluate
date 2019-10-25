@@ -60,7 +60,6 @@ def main():
                         model.train(memory_map=True)
                         tester.administer_test(model)
                     results.add_result(tester.test.name, model, None, tester.results_for_model(model))
-
                 # release memory
                 model.untrain()
             del ngram_models
@@ -81,7 +80,6 @@ def main():
                             model.train(memory_map=True)
                             tester.administer_test(model, distance_type)
                         results.add_result(tester.test.name, model, distance_type, tester.results_for_model(model))
-
                 # release memory
                 model.untrain()
             del count_models
@@ -116,10 +114,11 @@ def main():
                                 model.train(memory_map=True)
                                 tester.administer_test(model, distance_type)
                             results.add_result(tester.test.name, model, distance_type, tester.results_for_model(model))
-
                     # release memory
                     model.untrain()
                 del predict_models
+
+    results.save()
 
 
 if __name__ == "__main__":

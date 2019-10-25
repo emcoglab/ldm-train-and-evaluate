@@ -21,29 +21,29 @@ import sys
 from constants import DISTANCE_TYPES
 from ldm.corpus.indexing import FreqDist
 from ldm.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
-    AssociationTester, ColourEmotionAssociation, ThematicRelatedness, AssociationResults
+    AssociationTester, ThematicRelatedness, AssociationResults
 from ldm.model.count import PPMIModel, LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ldm.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
 from ldm.model.predict import SkipGramModel, CbowModel
 from ldm.preferences.preferences import Preferences
 from ldm.utils.logging import log_message, date_format
+from ldm.utils.maths import CorrelationType
 
 logger = logging.getLogger(__name__)
 
 
 def main():
-    test_battery = [
-        SimlexSimilarity(),
-        WordsimSimilarity(),
-        WordsimRelatedness(),
-        MenSimilarity(),
-        ColourEmotionAssociation(),
-        ThematicRelatedness()
-        # ThematicRelatedness(only_use_response=1)
+    tester_battery = [
+        AssociationTester(test=SimlexSimilarity()),
+        AssociationTester(test=WordsimSimilarity()),
+        AssociationTester(test=WordsimRelatedness()),
+        AssociationTester(test=MenSimilarity()),
+        # AssociationTester(test=ColourEmotionAssociation()),
+        AssociationTester(test=ThematicRelatedness()),
+        # AssociationTester(test=ThematicRelatedness(only_use_response=1)),
     ]
 
     results = AssociationResults()
-    results.load()
 
     for corpus_metadata in Preferences.source_corpus_metas:
 
@@ -58,11 +58,14 @@ def main():
             ]
 
             for model in ngram_models:
-                for test in test_battery:
-                    if not results.results_exist_for(test.name, model, None):
+                for tester in tester_battery:
+                    if not tester.has_tested_model(model):
                         model.train(memory_map=True)
-                        results.extend_with_results(AssociationTester.administer_test(test, model, None))
-                        results.save()
+                        tester.administer_test(model)
+                    results.add_result(tester.test.name, model, None,
+                                       tester.results_for_model(CorrelationType.Pearson, model))
+                    results.add_result(tester.test.name, model, None,
+                                       tester.results_for_model(CorrelationType.Spearman, model))
                 # release memory
                 model.untrain()
             del ngram_models
@@ -77,12 +80,15 @@ def main():
             ]
 
             for model in count_models:
-                for test in test_battery:
+                for tester in tester_battery:
                     for distance_type in DISTANCE_TYPES:
-                        if not results.results_exist_for(test.name, model, distance_type):
+                        if not tester.has_tested_model(model, distance_type):
                             model.train(memory_map=True)
-                            results.extend_with_results(AssociationTester.administer_test(test, model, distance_type))
-                            results.save()
+                            tester.administer_test(model, distance_type)
+                        results.add_result(tester.test.name, model, distance_type,
+                                           tester.results_for_model(CorrelationType.Pearson, model, distance_type))
+                        results.add_result(tester.test.name, model, distance_type,
+                                           tester.results_for_model(CorrelationType.Spearman, model, distance_type))
                 # release memory
                 model.untrain()
             del count_models
@@ -97,17 +103,20 @@ def main():
                 ]
 
                 for model in predict_models:
-                    for test in test_battery:
+                    for tester in tester_battery:
                         for distance_type in DISTANCE_TYPES:
-                            if not results.results_exist_for(test.name, model, distance_type):
+                            if not tester.has_tested_model(model, distance_type):
                                 model.train(memory_map=True)
-                                results.extend_with_results(
-                                    AssociationTester.administer_test(test, model, distance_type))
-                                results.save()
-
+                                tester.administer_test(model, distance_type)
+                            results.add_result(tester.test.name, model, distance_type,
+                                               tester.results_for_model(CorrelationType.Pearson, model, distance_type))
+                            results.add_result(tester.test.name, model, distance_type,
+                                               tester.results_for_model(CorrelationType.Spearman, model, distance_type))
                     # release memory
                     model.untrain()
                 del predict_models
+
+    results.save()
 
 
 if __name__ == "__main__":
