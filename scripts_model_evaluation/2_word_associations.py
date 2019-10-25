@@ -18,7 +18,6 @@ caiwingfield.net
 import logging
 import sys
 
-from constants import DISTANCE_TYPES
 from ldm.corpus.indexing import FreqDist
 from ldm.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
     AssociationTester, ThematicRelatedness, AssociationResults
@@ -28,6 +27,8 @@ from ldm.model.predict import SkipGramModel, CbowModel
 from ldm.preferences.preferences import Preferences
 from ldm.utils.logging import log_message, date_format
 from ldm.utils.maths import CorrelationType
+
+from constants import DISTANCE_TYPES
 
 logger = logging.getLogger(__name__)
 

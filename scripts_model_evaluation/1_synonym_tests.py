@@ -79,7 +79,8 @@ def main():
                         if not tester.has_tested_model(model, distance_type):
                             model.train(memory_map=True)
                             tester.administer_test(model, distance_type)
-                        results.add_result(tester.test.name, model, distance_type, tester.results_for_model(model))
+                        results.add_result(tester.test.name, model, distance_type,
+                                           tester.results_for_model(model, distance_type))
                 # release memory
                 model.untrain()
             del count_models
@@ -92,7 +93,8 @@ def main():
                     if not tester.has_tested_model(model, distance_type, truncate_length=truncate_length):
                         model.train(memory_map=True)
                         tester.administer_test(model, distance_type, truncate_length)
-                    results.add_result(tester.test.name, model, distance_type, tester.results_for_model(model),
+                    results.add_result(tester.test.name, model, distance_type,
+                                       tester.results_for_model(model, distance_type),
                                        append_to_model_name=f" ({truncate_length})")
 
             # release memory
@@ -113,7 +115,8 @@ def main():
                             if not tester.has_tested_model(model, distance_type):
                                 model.train(memory_map=True)
                                 tester.administer_test(model, distance_type)
-                            results.add_result(tester.test.name, model, distance_type, tester.results_for_model(model))
+                            results.add_result(tester.test.name, model, distance_type,
+                                               tester.results_for_model(model, distance_type))
                     # release memory
                     model.untrain()
                 del predict_models
