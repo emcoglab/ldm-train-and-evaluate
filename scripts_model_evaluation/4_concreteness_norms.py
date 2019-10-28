@@ -139,22 +139,22 @@ def regression_wrapper(calgary_data: CalgaryData):
     # Compute all models for non-priming data
 
     dependent_variable_names = [
-        "zRTclean_mean",
-        "Concrete_response_proportion",
-        # "ACC"
+        CalgaryData.Columns.zrt_mean,
+        CalgaryData.Columns.concrete_response_proportion,
+        # CalgaryData.Columns.accuracy
     ]
 
     baseline_variable_names = [
         # Elexicon predictors:
-        "elex_Length",
-        "elex_LgSUBTLWF",
-        "elex_OLD",
-        "elex_PLD",
-        "elex_NSyll",
+        CalgaryData.Columns.elex_length,
+        CalgaryData.Columns.elex_log_wf,
+        CalgaryData.Columns.elex_old20,
+        CalgaryData.Columns.elex_pld20,
+        CalgaryData.Columns.elex_nsyll,
         # Computed predictors:
-        # "concrete_OrthLD",
-        # "abstract_OrthLD",
         # "minimum_reference_OrthLD"
+        # CalgaryData.Columns.concrete_old,
+        # CalgaryData.Columns.abstract_old,
     ]
 
     results = run_all_model_regressions(calgary_data.dataframe, dependent_variable_names, baseline_variable_names)
@@ -484,6 +484,7 @@ def add_lexical_predictors(calgary_data: CalgaryData):
     ref_levenshtein_column_names = []
     for reference_word in calgary_data.reference_words:
 
+        # TODO: this logic shouldn't be here, it should be in CalgaryData.Columns
         levenshtein_column_name = f"{reference_word}_OrthLD"
         ref_levenshtein_column_names.append(levenshtein_column_name)
 
@@ -511,10 +512,9 @@ def add_elexicon_predictor(calgary_data: CalgaryData,
                            elexicon_dataframe: DataFrame,
                            predictor_name: str):
 
+    # TODO: this logic shouldn't be here, it should be in CalgaryData.Columns
     # elex_<predictor_name>
     new_predictor_name = f"elex_" + predictor_name
-
-    key_name = f"Word"
 
     # Don't bother training the model until we know we need it
     if calgary_data.predictor_exists_with_name(new_predictor_name):
@@ -527,7 +527,7 @@ def add_elexicon_predictor(calgary_data: CalgaryData,
 
         predictor = predictor.rename(columns={predictor_name: new_predictor_name})
 
-        calgary_data.add_word_keyed_predictor(predictor, key_name, new_predictor_name)
+        calgary_data.add_word_keyed_predictor(predictor, CalgaryData.Columns.word, new_predictor_name)
 
 
 if __name__ == "__main__":

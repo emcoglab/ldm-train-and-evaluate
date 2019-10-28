@@ -151,23 +151,23 @@ def regression_wrapper(spp_data: SppData):
     # Compute all models for non-priming data
 
     dependent_variable_names = [
-        "LDT_200ms_Z",
-        "LDT_200ms_Acc",
-        "LDT_1200ms_Z",
-        "LDT_1200ms_Acc",
-        "NT_200ms_Z",
-        "NT_200ms_Acc",
-        "NT_1200ms_Z",
-        "NT_1200ms_Acc"
+        SppData.Columns.ldt_200_z,
+        SppData.Columns.ldt_200_ac,
+        SppData.Columns.ldt_1200_z,
+        SppData.Columns.ldt_1200_ac,
+        SppData.Columns.nt_200_z,
+        SppData.Columns.nt_200_ac,
+        SppData.Columns.nt_1200_z,
+        SppData.Columns.nt_1200_ac,
     ]
 
     baseline_variable_names = [
-        "TargetLength",
-        "elex_target_LgSUBTLWF",
-        "elex_target_OLD",
-        "elex_target_PLD",
-        "elex_target_NSyll",
-        "PrimeTarget_OrthLD"
+        SppData.Columns.target_length,
+        SppData.Columns.elex_target_log_wf,
+        SppData.Columns.elex_target_old20,
+        SppData.Columns.elex_target_pld20,
+        SppData.Columns.elex_target_nsyll,
+        SppData.Columns.prime_target_old,
     ]
 
     results = run_all_model_regressions(spp_data.dataframe, dependent_variable_names, baseline_variable_names,
@@ -176,18 +176,18 @@ def regression_wrapper(spp_data: SppData):
     # Compute all models for priming data
 
     dependent_variable_priming_names = [
-        "LDT_200ms_Z_Priming",
-        "LDT_200ms_Acc_Priming",
-        "LDT_1200ms_Z_Priming",
-        "LDT_1200ms_Acc_Priming",
-        "NT_200ms_Z_Priming",
-        "NT_200ms_Acc_Priming",
-        "NT_1200ms_Z_Priming",
-        "NT_1200ms_Acc_Priming"
+        SppData.Columns.ldt_200_z_priming,
+        SppData.Columns.ldt_200_ac_priming,
+        SppData.Columns.ldt_1200_z_priming,
+        SppData.Columns.ldt_1200_ac_priming,
+        SppData.Columns.nt_200_z_priming,
+        SppData.Columns.nt_200_ac_priming,
+        SppData.Columns.nt_1200_z_priming,
+        SppData.Columns.nt_1200_ac_priming,
     ]
 
     baseline_variable_priming_names = [
-        "PrimeTarget_OrthLD_Priming"
+        SppData.Columns.prime_target_old_priming
     ]
 
     priming_results = run_all_model_regressions(spp_data.dataframe, dependent_variable_priming_names, baseline_variable_priming_names,
@@ -351,33 +351,31 @@ def add_elexicon_predictors(spp_data: SppData):
         return levenshtein_distance(word_1, word_2)
 
     # Add Levenshtein distance column to data frame
-    levenshtein_column_name = "PrimeTarget_OrthLD"
-    if spp_data.predictor_exists_with_name(levenshtein_column_name):
+    if spp_data.predictor_exists_with_name(SppData.Columns.prime_target_old):
         logger.info("Levenshtein-distance predictor already added to SPP data.")
     else:
         logger.info("Adding Levenshtein-distance predictor to SPP data.")
 
-        word_pairs = spp_data.dataframe[["PrimeWord", "TargetWord"]].copy()
-        word_pairs[levenshtein_column_name] = word_pairs[["PrimeWord", "TargetWord"]].apply(levenshtein_distance_local, axis=1)
+        word_pairs = spp_data.dataframe[[SppData.Columns.prime_word, SppData.Columns.target_word]].copy()
+        word_pairs[SppData.Columns.prime_target_old] = word_pairs[[SppData.Columns.prime_word, SppData.Columns.target_word]].apply(levenshtein_distance_local, axis=1)
 
-        spp_data.add_word_pair_keyed_predictor(word_pairs, merge_on=["PrimeWord", "TargetWord"])
+        spp_data.add_word_pair_keyed_predictor(word_pairs, merge_on=[SppData.Columns.prime_word, SppData.Columns.target_word])
 
     # Add Levenshtein priming distance column to data frame
-    priming_levenshtein_column_name = "PrimeTarget_OrthLD_Priming"
-    if spp_data.predictor_exists_with_name(priming_levenshtein_column_name):
+    if spp_data.predictor_exists_with_name(SppData.Columns.prime_target_old_priming):
         logger.info("Levenshtein-distance priming predictor already added to SPP data.")
     else:
         logger.info("Adding Levenshtein-distance priming predictor to SPP data.")
 
         # need both of them when
-        matched_pairs = spp_data.dataframe[["PrimeWord", "TargetWord", "MatchedPrime"]].copy()
+        matched_pairs = spp_data.dataframe[[SppData.Columns.prime_word, SppData.Columns.target_word, SppData.Columns.matched_prime]].copy()
 
         # The priming OLD is the difference between related and matched unrelated pair OLDs
-        matched_pairs[priming_levenshtein_column_name] = matched_pairs[["MatchedPrime", "TargetWord"]].apply(
-            levenshtein_distance_local, axis=1) - spp_data.dataframe[levenshtein_column_name]
+        matched_pairs[SppData.Columns.prime_target_old_priming] = matched_pairs[[SppData.Columns.matched_prime, SppData.Columns.target_word]].apply(
+            levenshtein_distance_local, axis=1) - spp_data.dataframe[SppData.Columns.prime_target_old]
 
-        spp_data.add_word_pair_keyed_predictor(matched_pairs[["PrimeWord", "TargetWord", priming_levenshtein_column_name]],
-                                               merge_on=["PrimeWord", "TargetWord"])
+        spp_data.add_word_pair_keyed_predictor(matched_pairs[[SppData.Columns.prime_word, SppData.Columns.target_word, SppData.Columns.prime_target_old_priming]],
+                                               merge_on=[SppData.Columns.prime_word, SppData.Columns.target_word])
 
 
 def add_elexicon_predictor(spp_data: SppData,
@@ -386,6 +384,7 @@ def add_elexicon_predictor(spp_data: SppData,
                            prime_or_target: str):
     assert (prime_or_target in ["Prime", "Target"])
 
+    # TODO: this logic shouldn't really be computed here, it should be in SppData.Columns
     # elex_prime_<predictor_name> or
     # elex_target_<predictor_name>
     new_predictor_name = f"elex_{prime_or_target.lower()}_" + predictor_name
