@@ -27,7 +27,7 @@ from statsmodels.regression.linear_model import RegressionResults
 from constants import DISTANCE_TYPES
 from ..ldm.corpus.indexing import FreqDist
 from ..ldm.evaluation.regression import RegressionResult, CalgaryData, variance_inflation_factors
-from ..ldm.model.base import VectorSemanticModel, DistributionalSemanticModel
+from ..ldm.model.base import DistributionalSemanticModel
 from ..ldm.model.count import LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel, PPMIModel
 from ..ldm.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
 from ..ldm.model.predict import SkipGramModel, CbowModel
@@ -84,9 +84,6 @@ def add_all_model_predictors(calgary_data: CalgaryData):
             for model in ngram_models:
                 for reference_word in calgary_data.reference_words:
                     calgary_data.add_model_predictor_fixed_reference(model, None, reference_word=reference_word, memory_map=True)
-                # Skip min distance as if we're using associations rather than distances we would be looking at max
-                # calgary_data.add_model_predictor_min_distance(model, None)
-                calgary_data.add_model_predictor_reference_difference(model, None)
                 model.untrain()
 
             del ngram_models
@@ -106,8 +103,6 @@ def add_all_model_predictors(calgary_data: CalgaryData):
                 for distance_type in DISTANCE_TYPES:
                     for reference_word in calgary_data.reference_words:
                         calgary_data.add_model_predictor_fixed_reference(model, distance_type, reference_word=reference_word, memory_map=True)
-                    calgary_data.add_model_predictor_min_distance(model, distance_type)
-                    calgary_data.add_model_predictor_reference_difference(model, distance_type)
                 model.untrain()
 
             del count_models
@@ -125,8 +120,6 @@ def add_all_model_predictors(calgary_data: CalgaryData):
                     for distance_type in DISTANCE_TYPES:
                         for reference_word in calgary_data.reference_words:
                             calgary_data.add_model_predictor_fixed_reference(model, distance_type, reference_word=reference_word, memory_map=True)
-                        calgary_data.add_model_predictor_min_distance(model, distance_type)
-                        calgary_data.add_model_predictor_reference_difference(model, distance_type)
                     model.untrain()
 
                 del predict_models
@@ -152,7 +145,6 @@ def regression_wrapper(calgary_data: CalgaryData):
         CalgaryData.Columns.elex_pld20,
         CalgaryData.Columns.elex_nsyll,
         # Computed predictors:
-        # "minimum_reference_OrthLD"
         # CalgaryData.Columns.concrete_old,
         # CalgaryData.Columns.abstract_old,
     ]
@@ -168,100 +160,6 @@ def regression_wrapper(calgary_data: CalgaryData):
         # Print results
         for result in results:
             results_file.write(separator.join(result.fields) + '\n')
-
-
-def run_single_model_regression_min_distance(all_data: DataFrame,
-                                             distance_type: Optional[DistanceType],
-                                             dv_name: str,
-                                             model: VectorSemanticModel,
-                                             baseline_variable_names: List[str]):
-
-    model_predictor_name = CalgaryData.predictor_name_for_model_min_distance(model, distance_type)
-
-    # drop rows with missing data in any relevant column, as this may vary from column to column
-    regression_data = all_data[[dv_name] + baseline_variable_names + [model_predictor_name]].dropna(how="any")
-
-    logger.info(f"Running {dv_name} minimum-distance regressions for model {model_predictor_name}")
-
-    # Formulae
-    baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
-    model_formula = f"{baseline_formula} + {model_predictor_name}"
-
-    baseline_regression_results: RegressionResults = sm.ols(
-        formula=baseline_formula,
-        data=regression_data).fit()
-    model_regression_results: RegressionResults = sm.ols(
-        formula=model_formula,
-        data=regression_data).fit()
-
-    model_design_matrix_df: DataFrame = DataFrame(data=model_regression_results.model.exog,
-                                                  columns=model_regression_results.model.exog_names)
-
-    vifs = variance_inflation_factors(model_design_matrix_df)
-    vifs = vifs[vifs.index != 'Intercept']
-
-    return RegressionResult(
-        dv_name=f"{dv_name}_min_distance",
-        model=model,
-        distance_type=distance_type,
-        baseline_r2=baseline_regression_results.rsquared,
-        baseline_bic=baseline_regression_results.bic,
-        model_r2=model_regression_results.rsquared,
-        model_bic=model_regression_results.bic,
-        model_t=model_regression_results.tvalues[model_predictor_name],
-        model_p=model_regression_results.pvalues[model_predictor_name],
-        model_beta=model_regression_results.params[model_predictor_name],
-        df=model_regression_results.df_resid,
-        max_vif=vifs.max(),
-        max_vif_predictor=vifs.idxmax(),
-    )
-
-
-def run_single_model_regression_reference_difference(all_data: DataFrame,
-                                                     distance_type: Optional[DistanceType],
-                                                     dv_name: str,
-                                                     model: DistributionalSemanticModel,
-                                                     baseline_variable_names: List[str]):
-
-    model_predictor_name = CalgaryData.predictor_name_for_model_reference_difference(model, distance_type)
-
-    # drop rows with missing data in any relevant column, as this may vary from column to column
-    regression_data = all_data[[dv_name] + baseline_variable_names + [model_predictor_name]].dropna(how="any")
-
-    logger.info(f"Running {dv_name} distance-difference regressions for model {model_predictor_name}")
-
-    # Formulae
-    baseline_formula = f"{dv_name} ~ {' + '.join(baseline_variable_names)}"
-    model_formula = f"{baseline_formula} + {model_predictor_name}"
-
-    baseline_regression_results: RegressionResults = sm.ols(
-        formula=baseline_formula,
-        data=regression_data).fit()
-    model_regression_results: RegressionResults = sm.ols(
-        formula=model_formula,
-        data=regression_data).fit()
-
-    model_design_matrix_df: DataFrame = DataFrame(data=model_regression_results.model.exog,
-                                                  columns=model_regression_results.model.exog_names)
-
-    vifs = variance_inflation_factors(model_design_matrix_df)
-    vifs = vifs[vifs.index != 'Intercept']
-
-    return RegressionResult(
-        dv_name=f"{dv_name}_diff_distance",
-        model=model,
-        distance_type=distance_type,
-        baseline_r2=baseline_regression_results.rsquared,
-        baseline_bic=baseline_regression_results.bic,
-        model_r2=model_regression_results.rsquared,
-        model_bic=model_regression_results.bic,
-        model_t=model_regression_results.tvalues[model_predictor_name],
-        model_p=model_regression_results.pvalues[model_predictor_name],
-        model_beta=model_regression_results.params[model_predictor_name],
-        df=model_regression_results.df_resid,
-        max_vif=vifs.max(),
-        max_vif_predictor=vifs.idxmax(),
-    )
 
 
 def run_dual_model_regression_both_references(all_data: DataFrame,
@@ -387,10 +285,6 @@ def run_all_model_regressions(all_data: DataFrame,
                     results.append(result)
                     result = run_single_model_regression_fixed_reference(all_data, None, dv_name, model, "abstract", baseline_variable_names)
                     results.append(result)
-                    # result = run_single_model_regression_min_distance(all_data, None, dv_name, model, baseline_variable_names)
-                    # results.append(result)
-                    result = run_single_model_regression_reference_difference(all_data, None, dv_name, model, baseline_variable_names)
-                    results.append(result)
                     # TODO: this shouldn't need to be hard-coded
                     result = run_dual_model_regression_both_references(all_data, None, dv_name, model, ["concrete", "abstract"], baseline_variable_names)
                     results.append(result)
@@ -414,10 +308,6 @@ def run_all_model_regressions(all_data: DataFrame,
                         results.append(result)
                         result = run_single_model_regression_fixed_reference(all_data, distance_type, dv_name, model, "abstract", baseline_variable_names)
                         results.append(result)
-                        result = run_single_model_regression_min_distance(all_data, distance_type, dv_name, model, baseline_variable_names)
-                        results.append(result)
-                        result = run_single_model_regression_reference_difference(all_data, distance_type, dv_name, model, baseline_variable_names)
-                        results.append(result)
                         result = run_dual_model_regression_both_references(all_data, distance_type, dv_name, model, ["concrete", "abstract"], baseline_variable_names)
                         results.append(result)
 
@@ -439,10 +329,6 @@ def run_all_model_regressions(all_data: DataFrame,
                             result = run_single_model_regression_fixed_reference(all_data, distance_type, dv_name, model, "concrete", baseline_variable_names)
                             results.append(result)
                             result = run_single_model_regression_fixed_reference(all_data, distance_type, dv_name, model, "abstract", baseline_variable_names)
-                            results.append(result)
-                            result = run_single_model_regression_min_distance(all_data, distance_type, dv_name, model, baseline_variable_names)
-                            results.append(result)
-                            result = run_single_model_regression_reference_difference(all_data, distance_type, dv_name, model, baseline_variable_names)
                             results.append(result)
                             result = run_dual_model_regression_both_references(all_data, distance_type, dv_name, model, ["concrete", "abstract"], baseline_variable_names)
                             results.append(result)
@@ -493,19 +379,10 @@ def add_lexical_predictors(calgary_data: CalgaryData):
         else:
             logger.info(f"Adding {reference_word} Levenshtein-distance predictor to Calgary data.")
 
-            ref_old_predictor = calgary_data.dataframe[["Word"]].copy()
-            ref_old_predictor[levenshtein_column_name] = ref_old_predictor["Word"].apply(levenshtein_distance_reference(reference_word))
+            ref_old_predictor = calgary_data.dataframe[[CalgaryData.Columns.word]].copy()
+            ref_old_predictor[levenshtein_column_name] = ref_old_predictor[CalgaryData.Columns.word].apply(levenshtein_distance_reference(reference_word))
 
-            calgary_data.add_word_keyed_predictor(ref_old_predictor, key_name="Word", predictor_name=levenshtein_column_name)
-
-    # Add the minimum of the OLDs to the reference words
-
-    min_old_column = calgary_data.dataframe[["Word"] + ref_levenshtein_column_names].copy()
-    min_old_column["minimum_reference_OrthLD"] = min_old_column[ref_levenshtein_column_names].min(axis=1)
-    # Take only column we want to actually add, plus the merge key
-    min_old_column = min_old_column[["Word", "minimum_reference_OrthLD"]]
-
-    calgary_data.add_word_keyed_predictor(min_old_column, key_name="Word", predictor_name="minimum_reference_OrthLD")
+            calgary_data.add_word_keyed_predictor(ref_old_predictor, key_name=CalgaryData.Columns.word, predictor_name=levenshtein_column_name)
 
 
 def add_elexicon_predictor(calgary_data: CalgaryData,
