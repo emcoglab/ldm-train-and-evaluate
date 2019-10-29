@@ -29,10 +29,10 @@ def main_parallel(n_workers: int):
 
     n_workers = int(n_workers)
 
-    for meta in Preferences.source_corpus_metas:
+    for corpus_meta in Preferences.source_corpus_metas:
         for embedding_size in Preferences.predict_embedding_sizes:
             for window_radius in Preferences.window_radii:
-                predict_model = SkipGramModel(meta, window_radius, embedding_size, n_workers=n_workers)
+                predict_model = SkipGramModel(corpus_meta, window_radius, embedding_size, n_workers=n_workers)
                 if not predict_model.could_load:
                     predict_model.train()
 

@@ -28,11 +28,11 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    for meta in Preferences.source_corpus_metas:
-        freq_dist = FreqDist.load(meta.freq_dist_path)
+    for corpus_meta in Preferences.source_corpus_metas:
+        freq_dist = FreqDist.load(corpus_meta.freq_dist_path)
         for radius in range(1, max(Preferences.window_radii) + 1):
             for chirality in Chirality:
-                model = UnsummedCoOccurrenceCountModel(meta, radius, freq_dist, chirality)
+                model = UnsummedCoOccurrenceCountModel(corpus_meta, radius, chirality, freq_dist)
                 if not model.could_load:
                     model.train()
 

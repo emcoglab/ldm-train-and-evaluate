@@ -28,10 +28,10 @@ logger = logging.getLogger(__name__)
 
 def main():
 
-    for meta in Preferences.source_corpus_metas:
-        freq_dist = FreqDist.load(meta.freq_dist_path)
+    for corpus_meta in Preferences.source_corpus_metas:
+        freq_dist = FreqDist.load(corpus_meta.freq_dist_path)
         for radius in Preferences.window_radii:
-            model = LogCoOccurrenceCountModel(meta, radius, freq_dist)
+            model = LogCoOccurrenceCountModel(corpus_meta, radius, freq_dist)
             if not model.could_load:
                 model.train()
 

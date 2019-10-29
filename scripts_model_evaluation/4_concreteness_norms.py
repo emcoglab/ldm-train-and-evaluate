@@ -91,8 +91,6 @@ def add_all_model_predictors(calgary_data: CalgaryData):
             # COUNT MODELS
 
             count_models = [
-                # TODO: these model initialisers should be able to have FreqDists _optionally_ passed,
-                # TODO: or else load them internally
                 LogCoOccurrenceCountModel(corpus_metadata, window_radius, freq_dist),
                 ConditionalProbabilityModel(corpus_metadata, window_radius, freq_dist),
                 ProbabilityRatioModel(corpus_metadata, window_radius, freq_dist),

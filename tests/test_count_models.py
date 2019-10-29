@@ -35,9 +35,9 @@ class TestUnsummedCoOccurrenceModel(unittest.TestCase):
     def test_unsummed_cooccurrence_r1_left_values(self):
         model = UnsummedCoOccurrenceCountModel(test_corpus_metadata,
                                                window_radius=1,
+                                               chirality=Chirality.left,
                                                freq_dist=FreqDist.from_batched_corpus(
-                                                   BatchedCorpus(test_corpus_metadata, 3)),
-                                               chirality=Chirality.left)
+                                                   BatchedCorpus(test_corpus_metadata, 3)))
         model.train(force_retrain=True)
 
         self.assertTrue(numpy.array_equal(
@@ -53,9 +53,9 @@ class TestUnsummedCoOccurrenceModel(unittest.TestCase):
     def test_unsummed_cooccurrence_r1_right_values(self):
         model = UnsummedCoOccurrenceCountModel(test_corpus_metadata,
                                                window_radius=1,
+                                               chirality=Chirality.right,
                                                freq_dist=FreqDist.from_batched_corpus(
-                                                   BatchedCorpus(test_corpus_metadata, 3)),
-                                               chirality=Chirality.right)
+                                                   BatchedCorpus(test_corpus_metadata, 3)))
         model.train(force_retrain=True)
 
         self.assertTrue(numpy.array_equal(
