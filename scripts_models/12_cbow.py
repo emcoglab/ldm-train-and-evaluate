@@ -26,9 +26,6 @@ logger = logging.getLogger(__name__)
 
 
 def main_parallel(n_workers: int):
-
-    n_workers = int(n_workers)
-
     for corpus_meta in Preferences.source_corpus_metas:
         for embedding_size in Preferences.predict_embedding_sizes:
             for window_radius in Preferences.window_radii:
@@ -38,7 +35,6 @@ def main_parallel(n_workers: int):
 
 
 def main():
-
     for corpus_meta in Preferences.source_corpus_metas:
         for embedding_size in Preferences.predict_embedding_sizes:
             for window_radius in Preferences.window_radii:

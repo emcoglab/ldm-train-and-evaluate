@@ -1,6 +1,6 @@
 """
 ===========================
-Evaluate using priming data.
+Evaluate LDMs using semantic priming data.
 ===========================
 
 Dr. Cai Wingfield
@@ -46,7 +46,6 @@ def main():
     save_wordpairs(spp_data.word_pairs)
 
     add_elexicon_predictors(spp_data)
-
     add_all_model_predictors(spp_data)
 
     spp_data.export_csv_first_associate_only()

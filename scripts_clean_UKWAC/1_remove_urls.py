@@ -27,11 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def is_suspected_url_ref(line):
-    """
-    Check if the line might be a url reference
-    :param line:
-    :return:
-    """
+    """Check if the line might be a url reference"""
     return line.startswith("CURRENT URL http://")
 
 
@@ -47,15 +43,13 @@ def main():
     logger.info(f"Removing URL references from {corpus_meta['source'].name} corpus")
     with open(corpus_meta['source'].path, mode="r", encoding="utf-8", errors="ignore") as source_file:
         with open(corpus_meta['target'].path, mode="w", encoding="utf-8") as target_file:
-            i = 0
-            for line in source_file:
+            for line_i, line in enumerate(source_file):
                 if is_suspected_url_ref(line):
                     continue
                 else:
                     target_file.write(line.strip() + "\n")
-                    i += 1
-                    if i % 100_000 == 0:
-                        logger.info(f"Processed {i:,} lines")
+                    if line_i % 100_000 == 0:
+                        logger.info(f"Processed {line_i:,} lines")
 
 
 if __name__ == '__main__':

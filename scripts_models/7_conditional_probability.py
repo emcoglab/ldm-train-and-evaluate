@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-
     for corpus_meta in Preferences.source_corpus_metas:
         freq_dist = FreqDist.load(corpus_meta.freq_dist_path)
         for radius in Preferences.window_radii:

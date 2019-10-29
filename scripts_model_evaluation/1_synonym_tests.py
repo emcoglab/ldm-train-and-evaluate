@@ -1,6 +1,6 @@
 """
 ===========================
-Evaluate using synonym tests.
+Evaluate LDMs using synonym tests.
 ===========================
 
 Dr. Cai Wingfield

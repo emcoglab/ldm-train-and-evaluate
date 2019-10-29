@@ -1,7 +1,6 @@
 """
 ===========================
-Remove XML markup from BNC XML-formatted documents,
-leaving only the linguistic content.
+Remove XML markup from BNC XML-formatted documents, leaving only the linguistic content.
 ===========================
 
 Dr. Cai Wingfield

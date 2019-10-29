@@ -25,12 +25,13 @@ from ..ldm.preferences.preferences import Preferences
 
 logger = logging.getLogger(__name__)
 
+LINES_PER_PART = 10_000
+
 
 def main():
 
     # Need to make sure that we over-pad the numbering of the parts so that alphabetical order is numerical order
     target_filename_pattern = "part_{0:06d}.txt"
-    lines_per_part = 10_000
 
     corpus_meta = dict(
         source=Preferences.ukwac_processing_metas["no_urls"],
@@ -56,7 +57,7 @@ def main():
 
             lines.append(line)
 
-            if len(lines) >= lines_per_part:
+            if len(lines) >= LINES_PER_PART:
                 part_number += 1
                 target_path = path.join(corpus_meta['target'].path, target_filename_pattern.format(part_number))
 

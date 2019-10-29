@@ -18,7 +18,7 @@ caiwingfield.net
 import sys
 import glob
 import logging
-from enum import Enum, auto
+from enum import Enum
 from os import path, mkdir
 from shutil import copyfile
 
@@ -96,13 +96,13 @@ def main():
 
 class BncDocumentType(Enum):
     """
-    The type of a document within the corpus
+    The type of a document within the BNC corpus.
     """
-    alltyp1_spoken_demographically_sampled = auto()
-    alltyp2_spoken_context_governed        = auto()
-    alltyp3_written_books_and_periodicals  = auto()
-    alltyp4_written_to_be_spoken           = auto()
-    alltyp5_written_miscellaneous          = auto()
+    alltyp1_spoken_demographically_sampled = 1
+    alltyp2_spoken_context_governed        = 2
+    alltyp3_written_books_and_periodicals  = 3
+    alltyp4_written_to_be_spoken           = 4
+    alltyp5_written_miscellaneous          = 5
 
 
 if __name__ == '__main__':

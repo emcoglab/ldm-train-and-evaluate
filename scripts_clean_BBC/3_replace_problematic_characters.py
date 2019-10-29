@@ -27,10 +27,7 @@ from ..ldm.preferences.preferences import Preferences
 logger = logging.getLogger(__name__)
 
 
-def main():
-    # Ignore files already processed and overwrite them?
-    start_over = True
-
+def main(start_over=False):
     subs_source_dir = Preferences.bbc_processing_metas["no_nonspeech"].path
     subs_target_dir = Preferences.bbc_processing_metas["replaced_symbols"].path
 
@@ -40,7 +37,7 @@ def main():
 
     subs_source_paths = list(glob.iglob(path.join(subs_source_dir, '*.srt')))
 
-    for i, source_path in enumerate(subs_source_paths):
+    for file_i, source_path in enumerate(subs_source_paths):
         target_path = path.join(subs_target_dir, path.basename(source_path))
 
         # If we've already processed this file, skip it.
@@ -55,8 +52,8 @@ def main():
 
                     target_file.write(fixed_line)
 
-        if i % 1000 == 0:
-            logger.info("Processed {count:02d} files".format(count=i))
+        if file_i % 1000 == 0:
+            logger.info(f"Processed {file_i:02d} files")
 
 
 if __name__ == "__main__":

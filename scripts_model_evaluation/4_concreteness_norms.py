@@ -1,6 +1,6 @@
 """
 ===========================
-Evaluate using concreteness norm data.
+Evaluate LDMs using concreteness semantic decision data.
 ===========================
 
 Dr. Cai Wingfield
@@ -44,7 +44,6 @@ def main():
     save_wordlist(calgary_data.vocabulary)
 
     add_lexical_predictors(calgary_data)
-
     add_all_model_predictors(calgary_data)
 
     regression_wrapper(calgary_data)
@@ -131,8 +130,8 @@ def regression_wrapper(calgary_data: CalgaryData):
 
     dependent_variable_names = [
         CalgaryData.Columns.zrt_mean,
-        CalgaryData.Columns.concrete_response_proportion,
         # CalgaryData.Columns.accuracy
+        CalgaryData.Columns.concrete_response_proportion,
     ]
 
     baseline_variable_names = [

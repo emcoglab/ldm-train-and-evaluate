@@ -29,11 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 def is_suspected_nonspeech(line):
-    """
-    Checks if a line of subtitles looks like it might be a description of a visual event or other non-speech text
-    :param line:
-    :return:
-    """
+    """Checks if a line of subtitles looks like it might be a description of a visual event or other non-speech text."""
 
     # Strip leading and trailing punctuation and whitespace
     line_stripped = line.strip(string.punctuation + " \n")
@@ -44,7 +40,7 @@ def is_suspected_nonspeech(line):
         line.isupper()
         # Not a permitted all-uppercase phrase (e.g. "I...")
         and line_stripped not in ['A', 'I', 'OK']
-        # Doesn't contain a character which betrays this is probably speech ("GO TO HELL!")
+        # Doesn't contain a character which betrays this is probably speech (e.g. "GO TO HELL!")
         and not any(char in set("!?,.") for char in line))
 
 
@@ -61,10 +57,7 @@ def is_suspected_credits(line):
     return line_stripped.startswith("subtitles by ")
 
 
-def main():
-    # Ignore files already processed and overwrite them?
-    start_over = True
-
+def main(start_over=False):
     subtitles = dict(
         source=Preferences.bbc_processing_metas["no_srt"],
         target=Preferences.bbc_processing_metas["no_nonspeech"])

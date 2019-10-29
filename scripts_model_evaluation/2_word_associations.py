@@ -1,6 +1,6 @@
 """
 ===========================
-Evaluate using word similarity judgements.
+Evaluate LDMs using word association judgements.
 ===========================
 
 Dr. Cai Wingfield
@@ -39,9 +39,7 @@ def main():
         AssociationTester(test=WordsimSimilarity()),
         AssociationTester(test=WordsimRelatedness()),
         AssociationTester(test=MenSimilarity()),
-        # AssociationTester(test=ColourEmotionAssociation()),
         AssociationTester(test=ThematicRelatedness()),
-        # AssociationTester(test=ThematicRelatedness(only_use_response=1)),
     ]
 
     results = AssociationResults()

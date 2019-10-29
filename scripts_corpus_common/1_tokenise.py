@@ -1,6 +1,6 @@
 """
 ===========================
-Tokenisation of a corpus of natural language.
+Tokenise corpora.
 ===========================
 
 Dr. Cai Wingfield
@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 def main():
 
+    # All corpora have been preprocessed and can now be tokenised in the same way
     corpus_metas = [
         dict(
             source=Preferences.bbc_processing_metas["replaced_symbols"],

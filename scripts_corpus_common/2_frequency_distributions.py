@@ -1,6 +1,7 @@
 """
 ===========================
 Compute and save frequency distribution information from a corpus.
+This will later be used the canonical indexing of the unique tokens in the corpus.
 ===========================
 
 Dr. Cai Wingfield

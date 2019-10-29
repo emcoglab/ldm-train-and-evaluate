@@ -28,10 +28,7 @@ from ..ldm.preferences.preferences import Preferences
 logger = logging.getLogger(__name__)
 
 
-def main():
-    # Ignore files already processed and overwrite them?
-    start_over = False
-
+def main(start_over=False):
     raw_subs_dir       = Preferences.bbc_processing_metas["raw"].path
     processed_subs_dir = Preferences.bbc_processing_metas["no_srt"].path
 
@@ -41,14 +38,12 @@ def main():
 
     subtitle_paths = list(glob.iglob(path.join(raw_subs_dir, '*.srt')))
 
-    count = 0
-    for subtitle_path in subtitle_paths:
-        count += 1
+    for file_i, subtitle_path in enumerate(subtitle_paths):
         target_path = path.join(processed_subs_dir, path.basename(subtitle_path))
 
         # If we've already processed this file, skip it.
         if path.isfile(target_path) and not start_over:
-            logger.info("{file_i:05d}: SKIPPING {file_name}".format(file_i=count, file_name=target_path))
+            logger.info(f"{file_i:05d}: SKIPPING {target_path}")
             continue
 
         with open(subtitle_path, mode="r", encoding="utf-8", errors="ignore") as subtitle_file:
@@ -60,7 +55,7 @@ def main():
             for sub in subs:
                 target_file.write(sub.content + "\n")
 
-        logger.info("{file_i:05d}: Processed {file_name}".format(file_i=count, file_name=target_path))
+        logger.info(f"{file_i:05d}: Processed {target_path}")
 
 
 if __name__ == "__main__":
