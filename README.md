@@ -1,4 +1,4 @@
-# README #
+# Train and evaluate linguistic distributional models
 
 Scripts for:
 
