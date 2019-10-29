@@ -1,5 +1,7 @@
 # Train and evaluate linguistic distributional models
 
+Repository hosted and maintained on Github: [https://github.com/emcoglab/ldm-train-and-evaluate](https://github.com/emcoglab/ldm-train-and-evaluate)
+
 Scripts for:
 
 - Cleaning and tokenising text corpora.
