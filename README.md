@@ -9,6 +9,31 @@ Scripts for:
 - Evaluating LDMs using several benchmarking test datasets.
 
 
+## Running scripts
+
+This project requires Python 3.7+.
+
+Start by installing the requirements:
+```commandline
+pip install -r requirements.txt
+```
+You may want to use a [virtual environment](https://docs.python.org/3/library/venv.html).
+
+To run a script, you'll need to go above this project directory, and run using the `-m` flag.  For example:
+```commandline
+python -m corpus_analysis.scripts_model_evaluation.1_synonym_tests
+```
+
+
+## Setting config
+
+To set up config, copy the file `ldm/preferences/default_config.yaml` to somewhere else accessible and name it something like `congif_override.yaml`.  Then add the following as the first non-comment line in the script you are running:
+
+    from ldm.preferences.config import Config; Config(use_config_overrides_from_file="/path/to/config_override.yaml")
+    
+Inside `config_override.yaml`, set the paths to be relevant to your local setup.  Only values set in `config_override.yaml` with override the corresponding value set in `default_config.yaml`, so you don't need to set everything if it's not relevant.
+
+
 ## Structure
 
 Scripts to run to reproduce the analysis are found in `scripts_…` directories; critical ones are numbered in sequence. 
@@ -46,28 +71,3 @@ To run the analysis from beginning to end, run the following scripts in the foll
 - `scripts_model_evaluation/2_word_associations.py`
 - `scripts_model_evaluation/3_semantic_priming.py`
 - `scripts_model_evaluation/4_concreteness_norms.py`
-
-
-## Running scripts
-
-This project requires Python 3.7+.
-
-Start by installing the requirements:
-```commandline
-pip install -r requirements.txt
-```
-You may want to use a [virtual environment](https://docs.python.org/3/library/venv.html).
-
-To run a script, you'll need to go above this project directory, and run using the `-m` flag.  For example:
-```commandline
-python -m corpus_analysis.scripts_model_evaluation.1_synonym_tests
-```
-
-
-## Setting config
-
-To set up config, copy the file `ldm/preferences/default_config.yaml` to somewhere else accessible and name it something like `congif_override.yaml`.  Then add the following as the first non-comment line in the script you are running:
-
-    from ldm.preferences.config import Config; Config(use_config_overrides_from_file="/path/to/config_override.yaml")
-    
-Inside `config_override.yaml`, set the paths to be relevant to your local setup.  Only values set in `config_override.yaml` with override the corresponding value set in `default_config.yaml`, so you don't need to set everything if it's not relevant.
