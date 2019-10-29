@@ -52,11 +52,16 @@ To run the analysis from beginning to end, run the following scripts in the foll
 
 This project requires Python 3.7+.
 
+Start by installing the requirements:
+```commandline
+pip install -r requirements.txt
+```
+You may want to use a [virtual environment](https://docs.python.org/3/library/venv.html).
+
 To run a script, you'll need to go above this project directory, and run using the `-m` flag.  For example:
 ```commandline
 python -m corpus_analysis.scripts_model_evaluation.1_synonym_tests
 ```
-This is because of weird behaviour of Python which I don't understand.
 
 
 ## Setting config
