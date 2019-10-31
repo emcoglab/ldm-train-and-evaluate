@@ -59,6 +59,8 @@ def main():
                     if not tester.has_tested_model(model):
                         model.train(memory_map=True)
                         tester.administer_test(model)
+                    else:
+                        logger.info(f"Already run {tester.test.name} with {model.name}")
                     results.add_result(tester.test.name, model, None, tester.results_for_model(model))
                 # release memory
                 model.untrain()
@@ -79,6 +81,8 @@ def main():
                         if not tester.has_tested_model(model, distance_type):
                             model.train(memory_map=True)
                             tester.administer_test(model, distance_type)
+                        else:
+                            logger.info(f"Already run {tester.test.name} with {model.name}")
                         results.add_result(tester.test.name, model, distance_type,
                                            tester.results_for_model(model, distance_type))
                 # release memory
@@ -93,6 +97,8 @@ def main():
                     if not tester.has_tested_model(model, distance_type, truncate_length=truncate_length):
                         model.train(memory_map=True)
                         tester.administer_test(model, distance_type, truncate_length)
+                    else:
+                        logger.info(f"Already run {tester.test.name} with {model.name}")
                     results.add_result(tester.test.name, model, distance_type,
                                        tester.results_for_model(model, distance_type),
                                        append_to_model_name=f" ({truncate_length})")
@@ -115,6 +121,8 @@ def main():
                             if not tester.has_tested_model(model, distance_type):
                                 model.train(memory_map=True)
                                 tester.administer_test(model, distance_type)
+                            else:
+                                logger.info(f"Already run {tester.test.name} with {model.name}")
                             results.add_result(tester.test.name, model, distance_type,
                                                tester.results_for_model(model, distance_type))
                     # release memory

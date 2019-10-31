@@ -61,6 +61,8 @@ def main():
                     if not tester.has_tested_model(model):
                         model.train(memory_map=True)
                         tester.administer_test(model)
+                    else:
+                        logger.info(f"Already run {tester.test.name} with {model.name}")
                     results.add_result(tester.test.name, model, None,
                                        tester.results_for_model(CorrelationType.Pearson, model))
                     results.add_result(tester.test.name, model, None,
@@ -84,6 +86,8 @@ def main():
                         if not tester.has_tested_model(model, distance_type):
                             model.train(memory_map=True)
                             tester.administer_test(model, distance_type)
+                        else:
+                            logger.info(f"Already run {tester.test.name} with {model.name}")
                         results.add_result(tester.test.name, model, distance_type,
                                            tester.results_for_model(CorrelationType.Pearson, model, distance_type))
                         results.add_result(tester.test.name, model, distance_type,
@@ -107,6 +111,8 @@ def main():
                             if not tester.has_tested_model(model, distance_type):
                                 model.train(memory_map=True)
                                 tester.administer_test(model, distance_type)
+                            else:
+                                logger.info(f"Already run {tester.test.name} with {model.name}")
                             results.add_result(tester.test.name, model, distance_type,
                                                tester.results_for_model(CorrelationType.Pearson, model, distance_type))
                             results.add_result(tester.test.name, model, distance_type,
