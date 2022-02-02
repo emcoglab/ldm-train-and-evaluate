@@ -36,7 +36,7 @@ def main():
         else:
 
             logger.info(f"Loading corpus documents from {corpus_meta.path}")
-            freq_dist = FreqDist.from_batched_corpus(BatchedCorpus(corpus_meta, batch_size=1_000_000))
+            freq_dist = FreqDist.from_batched_corpus(BatchedCorpus(corpus_meta.path, batch_size=1_000_000))
 
             logger.info(f"Saving frequency distribution information to {corpus_meta.freq_dist_path}")
             freq_dist.save(corpus_meta.freq_dist_path)
