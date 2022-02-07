@@ -76,6 +76,9 @@ def main():
             # Filter punctuation
             corpus_doc = filter_punctuation(corpus_doc)
 
+            # Tokens are case-insensitive
+            corpus_doc = [t.lower() for t in corpus_doc]
+
             if not path.isdir(path.dirname(corpus_meta['target'].path)):
                 logger.warning(f"{corpus_meta['target'].path} doesn't exist, making it.")
                 mkdir(path.dirname(corpus_meta['target'].path))
@@ -85,9 +88,7 @@ def main():
                 for token in corpus_doc:
 
                     tokenised_corpus_file.write(
-                        # Tokens are case-insensitive
-                        token.lower()
-                        + token_delimiter)
+                        token + token_delimiter)
                     token_count += 1
 
                     if token_count % 100_000 == 0 and token_count > 0:
