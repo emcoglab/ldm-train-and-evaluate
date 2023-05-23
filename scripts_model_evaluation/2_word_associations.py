@@ -20,7 +20,7 @@ import sys
 
 from ldm.corpus.indexing import FreqDist
 from ldm.evaluation.association import SimlexSimilarity, WordsimSimilarity, WordsimRelatedness, MenSimilarity, \
-    AssociationTester, ThematicRelatedness, AssociationResults
+    AssociationTester, ThematicRelatedness, AssociationResults, RareWordsSimilarity
 from ldm.model.count import PPMIModel, LogCoOccurrenceCountModel, ConditionalProbabilityModel, ProbabilityRatioModel
 from ldm.model.ngram import LogNgramModel, PPMINgramModel, ProbabilityRatioNgramModel
 from ldm.model.predict import SkipGramModel, CbowModel
@@ -40,6 +40,7 @@ def main():
         AssociationTester(test=WordsimRelatedness()),
         AssociationTester(test=MenSimilarity()),
         AssociationTester(test=ThematicRelatedness()),
+        AssociationTester(test=RareWordsSimilarity()),
     ]
 
     results = AssociationResults()
